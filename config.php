@@ -29,8 +29,7 @@
             "description": "Sequence",
             "contentListUrl": "api/files/sequences?nameOnly=1",
             "type": "string",
-            "onChange": "SequenceChanged",
-            "opti onal": false,
+            "optional": false,
             "simpleUI": true
           }
         }

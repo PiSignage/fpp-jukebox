@@ -133,7 +133,7 @@ $(function () {
     })
     .fail(function (data) {
       $(".itemList").removeClass("loading");
-      processItemConfig('[]');
+      processItemConfig('{"static_sequence":"","ticker_other_info":"","items":[]}');
     });
 
   function processItemConfig(data) {
@@ -146,14 +146,10 @@ $(function () {
     // console.log(jukeboxConfig);
 
     if (jukeboxConfig.items.length < 1) {
-      jukeboxConfig.push({
-        "static_sequence": "",
-        "ticker_other_info": "",
-      });
       jukeboxConfig.items.push({
         "name": "",
         "option": "",
-      })
+      });
     }
 
     $('#static_sequence').val(jukeboxConfig.static_sequence);
@@ -164,23 +160,25 @@ $(function () {
       var json = v;
 
       if (typeof json != "undefined") {
-        $('#item-' + i + '_Option').val(json["option"]);
-        PrintArgInputs('item-' + i + '_EntryOptions', true, playlistEntryTypes[json["option"]].args);
-        var baseUrl = "";
+        if (json["option"] != '') {
+          $('#item-' + i + '_Option').val(json["option"]);
+          PrintArgInputs('item-' + i + '_EntryOptions', true, playlistEntryTypes[json["option"]].args);
+          var baseUrl = "";
 
-        if (typeof json['args'] != "undefined") {
-          var count = 1;
-          $.each(json['args'], function (key, v) {
-            var inp = $("#item-" + i + "_EntryOptions_arg_" + count);
-            if (inp.data('contentlisturl') != null && baseUrl != "") {
-              console.log('ReloadContentList');
-              ReloadContentList(baseUrl, inp);
-            }
+          if (typeof json['args'] != "undefined") {
+            var count = 1;
+            $.each(json['args'], function (key, v) {
+              var inp = $("#item-" + i + "_EntryOptions_arg_" + count);
+              if (inp.data('contentlisturl') != null && baseUrl != "") {
+                console.log('ReloadContentList');
+                ReloadContentList(baseUrl, inp);
+              }
 
-            $('#item-' + i + '_EntryOptions_arg_' + count).val(v);
-            console.log(v);
-            count = count + 1;
-          })
+              $('#item-' + i + '_EntryOptions_arg_' + count).val(v);
+              console.log(v);
+              count = count + 1;
+            })
+          }
         }
       }
     });
