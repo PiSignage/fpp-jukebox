@@ -123,7 +123,7 @@
           if (data.current_sequence == '' || data.current_sequence == pluginJson['static_sequence']) {
             var text = 'Nothing Player - Select a song';
           } else {
-            var text = data.current_sequence;
+            var text = data.current_sequence.replace('.fseq', '');
           }
 
           if (pluginJson.ticker_other_info != '') {
