@@ -1,0 +1,18 @@
+{
+  "repoName": "fpp-jukebox",
+  "name": "Jukebox",
+  "author": "Michael Jones",
+  "description": "Give your visitors control on which song or playlist they want to listen to. User will not be able to override currently playing song.",
+  "homeURL": "https://github.com/PiSignage/fpp-jukebox",
+  "srcURL": "https://github.com/PiSignage/fpp-jukebox.git",
+  "bugURL": "https://github.com/PiSignage/fpp-jukebox/issues",
+  "allowUpdates": 1,
+  "versions": [
+    {
+      "minFPPVersion": "5.0",
+      "maxFPPVersion": "0",
+      "branch": "main",
+      "sha": ""
+    }
+  ]
+}
