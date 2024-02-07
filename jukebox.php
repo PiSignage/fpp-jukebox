@@ -121,7 +121,7 @@
         $.get('/api/fppd/status', function(data, status) {
           // console.log(data.current_sequence);
           if (data.current_sequence == '' || data.current_sequence == pluginJson['static_sequence']) {
-            var text = 'Nothing Player - Select a song';
+            var text = 'Nothing Playing - Select a song';
           } else {
             var text = data.current_sequence.replace('.fseq', '');
           }
