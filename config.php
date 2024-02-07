@@ -78,11 +78,11 @@
   </template>
 
   <div class="d-flex justify-content-between mb-1">
-    <button id="addNewItem" class="buttons btn-success">
+    <button id="addNewItem" class="buttons btn-success mr-1">
       <i class="fas fa-plus"></i> Add a Item
     </button>
     <button id="saveItemConfigButton" class="buttons btn-success">
-      Save Items
+      Save Config
     </button>
   </div>
   <legend>Jukebox Config</legend>
