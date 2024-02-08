@@ -33,13 +33,22 @@ function SaveSongCount()
 {
   $counts = convertAndGetSettings('jukebox-counts');
 
-  $item = $_POST['item'];
-  if (isset($counts[$item])) {
-    $count = (int) $counts[$item];
-    $counts[$item] = $count + 1;
+  $item = str_replace('.fseq', '', $_POST['item']);
+  if (array_search($item, array_column($counts, 'name')) !== FALSE) {
+    foreach ($counts as $key => $value) {
+      if ($value['name'] == $item) {
+        $current_count = (int) $value['count'];
+        $counts[$key]['count'] = $current_count + 1;
+      }
+    }
   } else {
-    $counts[$item] = 1;
+    $counts[] = [
+      'name' => $item,
+      'count' => 1
+    ];
   }
+
+  // echo print_r($counts, true);
 
   writeToJsonFile('counts', $counts);
 }

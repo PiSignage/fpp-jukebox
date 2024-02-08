@@ -6,6 +6,12 @@
 
 $menuEntries = Array(
     Array(
+        'text' => 'Jukebox - Stats',
+        'type' => 'status',
+        'page' => 'stats.php',
+        'wrap' => 1
+    ),
+    Array(
         'text' => 'Jukebox',
         'type' => 'status',
         'page' => 'jukebox.php',
