@@ -67,6 +67,18 @@
         contentType: 'application/json',
         success: function(data) {}
       });
+
+      $.ajax({
+        type: "POST",
+        url: 'plugin.php?plugin=fpp-jukebox&page=other.php&command=save_song_count&nopage=1',
+        async: false,
+        data: {
+          item: item[0],
+        },
+        dataType: 'json',
+        async: false,
+        success: function(data) {}
+      });
     }
 
     $(function() {

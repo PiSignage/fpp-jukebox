@@ -23,7 +23,7 @@ function SaveJukeboxConfig(config) {
 function GetItem(i, v) {
   var item = {
     "name": $('#item-' + i + '_Name').val(),
-    "option": $('#item-' + i + '_Option').val(),
+    "option": $('#item-' + i + '_Option').val()
   };
 
   var type = $('#item-' + i + '_Option').val();
@@ -64,49 +64,42 @@ function SaveItems() {
 
 function updateItemRow(i, v) {
   var $newItemRow = $(v);
-  //var newReaderRowCommand = 'reader-' + i + '_Command';
-  var newItemRowName = 'item-' + i + '_Name';
   var newItemRowTable = 'tableItem-' + i;
+  var newItemRowName = 'item-' + i + '_Name';
+  var newItemRowOption = 'item-' + i + '_Option';
+  var newItemRowEntryOptions = 'item-' + i + '_EntryOptions';
 
-  $newItemRow.data('rKey', i);
-  //$newItemRow.find('.buttonCommand').attr('id', newReaderRowCommand);
-  $newItemRow.find('.itemName').attr('id', newItemRowName);
   $newItemRow.find('.itemHeader').html('Item ' + (i + 1));
-
-  $newItemRow.find('[id^="tableItem"]').each(function () {
-    var oldId = $(this).prop('id')
-    var idArr = oldId.split('_');
-    idArr[0] = newItemRowTable
-    $(this).attr('id', idArr.join('_'))
-
-  });
+  $newItemRow.find('.tableItem').attr('id', newItemRowTable);
+  $newItemRow.find('.itemName').attr('id', newItemRowName);
+  $newItemRow.find('.itemOption').attr('id', newItemRowOption);
+  $newItemRow.find('.itemEntryOptions').attr('id', newItemRowEntryOptions);
   return $newItemRow;
+}
+
+function updateItemList() {
+  $.each($('.itemList').children(), function (iteration, value) {
+    updateItemRow(iteration, value);
+  });
 }
 
 function createItemRow(i, v) {
   // console.log('createItemRow');
   var $newItemRow = $($(".configItemTemplate").html());
-  var newItemRowEntryOptions = 'item-' + i + '_EntryOptions';
-  var newItemRowOption = 'item-' + i + '_Option';
-  var newItemRowName = 'item-' + i + '_Name';
   var newItemRowTable = 'tableItem-' + i;
-
-  $newItemRow.data('rKey', i);
-  $newItemRow.find('.itemEntryOptions').attr('id', newItemRowEntryOptions);
-  $newItemRow.find('.itemOption').attr('id', newItemRowOption).on('change', function () {
-    var option = $(this).val();
-
-    $('#' + newItemRowEntryOptions).html('');
-    PrintArgInputs(newItemRowEntryOptions, true, playlistEntryTypes[option].args);
-  });
+  var newItemRowName = 'item-' + i + '_Name';
+  var newItemRowOption = 'item-' + i + '_Option';
+  var newItemRowEntryOptions = 'item-' + i + '_EntryOptions';
 
   $newItemRow.find('.itemHeader').html('Item ' + (i + 1));
+  $newItemRow.find('.tableItem').attr('id', newItemRowTable);
   if (!v) {
     $newItemRow.find('.itemName').attr('id', newItemRowName).val();
   } else {
     $newItemRow.find('.itemName').attr('id', newItemRowName).val(v.name);
   }
-  $newItemRow.find('.tableItem').attr('id', newItemRowTable);
+  $newItemRow.find('.itemOption').attr('id', newItemRowOption);
+  $newItemRow.find('.itemEntryOptions').attr('id', newItemRowEntryOptions);
 
   $newItemRow.find('.itemDelete').click(function () {
     $(this).closest('.item').remove();
@@ -121,6 +114,20 @@ function createItemRow(i, v) {
 }
 
 $(function () {
+  $(document).on('change', '.itemOption', function () {
+    var thisObj = $(this),
+      thisId = thisObj.attr('id'),
+      option = thisObj.val();
+
+    var item = thisId.split('-');
+    var itemId = item[1].split('_');
+    var entryOptions = 'item-' + itemId[0] + '_EntryOptions';
+
+    $('#' + entryOptions).html('');
+    PrintArgInputs(entryOptions, true, playlistEntryTypes[option].args);
+  });
+
+
   $('#saveItemConfigButton').click(function () {
     SaveItems();
   });
@@ -175,7 +182,7 @@ $(function () {
               }
 
               $('#item-' + i + '_EntryOptions_arg_' + count).val(v);
-              console.log(v);
+              // console.log(v);
               count = count + 1;
             })
           }
@@ -187,5 +194,13 @@ $(function () {
   $("#addNewItem").click(function () {
     var i = $(".itemList").children().length;
     var $newItemRow = createItemRow(i, null);
+  });
+
+  $("#dragArea").sortable({ cursor: "move" }, { revert: true }, { scroll: true }, { scrollSensitivity: 10 }, { tolerance: "pointer" });
+  $("#dragArea").disableSelection();
+  $("#dragArea").sortable({
+    update: function (event, ui) {
+      updateItemList();
+    }
   });
 });

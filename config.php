@@ -1,5 +1,6 @@
 <div id="global" class="settings">
   <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&page=config.css&nopage=1" />
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
   <script src="/plugin.php?plugin=fpp-jukebox&page=config.js&nopage=1"></script>
 
   <script>
@@ -38,14 +39,14 @@
   </script>
 
   <template class="configItemTemplate">
-    <div class="col-md-6 item">
+    <div class="col-md-6 item dragItem">
       <div class="card mb-4 box-shadow">
         <div class="card-header ItemHeader">Item</div>
         <div class="card-body">
           <div class="buttonCommandWrap mb-2">
             <div class="bb_commandTableWrap">
               <div class="bb_commandTableCrop">
-                <table border=0 id="tableReaderTPL" class="tableItem">
+                <table border=0 id="tableReaderTPL" class="tableItem" data-iKey="">
                   <tr>
                     <td>Item Name:</td>
                     <td>
@@ -87,6 +88,8 @@
   </div>
   <legend>Jukebox Config</legend>
 
+  <p>Kiosk Url: http://localhost/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1</p>
+
   <div class="form-group">
     <label for="static_sequence">Static Sequence</label>
     <input type="text" class="form-control" id="static_sequence" aria-describedby="staticSequenceHelp" placeholder="Sequence Name">
@@ -98,5 +101,5 @@
     <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the ticker</small>
   </div>
 
-  <div class="itemList row"></div>
+  <div id="dragArea" class="itemList row"></div>
 </div>
