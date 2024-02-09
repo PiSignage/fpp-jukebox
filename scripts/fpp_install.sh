@@ -25,3 +25,7 @@ else
 	echo "$defalt_json" > /home/fpp/media/config/plugin.fpp-jukebox.json
 	sudo chown fpp /home/fpp/media/config/plugin.fpp-jukebox.json
 fi
+
+echo "Copy placeholder image to images folder"
+sudo cp /home/fpp/media/plugins/fpp-julebox/img/placeholder.jpg /home/fpp/media/images/placeholder.jpg
+sudo chown fpp /home/fpp/media/images/placeholder.jpg

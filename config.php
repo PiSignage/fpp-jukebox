@@ -17,7 +17,16 @@
             "contentListUrl": "api/playlists",
             "optional": false,
             "simpleUI": true
-          }
+          },
+          "imageName": {
+            "name": "imageName",
+            "description": "Image",
+            "contentListUrl": "api/files/images?nameOnly=1",
+            "type": "string",
+            "optional": false,
+            "simpleUI": true,
+            "default": "placeholder.jpg"
+          },
         }
       },
       "sequence": {
@@ -32,7 +41,16 @@
             "type": "string",
             "optional": false,
             "simpleUI": true
-          }
+          },
+          "imageName": {
+            "name": "imageName",
+            "description": "Image",
+            "contentListUrl": "api/files/images?nameOnly=1",
+            "type": "string",
+            "optional": false,
+            "simpleUI": true,
+            "default": "placeholder.jpg"
+          },
         }
       }
     };
