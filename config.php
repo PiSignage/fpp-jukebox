@@ -118,6 +118,11 @@
     <input type="text" class="form-control" id="ticker_other_info" aria-describedby="tickerOtherInfoHelp">
     <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the ticker</small>
   </div>
+  <div class="form-group">
+    <label for="qr_code">QR code</label>
+    <select id="qr_code" class="form-control" aria-describedby="qrCodeHelp" data-contentlisturl="api/files/images?nameOnly=1"></select>
+    <small id="qrCodeHelp" class="form-text text-muted">Do you have a QR code that you use for visitors to donate. Select the QR Code from your upload images</small>
+  </div>
 
   <div id="dragArea" class="itemList row"></div>
 </div>

@@ -50,6 +50,7 @@ function GetItem(i, v) {
 function SaveItems() {
   jukeboxConfig["static_sequence"] = $('#static_sequence').val();
   jukeboxConfig["ticker_other_info"] = $('#ticker_other_info').val();
+  jukeboxConfig["qr_code"] = $('#qr_code').val();
   // Reset items to empty array
   jukeboxConfig["items"] = [];
   // Look over itemList children
@@ -161,6 +162,7 @@ $(function () {
 
     $('#static_sequence').val(jukeboxConfig.static_sequence);
     $('#ticker_other_info').val(jukeboxConfig.ticker_other_info);
+    $('#qr_code').val(jukeboxConfig.qr_code);
 
     $.each(jukeboxConfig.items, function (i, v) {
       $newItemRow = createItemRow(i, v);
@@ -203,4 +205,32 @@ $(function () {
       updateItemList();
     }
   });
+
+  if ($('#qr_code').length) {
+    var selId = '#qr_code',
+      contentListUrl = $('#qr_code').attr('data-contentlisturl');
+
+    console.log(contentListUrl);
+
+    $.ajax({
+      dataType: "json",
+      url: contentListUrl,
+      async: false,
+      success: function (data) {
+        var default_option = '<option value="">Select QR Code</option>';
+        $(selId).append(default_option);
+        if (Array.isArray(data)) {
+          $.each(data, function (key, v) {
+            var line = '<option value="' + v + '">' + v + '</option>';
+            $(selId).append(line);
+          });
+        } else {
+          $.each(data, function (key, v) {
+            var line = '<option value="' + key + '">' + v + '</option>';
+            $(selId).append(line);
+          });
+        }
+      }
+    });
+  }
 });
