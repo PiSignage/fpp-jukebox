@@ -47,6 +47,12 @@
       color: #fff;
       text-align: center;
     }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+    }
   </style>
 </head>
 

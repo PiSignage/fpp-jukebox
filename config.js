@@ -70,7 +70,7 @@ function updateItemRow(i, v) {
   var newItemRowOption = 'item-' + i + '_Option';
   var newItemRowEntryOptions = 'item-' + i + '_EntryOptions';
 
-  $newItemRow.find('.itemHeader').html('Item ' + (i + 1));
+  $newItemRow.find('.itemHeader').html('<i class="fpp-icon-grip"></i>  Item ' + (i + 1));
   $newItemRow.find('.tableItem').attr('id', newItemRowTable);
   $newItemRow.find('.itemName').attr('id', newItemRowName);
   $newItemRow.find('.itemOption').attr('id', newItemRowOption);
@@ -92,7 +92,7 @@ function createItemRow(i, v) {
   var newItemRowOption = 'item-' + i + '_Option';
   var newItemRowEntryOptions = 'item-' + i + '_EntryOptions';
 
-  $newItemRow.find('.itemHeader').html('Item ' + (i + 1));
+  $newItemRow.find('.itemHeader').html('<i class="fpp-icon-grip"></i>  Item ' + (i + 1));
   $newItemRow.find('.tableItem').attr('id', newItemRowTable);
   if (!v) {
     $newItemRow.find('.itemName').attr('id', newItemRowName).val();
@@ -210,7 +210,7 @@ $(function () {
     var selId = '#qr_code',
       contentListUrl = $('#qr_code').attr('data-contentlisturl');
 
-    console.log(contentListUrl);
+    // console.log(contentListUrl);
 
     $.ajax({
       dataType: "json",

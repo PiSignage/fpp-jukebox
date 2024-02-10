@@ -3,10 +3,9 @@
   <?php
   require_once("config.php");
   require_once("common.php");
-  require_once("jukebox-common.php");
+  // require_once("jukebox-common.php");
   require_once("fppversion.php");
 
-  $pluginJson = convertAndGetSettings('jukebox');
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
   ?>
@@ -109,6 +108,10 @@
           pluginJson = $.parseJSON(data);
         } else {
           pluginJson = data;
+        }
+
+        if (pluginJson.qr_code == '') {
+          $('#donate_btn').hide();
         }
 
         $.each(pluginJson.items, function(i, item) {
@@ -315,9 +318,7 @@
     <h1 class="title">Select A Song</h1>
     <div class="row row-cols-2 g-3" id="items"></div>
   </div>
-  <?php if (isset($pluginJson['qr_code']) && $pluginJson['qr_code'] != '') { ?>
-    <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg back-to-top" role="button">Donate</a>
-  <?php } ?>
+  <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg back-to-top" role="button">Donate</a>
 </body>
 
 </html>

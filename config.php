@@ -59,7 +59,7 @@
   <template class="configItemTemplate">
     <div class="col-md-6 item dragItem">
       <div class="card mb-4 box-shadow">
-        <div class="card-header ItemHeader">Item</div>
+        <div class="card-header ItemHeader"><i class="fpp-icon-grip"></i> Item</div>
         <div class="card-body">
           <div class="buttonCommandWrap mb-2">
             <div class="bb_commandTableWrap">

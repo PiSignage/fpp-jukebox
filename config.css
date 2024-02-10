@@ -1,3 +1,13 @@
 .loading {
   opacity: .75;
 }
+
+.ItemHeader {
+  display: flex;
+  align-items: center;
+}
+
+.fpp-icon-grip {
+    padding-right: 0.2em;
+    cursor: grab;
+}
