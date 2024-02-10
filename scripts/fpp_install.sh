@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# fpp-zettle install script
+# fpp-jukebox install script
 echo "Installing Jukebox Plugin for FPP...."
 
 echo "Writing config file...."
@@ -29,8 +29,10 @@ fi
 
 placeholder_image=/home/fpp/media/images/placeholder.jpg
 if [ -s "$placeholder_image" ]
-	echo "Placehoolder image found no"
+then
+	echo "Placehoolder image found"
 else
 	echo "Placehoolder image not found, Copy placeholder image to images folder"
 	sudo cp /home/fpp/media/plugins/fpp-julebox/img/placeholder.jpg /home/fpp/media/images/placeholder.jpg
 	sudo chown fpp /home/fpp/media/images/placeholder.jpg
+fi
