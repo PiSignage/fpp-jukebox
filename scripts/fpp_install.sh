@@ -27,7 +27,7 @@ else
 fi
 
 
-placeholder_image =/home/fpp/media/images/placeholder.jpg
+placeholder_image=/home/fpp/media/images/placeholder.jpg
 if [ -s "$placeholder_image" ]
 	echo "Placehoolder image found no"
 else
