@@ -110,13 +110,13 @@
 
   <div class="form-group">
     <label for="static_sequence">Static Sequence</label>
-    <input type="text" class="form-control" id="static_sequence" aria-describedby="staticSequenceHelp" placeholder="Sequence Name">
+    <select id="static_sequence" class="form-control" aria-describedby="staticSequenceHelp" data-contentlisturl="api/files/sequences?nameOnly=1"></select>
     <small id="staticSequenceHelp" class="form-text text-muted">Do You have a sequence run between songs?</small>
   </div>
   <div class="form-group">
     <label for="ticker_other_info">Ticker Info</label>
     <input type="text" class="form-control" id="ticker_other_info" aria-describedby="tickerOtherInfoHelp">
-    <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the ticker</small>
+    <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the Currently Playing Ticker</small>
   </div>
   <div class="form-group">
     <label for="qr_code">QR code</label>

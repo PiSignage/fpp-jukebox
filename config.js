@@ -114,6 +114,29 @@ function createItemRow(i, v) {
   return $newItemRow;
 }
 
+function contentlisturl(contentListUrl, firstOption, item) {
+  $.ajax({
+    dataType: "json",
+    url: contentListUrl,
+    async: false,
+    success: function (data) {
+      var default_option = '<option value="">' + firstOption + '</option>';
+      $(item).append(default_option);
+      if (Array.isArray(data)) {
+        $.each(data, function (key, v) {
+          var line = '<option value="' + v + '">' + v + '</option>';
+          $(item).append(line);
+        });
+      } else {
+        $.each(data, function (key, v) {
+          var line = '<option value="' + key + '">' + v + '</option>';
+          $(item).append(line);
+        });
+      }
+    }
+  });
+}
+
 $(function () {
   $(document).on('change', '.itemOption', function () {
     var thisObj = $(this),
@@ -210,27 +233,13 @@ $(function () {
     var selId = '#qr_code',
       contentListUrl = $('#qr_code').attr('data-contentlisturl');
 
-    // console.log(contentListUrl);
+    contentlisturl(contentListUrl, 'Select QR Code', selId);
+  }
 
-    $.ajax({
-      dataType: "json",
-      url: contentListUrl,
-      async: false,
-      success: function (data) {
-        var default_option = '<option value="">Select QR Code</option>';
-        $(selId).append(default_option);
-        if (Array.isArray(data)) {
-          $.each(data, function (key, v) {
-            var line = '<option value="' + v + '">' + v + '</option>';
-            $(selId).append(line);
-          });
-        } else {
-          $.each(data, function (key, v) {
-            var line = '<option value="' + key + '">' + v + '</option>';
-            $(selId).append(line);
-          });
-        }
-      }
-    });
+  if ($('#static_sequence').length) {
+    var selId = '#static_sequence',
+      contentListUrl = $('#static_sequence').attr('data-contentlisturl');
+
+    contentlisturl(contentListUrl, 'Select Static Sequence', selId);
   }
 });
