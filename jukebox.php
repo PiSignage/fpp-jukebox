@@ -1,10 +1,14 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jukebox</title>
   <?php
   require_once("config.php");
   require_once("common.php");
-  // require_once("jukebox-common.php");
+  require_once("jukebox-common.php");
   require_once("fppversion.php");
+
+  $pluginJson = convertAndGetSettings('jukebox');
+  $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? 'http://' . $pluginJson['remote_ip'] . '/' : null;
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
@@ -14,11 +18,12 @@
   <link rel="stylesheet" href="css/jquery.jgrowl.min.css" />
   <link rel="stylesheet" href="css/fpp-bootstrap/dist/fpp-bootstrap.css" />
   <script type="text/javascript">
+    var baseUrl = "<?php echo $baseUrl; ?>";
     var pluginJson;
     var fppVersionTriplet;
 
     function sendButtonCommand(i) {
-      $.get('api/fppd/status', function(data, status) {
+      $.get(baseUrl + 'api/fppd/status', function(data, status) {
         var static_sequence = pluginJson['static_sequence'];
         var current_sequence = data.current_sequence;
 
@@ -47,7 +52,7 @@
     }
 
     function playItem(item) {
-      var url = "api/command/";
+      var url = baseUrl + "api/command/";
 
       var data = new Object();
       data["command"] = 'Start Playlist';
@@ -117,7 +122,7 @@
         $.each(pluginJson.items, function(i, item) {
           var $newItem = $($('#itemTemplate').html());
           $newItem.find('.itemName').html(item.name);
-          $newItem.find('img').attr('src', '/api/file/Images/' + item.args[1]);
+          $newItem.find('img').attr('src', baseUrl + '/api/file/Images/' + item.args[1]);
 
           $newItem.on('click', function() {
             // $.jGrowl(item.name + " has been activated", {
@@ -132,20 +137,39 @@
       }
 
       function currently_playing() {
-        $.get('/api/fppd/status', function(data, status) {
+        $.get(baseUrl + '/api/fppd/status', function(data, status) {
           // console.log(data.current_sequence);
           if (data.current_sequence == '' || data.current_sequence == pluginJson['static_sequence']) {
             var text = 'Nothing Playing - Select a song';
           } else {
-            var text = data.current_sequence.replace('.fseq', '');
+            var text = data.current_sequence.replace('.fseq', '') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
           }
 
           if (pluginJson.ticker_other_info != '') {
             text = text + '<span class="dot"></span>' + pluginJson.ticker_other_info;
           }
 
-          $('.news-scroll').html(text)
+          $('.news-scroll').html(text);
+          timer(data.time_remaining);
         });
+      }
+
+      function timer(time) {
+        var timer2 = time;
+        var interval = setInterval(function() {
+          var timer = timer2.split(':');
+          //by parsing integer, I avoid all extra string processing
+          var minutes = parseInt(timer[0], 10);
+          var seconds = parseInt(timer[1], 10);
+          --seconds;
+          minutes = (seconds < 0) ? --minutes : minutes;
+          if (minutes < 0) clearInterval(interval);
+          seconds = (seconds < 0) ? 59 : seconds;
+          seconds = (seconds < 10) ? '0' + seconds : seconds;
+          //minutes = (minutes < 10) ?  minutes : minutes;
+          $('.countdown').html(minutes + ':' + seconds);
+          timer2 = minutes + ':' + seconds;
+        }, 1000);
       }
 
       currently_playing();

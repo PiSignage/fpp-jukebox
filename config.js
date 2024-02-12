@@ -48,6 +48,7 @@ function GetItem(i, v) {
 }
 
 function SaveItems() {
+  jukeboxConfig["remote_ip"] = $('#remote_ip').val();
   jukeboxConfig["static_sequence"] = $('#static_sequence').val();
   jukeboxConfig["ticker_other_info"] = $('#ticker_other_info').val();
   jukeboxConfig["qr_code"] = $('#qr_code').val();
@@ -117,7 +118,7 @@ function createItemRow(i, v) {
 function contentlisturl(contentListUrl, firstOption, item) {
   $.ajax({
     dataType: "json",
-    url: contentListUrl,
+    url: baseUrl + contentListUrl,
     async: false,
     success: function (data) {
       var default_option = '<option value="">' + firstOption + '</option>';
@@ -164,7 +165,7 @@ $(function () {
     })
     .fail(function (data) {
       $(".itemList").removeClass("loading");
-      processItemConfig('{"static_sequence":"","ticker_other_info":"","items":[]}');
+      processItemConfig('{"remote_ip":"","static_sequence":"","ticker_other_info":"","items":[]}');
     });
 
   function processItemConfig(data) {
@@ -186,6 +187,7 @@ $(function () {
     $('#static_sequence').val(jukeboxConfig.static_sequence);
     $('#ticker_other_info').val(jukeboxConfig.ticker_other_info);
     $('#qr_code').val(jukeboxConfig.qr_code);
+    $('#remote_ip').val(jukeboxConfig.remote_ip);
 
     $.each(jukeboxConfig.items, function (i, v) {
       $newItemRow = createItemRow(i, v);

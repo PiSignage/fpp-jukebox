@@ -1,9 +1,16 @@
+<?php
+require_once("jukebox-common.php");
+$pluginJson = convertAndGetSettings('jukebox');
+$baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? 'http://' . $pluginJson['remote_ip'] . '/' : null;
+?>
+
 <div id="global" class="settings">
   <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&page=config.css&nopage=1" />
-  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="/plugin.php?plugin=fpp-jukebox&page=js/jquery-ui.js&nopage=1"></script>
   <script src="/plugin.php?plugin=fpp-jukebox&page=config.js&nopage=1"></script>
 
   <script>
+    var baseUrl = "<?php echo $baseUrl; ?>";
     var playlistEntryTypes = {};
     playlistEntryTypes = {
       "playlist": {
@@ -14,14 +21,14 @@
             "name": "name",
             "description": "Playlist",
             "type": "string",
-            "contentListUrl": "api/playlists",
+            "contentListUrl": baseUrl + "api/playlists",
             "optional": false,
             "simpleUI": true
           },
           "imageName": {
             "name": "imageName",
             "description": "Image",
-            "contentListUrl": "api/files/images?nameOnly=1",
+            "contentListUrl": baseUrl + "api/files/images?nameOnly=1",
             "type": "string",
             "optional": false,
             "simpleUI": true,
@@ -37,7 +44,7 @@
           "sequenceName": {
             "name": "sequenceName",
             "description": "Sequence",
-            "contentListUrl": "api/files/sequences?nameOnly=1",
+            "contentListUrl": baseUrl + "api/files/sequences?nameOnly=1",
             "type": "string",
             "optional": false,
             "simpleUI": true
@@ -45,7 +52,7 @@
           "imageName": {
             "name": "imageName",
             "description": "Image",
-            "contentListUrl": "api/files/images?nameOnly=1",
+            "contentListUrl": baseUrl + "api/files/images?nameOnly=1",
             "type": "string",
             "optional": false,
             "simpleUI": true,
@@ -108,6 +115,11 @@
 
   <p>Kiosk Url: http://localhost/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1</p>
 
+  <div class="form-group">
+    <label for="remote_ip">Remote Ip</label>
+    <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp"></input>
+    <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and you sequences/playlist on another? Enter the ip address on the remote controller.</small>
+  </div>
   <div class="form-group">
     <label for="static_sequence">Static Sequence</label>
     <select id="static_sequence" class="form-control" aria-describedby="staticSequenceHelp" data-contentlisturl="api/files/sequences?nameOnly=1"></select>
