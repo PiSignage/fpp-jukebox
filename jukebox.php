@@ -9,6 +9,7 @@
 
   $pluginJson = convertAndGetSettings('jukebox');
   $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? 'http://' . $pluginJson['remote_ip'] . '/' : null;
+  $baseIp = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? $pluginJson['remote_ip'] : null;
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
@@ -19,6 +20,7 @@
   <link rel="stylesheet" href="css/fpp-bootstrap/dist/fpp-bootstrap.css" />
   <script type="text/javascript">
     var baseUrl = "<?php echo $baseUrl; ?>";
+    var baseIp = "<?php echo $baseIp; ?>"
     var pluginJson;
     var fppVersionTriplet;
 
@@ -34,8 +36,8 @@
           console.log('static_sequence entered');
           if (current_sequence === static_sequence) {
             console.log("static sequence playing play item");
-            console.log("Playing: " + pluginJson["items"][i]["args"]);
-            playItem(pluginJson["items"][i]["args"]);
+            console.log("Playing: " + pluginJson["items"][i]["args"][0]);
+            playItem(pluginJson["items"][i]["args"][0]);
           } else {
             console.log("waiting for static sequence")
           }
@@ -52,15 +54,27 @@
     }
 
     function playItem(item) {
-      var url = baseUrl + "api/command/";
-
-      var data = new Object();
-      data["command"] = 'Start Playlist';
-      data["args"] = item;
-      // Repeat
-      data["args"].push(false);
-      // If Not Running
-      data["args"].push(true);
+      var url = "api/command/";
+      console.log(baseUrl);
+      if (baseUrl != '') {
+        var data = new Object();
+        data['command'] = 'Remote Playlist Start';
+        data['multisyncCommand'] = false;
+        data['multisyncHosts'] = '';
+        data['args'] = [
+          baseIp,
+          item,
+          false,
+          false
+        ];
+      } else {
+        data["command"] = 'Start Playlist';
+        data["args"] = [
+          item,
+          false,
+          true,
+        ];
+      }
 
       $.ajax({
         type: "POST",
