@@ -51,6 +51,7 @@ function SaveItems() {
   jukeboxConfig["remote_ip"] = $('#remote_ip').val();
   jukeboxConfig["static_sequence"] = $('#static_sequence').val();
   jukeboxConfig["ticker_other_info"] = $('#ticker_other_info').val();
+  jukeboxConfig["ticker_other_info_location"] = $('#ticker_other_info_location').val();
   jukeboxConfig["qr_code"] = $('#qr_code').val();
   // Reset items to empty array
   jukeboxConfig["items"] = [];
@@ -186,6 +187,7 @@ $(function () {
 
     $('#static_sequence').val(jukeboxConfig.static_sequence);
     $('#ticker_other_info').val(jukeboxConfig.ticker_other_info);
+    $('#ticker_other_info_location').val(jukeboxConfig.ticker_other_info_location);
     $('#qr_code').val(jukeboxConfig.qr_code);
     $('#remote_ip').val(jukeboxConfig.remote_ip);
 

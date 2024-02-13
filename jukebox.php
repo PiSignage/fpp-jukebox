@@ -16,6 +16,7 @@
   ?>
 
   <script src="js/jquery.jgrowl.min.js"> </script>
+  <script src="/plugin.php?plugin=fpp-jukebox&page=js/sweetalert2.js&nopage=1"></script>
   <link rel="stylesheet" href="css/jquery.jgrowl.min.css" />
   <link rel="stylesheet" href="css/fpp-bootstrap/dist/fpp-bootstrap.css" />
   <script type="text/javascript">
@@ -36,16 +37,27 @@
           console.log('static_sequence entered');
           if (current_sequence === static_sequence) {
             console.log("static sequence playing play item");
-            console.log("Playing: " + pluginJson["items"][i]["args"][0]);
+            console.log("Playing: " + pluginJson["items"][i]["name"]);
             playItem(pluginJson["items"][i]["args"][0]);
+            Swal.fire({
+              title: "Playing: " + pluginJson["items"][i]["name"],
+              timer: 3000,
+              showConfirmButton: false,
+            });
           } else {
             console.log("waiting for static sequence")
+            Swal.fire("waiting for static sequence");
           }
         } else {
           if (current_sequence == '') {
             console.log("Playing nothing play item");
-            console.log("Playing: " + pluginJson["items"][i]["args"]);
-            playItem(pluginJson["items"][i]["args"]);
+            console.log("Playing: " + pluginJson["items"][i]["name"]);
+            playItem(pluginJson["items"][i]["args"][0]);
+            Swal.fire({
+              title: "Playing: " + pluginJson["items"][i]["name"],
+              timer: 3000,
+              showConfirmButton: false,
+            });
           } else {
             console.log("waiting for static sequence")
           }
@@ -152,14 +164,20 @@
 
       function currently_playing() {
         $.get(baseUrl + '/api/fppd/status', function(data, status) {
-          // console.log(data.current_sequence);
-          if (data.current_sequence == '' || data.current_sequence == pluginJson['static_sequence']) {
-            var text = 'Nothing Playing - Select a song';
-          } else {
-            var text = data.current_sequence.replace('.fseq', '') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
+          var text = '';
+          if (pluginJson.ticker_other_info != '' && pluginJson.ticker_other_info_location == 'before') {
+            text = pluginJson.ticker_other_info + '<span class="dot"></span>';
           }
 
-          if (pluginJson.ticker_other_info != '') {
+
+          // console.log(data.current_sequence);
+          if (data.current_sequence == '' || data.current_sequence == pluginJson['static_sequence']) {
+            text = text + 'Nothing Playing - Select a song';
+          } else {
+            text = text + data.current_sequence.replace('.fseq', '') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
+          }
+
+          if (pluginJson.ticker_other_info != '' && pluginJson.ticker_other_info_location == 'after') {
             text = text + '<span class="dot"></span>' + pluginJson.ticker_other_info;
           }
 
@@ -348,7 +366,7 @@
   <div class="d-flex justify-content-between align-items-center breaking-news bg-white mb-3">
     <div class="d-flex flex-row flex-grow-1 flex-fill justify-content-center bg-danger py-2 text-white px-1 news"><span class="d-flex align-items-center">&nbsp;Currently Playing</span></div>
     <marquee class="news-scroll" behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();">
-      What are we playing
+      Loading.....
     </marquee>
   </div>
 

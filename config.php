@@ -71,7 +71,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
           <div class="buttonCommandWrap mb-2">
             <div class="bb_commandTableWrap">
               <div class="bb_commandTableCrop">
-                <table border=0 id="tableReaderTPL" class="tableItem" data-iKey="">
+                <table border=0 id="tableReaderTPL" class="tableItem">
                   <tr>
                     <td>Item Name:</td>
                     <td>
@@ -116,7 +116,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
   <p>Kiosk Url: http://localhost/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1</p>
 
   <div class="form-group">
-    <label for="remote_ip">Remote Ip</label>
+    <label for="remote_ip">Remote IP</label>
     <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp"></input>
     <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and you sequences/playlist on another? Enter the ip address on the remote controller.</small>
   </div>
@@ -126,15 +126,23 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
     <small id="staticSequenceHelp" class="form-text text-muted">Do You have a sequence run between songs?</small>
   </div>
   <div class="form-group">
-    <label for="ticker_other_info">Ticker Info</label>
+    <label for="ticker_other_info">Additional Ticker Information</label>
     <input type="text" class="form-control" id="ticker_other_info" aria-describedby="tickerOtherInfoHelp">
     <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the Currently Playing Ticker</small>
+  </div>
+  <div class="form-group">
+    <label for="ticker_other_info_location">Location of additional Ticker Information</label>
+    <select class="form-control" id="ticker_other_info_location" aria-describedby="tickerOtherInfoLocationHelp">
+      <option value="before">Before</option>
+      <option value="after">After</option>
+    </select>
+    <small id="tickerOtherInfoLocationHelp" class="form-text text-muted">What location do you want to put Additional Ticker Information - Before the currently playing song information or After it</small>
   </div>
   <div class="form-group">
     <label for="qr_code">QR code</label>
     <select id="qr_code" class="form-control" aria-describedby="qrCodeHelp" data-contentlisturl="api/files/images?nameOnly=1"></select>
     <small id="qrCodeHelp" class="form-text text-muted">Do you have a QR code that you use for visitors to donate. Select the QR Code from your upload images</small>
   </div>
-
+  <hr class="mb-3" />
   <div id="dragArea" class="itemList row"></div>
 </div>
