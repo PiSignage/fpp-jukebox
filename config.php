@@ -118,7 +118,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
   <div class="form-group">
     <label for="remote_ip">Remote IP</label>
     <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp"></input>
-    <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and you sequences/playlist on another? Enter the ip address on the remote controller.</small>
+    <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and sequences/playlist on another? Enter the ip address on the remote controller.</small>
   </div>
   <div class="form-group">
     <label for="static_sequence">Static Sequence</label>
@@ -136,7 +136,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
       <option value="before">Before</option>
       <option value="after">After</option>
     </select>
-    <small id="tickerOtherInfoLocationHelp" class="form-text text-muted">What location do you want to put Additional Ticker Information - Before the currently playing song information or After it</small>
+    <small id="tickerOtherInfoLocationHelp" class="form-text text-muted">Display the what location do you want to put Additional Ticker Information to show - Before the currently playing song information or After it</small>
   </div>
   <div class="form-group">
     <label for="qr_code">QR code</label>

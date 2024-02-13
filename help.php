@@ -30,8 +30,10 @@
 <h2 id="config-options">Other Config Options</h2>
 <p>With is plugin there are some other configuration options available to use.</p>
 <ul>
+  <li><b>Remote IP</b> - Do you have the plugin on one controller and sequences/playlist on another? Enter the ip address on the remote controller.</li>
   <li><b>Static Sequence</b> - If you have a static sequence that you run between your songs select the sequence from the dropdown. The system will wait for that sequence to be playing before the next item played.</li>
-  <li><b>Ticker Info</b> - At the top of the jukebox page you will see a "Currently Playing" banner this will show what item is player if anything. This box give you the option to add additional information</li>
+  <li><b>Additional Ticker Information</b> - At the top of the jukebox page you will see a "Currently Playing" banner this will show what item is player if anything. This box give you the option to add additional information</li>
+  <li><b>Location of additional Ticker Information</b> - Display the what location do you want to put Additional Ticker Information to show - Before the currently playing song information or After it</li>
   <li><b>QR Code</b> - If you use a QR Code to get donates from your visitors this give you the option to select the one your using. Note the qr code needs to upload the images section on the file manger. This will create a "Donate" button on the Jukebox page that will allow the visitor to press and display the qr code.</li>
 </ul>
 
