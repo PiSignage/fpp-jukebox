@@ -6,7 +6,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
 
 <div id="global" class="settings">
   <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&page=config.css&nopage=1" />
-  <script src="/plugin.php?plugin=fpp-jukebox&page=js/jquery-ui.js&nopage=1"></script>
+  <script src="/plugin.php?plugin=fpp-jukebox&page=assets/js/jquery-ui.js&nopage=1"></script>
   <script src="/plugin.php?plugin=fpp-jukebox&page=config.js&nopage=1"></script>
 
   <script>
@@ -142,6 +142,33 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
     <label for="qr_code">QR code</label>
     <select id="qr_code" class="form-control" aria-describedby="qrCodeHelp" data-contentlisturl="api/files/images?nameOnly=1"></select>
     <small id="qrCodeHelp" class="form-text text-muted">Do you have a QR code that you use for visitors to donate. Select the QR Code from your upload images</small>
+  </div>
+  <hr class="mb-3" />
+
+  <legend>Locked Config</legend>
+  <p>Only want your visitors to be able to select an item between a set time.</p>
+  <div class="form-group">
+    <label for="show_logo">Show Logo</label>
+    <select id="show_logo" class="form-control" data-contentlisturl="api/files/images?nameOnly=1"></select>
+  </div>
+  <div class="form-group">
+    <label for="show_name">Show Name</label>
+    <input type="text" id="show_name" class="form-control">
+  </div>
+  <div class="form-group">
+    <label for="additional_info">Show Information</label>
+    <textarea id="additional_info" class="form-control"></textarea>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="start_time">Start Time</label>
+      <input type="time" class="form-control" id="start_time">
+      <small class="form-text text-muted">Only what the allow your visitors to select an item between times</small>
+    </div>
+    <div class="form-group col-md-6">
+      <label for="end_time">End Time</label>
+      <input type="time" class="form-control" id="end_time">
+    </div>
   </div>
   <hr class="mb-3" />
   <div id="dragArea" class="itemList row"></div>

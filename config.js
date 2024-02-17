@@ -53,6 +53,12 @@ function SaveItems() {
   jukeboxConfig["ticker_other_info"] = $('#ticker_other_info').val();
   jukeboxConfig["ticker_other_info_location"] = $('#ticker_other_info_location').val();
   jukeboxConfig["qr_code"] = $('#qr_code').val();
+
+  jukeboxConfig["locked_show_logo"] = $('#show_logo').val();
+  jukeboxConfig["locked_show_name"] = $('#show_name').val();
+  jukeboxConfig["locked_additional_info"] = $('#additional_info').val();
+  jukeboxConfig["locked_start_time"] = $('#start_time').val();
+  jukeboxConfig["locked_end_time"] = $('#end_time').val();
   // Reset items to empty array
   jukeboxConfig["items"] = [];
   // Look over itemList children
@@ -190,6 +196,11 @@ $(function () {
     $('#ticker_other_info_location').val(jukeboxConfig.ticker_other_info_location);
     $('#qr_code').val(jukeboxConfig.qr_code);
     $('#remote_ip').val(jukeboxConfig.remote_ip);
+    $('#show_logo').val(jukeboxConfig.locked_show_logo);
+    $('#show_name').val(jukeboxConfig.locked_show_name);
+    $('#additional_info').val(jukeboxConfig.locked_additional_info);
+    $('#start_time').val(jukeboxConfig.locked_start_time);
+    $('#end_time').val(jukeboxConfig.locked_end_time);
 
     $.each(jukeboxConfig.items, function (i, v) {
       $newItemRow = createItemRow(i, v);
@@ -245,5 +256,12 @@ $(function () {
       contentListUrl = $('#static_sequence').attr('data-contentlisturl');
 
     contentlisturl(contentListUrl, 'Select Static Sequence', selId);
+  }
+
+  if ($('#show_logo').length) {
+    var selId = '#show_logo',
+      contentListUrl = $('#show_logo').attr('data-contentlisturl');
+
+    contentlisturl(contentListUrl, 'Select Show Logo', selId);
   }
 });

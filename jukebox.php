@@ -10,20 +10,24 @@
   $pluginJson = convertAndGetSettings('jukebox');
   $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? 'http://' . $pluginJson['remote_ip'] . '/' : null;
   $baseIp = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? $pluginJson['remote_ip'] : null;
+  $start_time = $pluginJson['locked_start_time'] != '' ? $pluginJson['locked_start_time'] . " PM" : '';
+  $end_time = $pluginJson['locked_end_time'] != '' ? $pluginJson['locked_end_time'] . " PM" : '';
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
   ?>
 
   <script src="js/jquery.jgrowl.min.js"> </script>
-  <script src="/plugin.php?plugin=fpp-jukebox&page=js/sweetalert2.js&nopage=1"></script>
+  <script src="/plugin.php?plugin=fpp-jukebox&page=assets/js/sweetalert2.js&nopage=1"></script>
   <link rel="stylesheet" href="css/jquery.jgrowl.min.css" />
   <link rel="stylesheet" href="css/fpp-bootstrap/dist/fpp-bootstrap.css" />
   <script type="text/javascript">
     var baseUrl = "<?php echo $baseUrl; ?>";
-    var baseIp = "<?php echo $baseIp; ?>"
+    var baseIp = "<?php echo $baseIp; ?>";
     var pluginJson;
     var fppVersionTriplet;
+    var startTime = '<?php echo $start_time; ?>';
+    var endTime = '<?php echo $end_time; ?>';
 
     function sendButtonCommand(i) {
       $.get(baseUrl + 'api/fppd/status', function(data, status) {
@@ -43,6 +47,7 @@
               title: "Playing: " + pluginJson["items"][i]["name"],
               timer: 3000,
               showConfirmButton: false,
+              icon: "success"
             });
           } else {
             console.log("waiting for static sequence")
@@ -57,6 +62,7 @@
               title: "Playing: " + pluginJson["items"][i]["name"],
               timer: 3000,
               showConfirmButton: false,
+              icon: "success"
             });
           } else {
             console.log("waiting for static sequence")
@@ -66,10 +72,11 @@
     }
 
     function playItem(item) {
+      // console.log('Play item: ' + item);
       var url = "api/command/";
-      console.log(baseUrl);
+      // console.log('Baseurl: ' + baseUrl);
+      var data = new Object();
       if (baseUrl != '') {
-        var data = new Object();
         data['command'] = 'Remote Playlist Start';
         data['multisyncCommand'] = false;
         data['multisyncHosts'] = '';
@@ -104,7 +111,7 @@
         url: 'plugin.php?plugin=fpp-jukebox&page=other.php&command=save_song_count&nopage=1',
         async: false,
         data: {
-          item: item[0],
+          item: item,
         },
         dataType: 'json',
         async: false,
@@ -112,7 +119,55 @@
       });
     }
 
+    function get24Hr(time) {
+      var hours = Number(time.match(/^(\d+)/)[1]);
+      var AMPM = time.match(/\s(.*)$/)[1];
+      if (AMPM == "PM" && hours < 12) hours = hours + 12;
+      if (AMPM == "AM" && hours == 12) hours = hours - 12;
+
+      var minutes = Number(time.match(/:(\d+)/)[1]);
+      hours = hours * 100 + minutes;
+      // console.log(time + " - " + hours);
+      return hours;
+    }
+
+    function getval() {
+      var currentTime = new Date()
+      var hours = currentTime.getHours()
+      var minutes = currentTime.getMinutes()
+
+      if (minutes < 10) minutes = "0" + minutes;
+
+      var suffix = "AM";
+      if (hours >= 12) {
+        suffix = "PM";
+        hours = hours - 12;
+      }
+      if (hours == 0) {
+        hours = 12;
+      }
+      var current_time = hours + ":" + minutes + " " + suffix;
+
+      return current_time;
+
+    }
+
+    function inSideTime() {
+      var curr_time = getval();
+      if (get24Hr(curr_time) > get24Hr(startTime) && get24Hr(curr_time) < get24Hr(endTime)) {
+        console.log('inside active time stay on page');
+      } else {
+        console.log('outside active time send user back to locked page');
+        window.location.replace("/plugin.php?_menu=status&plugin=fpp-jukebox&page=locked.php&nopage=1");
+      }
+    }
+
     $(function() {
+      if (startTime != '') {
+        inSideTime();
+        setInterval(inSideTime, 10000);
+      }
+
 
       fppVersionTriplet = $('body').data('fpp-version-triplet');
 
@@ -211,10 +266,10 @@
   <style>
     @font-face {
       font-family: 'Comic-Queens';
-      src: url('/plugin.php?plugin=fpp-jukebox&page=fonts/Comic-Queens.ttf.woff&nopage=1') format('woff'),
-        url('/plugin.php?plugin=fpp-jukebox&page=fonts/Comic-Queens.ttf.svg&nopage=1#Comic-Queens') format('svg'),
-        url('/plugin.php?plugin=fpp-jukebox&page=fonts/Comic-Queens.ttf.eot&nopage=1'),
-        url('/plugin.php?plugin=fpp-jukebox&page=fonts/Comic-Queens.ttf.eot&nopage=1?#iefix') format('embedded-opentype');
+      src: url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.woff&nopage=1') format('woff'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.svg&nopage=1#Comic-Queens') format('svg'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.eot&nopage=1'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.eot&nopage=1?#iefix') format('embedded-opentype');
       font-weight: normal;
       font-style: normal;
     }
