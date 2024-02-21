@@ -8,8 +8,8 @@
   require_once("fppversion.php");
 
   $pluginJson = convertAndGetSettings('jukebox');
-  $start_time = $pluginJson['locked_start_time'] != '' ? $pluginJson['locked_start_time'] . " PM" : '';
-  $end_time = $pluginJson['locked_end_time'] != '' ? $pluginJson['locked_end_time'] . " PM" : '';
+  $start_time = $pluginJson['locked_start_time'] != '' ? $pluginJson['locked_start_time'] : '';
+  $end_time = $pluginJson['locked_end_time'] != '' ? $pluginJson['locked_end_time'] : '';
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));

@@ -5,6 +5,8 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
 ?>
 
 <div id="global" class="settings">
+  <link rel="stylesheet" type="text/css" href="css/jquery.timepicker.css">
+  <script type="text/javascript" src="js/jquery.timepicker.js"></script>
   <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&page=config.css&nopage=1" />
   <script src="/plugin.php?plugin=fpp-jukebox&page=assets/js/jquery-ui.js&nopage=1"></script>
   <script src="/plugin.php?plugin=fpp-jukebox&page=config.js&nopage=1"></script>
@@ -162,12 +164,12 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
   <div class="form-row">
     <div class="form-group col-md-6">
       <label for="start_time">Start Time</label>
-      <input type="time" class="form-control" id="start_time">
+      <input type="text" class="form-control time" id="start_time">
       <small class="form-text text-muted">Only what the allow your visitors to select an item between times</small>
     </div>
     <div class="form-group col-md-6">
       <label for="end_time">End Time</label>
-      <input type="time" class="form-control" id="end_time">
+      <input type="text" class="form-control time" id="end_time">
     </div>
   </div>
   <hr class="mb-3" />

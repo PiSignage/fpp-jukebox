@@ -264,4 +264,24 @@ $(function () {
 
     contentlisturl(contentListUrl, 'Select Show Logo', selId);
   }
+
+  var seconds = '';
+  if ((settings.hasOwnProperty('ScheduleSeconds')) && (settings['ScheduleSeconds'] == 1))
+    seconds = ':s';
+
+  var timeFormat = 'H:i' + seconds;
+  if (settings.hasOwnProperty('TimeFormat')) {
+    var fmt = settings['TimeFormat'];
+    if (fmt == '%I:%M %p') {
+      timeFormat = 'h:i' + seconds + ' A';
+    } else {
+      timeFormat = 'H:i' + seconds;
+    }
+  }
+
+  $('.time').timepicker({
+    'timeFormat': timeFormat,
+    'typeaheadHighlight': false,
+    'show2400': true
+  });
 });
