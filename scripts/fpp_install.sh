@@ -33,6 +33,6 @@ then
 	echo "Placehoolder image found"
 else
 	echo "Placehoolder image not found, Copy placeholder image to images folder"
-	sudo cp /home/fpp/media/plugins/fpp-julebox/img/placeholder.jpg /home/fpp/media/images/placeholder.jpg
+	sudo cp /home/fpp/media/plugins/fpp-jukebox/img/placeholder.jpg /home/fpp/media/images/placeholder.jpg
 	sudo chown fpp /home/fpp/media/images/placeholder.jpg
 fi

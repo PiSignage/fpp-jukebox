@@ -105,14 +105,17 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
     </div>
   </template>
 
-  <div class="d-flex justify-content-between mb-1">
-    <button id="addNewItem" class="buttons btn-success mr-1">
-      <i class="fas fa-plus"></i> Add a Item
-    </button>
+  <div class="d-flex flex-row-reverse mb-1">
     <button id="saveItemConfigButton" class="buttons btn-success">
       Save Config
     </button>
   </div>
+
+  <?php if (!file_exists('/home/fpp/media/config/plugin.fpp-jukebox.json')) { ?>
+    <div class="alert alert-danger">Base config file missing please run <strong>. /home/fpp/media/plugins/fpp-jukebox/scripts/fpp_install.sh</strong> in <a href="http://<?php echo $_SERVER['SERVER_NAME']; ?>:4200" target="_blank">SSH shell</a></div>
+  <?php } ?>
+
+
   <legend>Jukebox Config</legend>
 
   <p>Kiosk Url: http://localhost/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1</p>
@@ -173,5 +176,10 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
     </div>
   </div>
   <hr class="mb-3" />
+  <div class="d-flex justify-content-between mb-1">
+    <button id="addNewItem" class="buttons btn-success mr-1">
+      <i class="fas fa-plus"></i> Add a Item
+    </button>
+  </div>
   <div id="dragArea" class="itemList row"></div>
 </div>
