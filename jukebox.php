@@ -248,6 +248,51 @@
 
       currently_playing();
       setInterval(currently_playing, 1000);
+
+      $('#stop').on('click', function(e) {
+        e.preventDefault();
+
+        $.get(baseUrl + '/api/playlists/stop', function(data, status) {
+          Swal.fire({
+            title: "Everything has stopped playing",
+            timer: 3000,
+            showConfirmButton: false,
+            icon: "success"
+          });
+        });
+      });
+
+      $('#play_static').on('click', function(e) {
+        e.preventDefault();
+        var url = "api/command/";
+        var data = new Object();
+        var thisItem = $(this).attr('data-item');
+
+        data["command"] = 'Start Playlist';
+        data["args"] = [
+          thisItem,
+          false,
+          true,
+        ];
+
+        $.ajax({
+          type: "POST",
+          url: url,
+          dataType: 'json',
+          async: false,
+          data: JSON.stringify(data),
+          processData: false,
+          contentType: 'application/json',
+          success: function(data) {
+            Swal.fire({
+              title: "Static sequence is  playing",
+              timer: 3000,
+              showConfirmButton: false,
+              icon: "success"
+            });
+          }
+        });
+      });
     });
   </script>
   <style>
@@ -416,8 +461,13 @@
     <h1 class="title">Select A Song</h1>
     <div class="row row-cols-2 g-3" id="items"></div>
   </div>
-  <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg back-to-top" role="button">Donate</a>
-  <a href="" class="btn btn-light btn-lg back-to-top">Stop All</a>
+  <div class="back-to-top">
+    <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg" role="button">Donate</a>
+    <a id="stop" href="" class="btn btn-danger btn-lg">Stop All</a>
+    <?php if ($pluginJson['static_sequence'] != '') { ?>
+      <a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play static sequence</a>
+    <?php } ?>
+  </div>
 </body>
 
 </html>
