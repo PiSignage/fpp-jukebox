@@ -224,10 +224,10 @@
             text = pluginJson.ticker_other_info + '<span class="dot"></span>';
           }
 
-
-          // console.log(data.current_sequence);
-          if (data.current_sequence == '' || data.current_sequence == pluginJson['static_sequence']) {
-            text = text + 'Nothing Playing - Select a song';
+          if (data.current_sequence == '') {
+            text = text + 'Nothing Playing - Please select a song';
+          } else if (pluginJson['static_sequence'] != '' && data.current_sequence == pluginJson['static_sequence']) {
+            text = text + 'Playing static sequence - Please select a song';
           } else {
             text = text + data.current_sequence.replace('.fseq', '') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
           }
@@ -243,24 +243,11 @@
 
       function timer(time) {
         var timer2 = time;
-        var interval = setInterval(function() {
-          var timer = timer2.split(':');
-          //by parsing integer, I avoid all extra string processing
-          var minutes = parseInt(timer[0], 10);
-          var seconds = parseInt(timer[1], 10);
-          --seconds;
-          minutes = (seconds < 0) ? --minutes : minutes;
-          if (minutes < 0) clearInterval(interval);
-          seconds = (seconds < 0) ? 59 : seconds;
-          seconds = (seconds < 10) ? '0' + seconds : seconds;
-          //minutes = (minutes < 10) ?  minutes : minutes;
-          $('.countdown').html(minutes + ':' + seconds);
-          timer2 = minutes + ':' + seconds;
-        }, 1000);
+        $('.countdown').html(time);
       }
 
       currently_playing();
-      setInterval(currently_playing, 2000);
+      setInterval(currently_playing, 1000);
     });
   </script>
   <style>
@@ -430,6 +417,7 @@
     <div class="row row-cols-2 g-3" id="items"></div>
   </div>
   <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg back-to-top" role="button">Donate</a>
+  <a href="" class="btn btn-light btn-lg back-to-top">Stop All</a>
 </body>
 
 </html>
