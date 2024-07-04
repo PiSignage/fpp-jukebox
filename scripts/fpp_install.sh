@@ -11,6 +11,7 @@ defalt_json=$(cat <<EOF
 {
   "static_sequence": "",
   "ticker_other_info": "",
+	"ticker_other_info_location": "before",
   "items": []
 }
 EOF
