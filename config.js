@@ -64,8 +64,11 @@ function SaveItems() {
   // Look over itemList children
   $.each($('.itemList').children(), function (i, v) {
     var key = "" + i;
-    var item = GetItem(i, v);
-    jukeboxConfig["items"][key] = item;
+    var type = $('#item-' + i + '_Option').val();
+    if (type != '') {
+      var item = GetItem(i, v);
+      jukeboxConfig["items"][key] = item;
+    }
   });
   // console.log(jukeboxConfig);
   SaveJukeboxConfig(jukeboxConfig);
