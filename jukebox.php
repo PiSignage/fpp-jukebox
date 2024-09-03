@@ -28,6 +28,7 @@
     var fppVersionTriplet;
     var startTime = '<?php echo $start_time; ?>';
     var endTime = '<?php echo $end_time; ?>';
+    var hide = "<?php echo isset($_GET['hide']) ? $_GET['hide'] : 'nothing' ?>";
 
     function sendButtonCommand(i) {
       $.get(baseUrl + 'api/fppd/status', function(data, status) {
@@ -248,6 +249,10 @@
 
       currently_playing();
       setInterval(currently_playing, 1000);
+      if (hide == "buttons") {
+        console.log(hide);
+        $(".back-to-top").hide();
+      }
 
       $('#stop').on('click', function(e) {
         e.preventDefault();
