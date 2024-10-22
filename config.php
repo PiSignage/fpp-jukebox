@@ -128,7 +128,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
   <div class="form-group">
     <label for="static_sequence">Static Sequence</label>
     <select id="static_sequence" class="form-control" aria-describedby="staticSequenceHelp" data-contentlisturl="api/files/sequences?nameOnly=1"></select>
-    <small id="staticSequenceHelp" class="form-text text-muted">Do You have a sequence run between songs?</small>
+    <small id="staticSequenceHelp" class="form-text text-muted">Do You have a sequence run between songs? and you want the system to wait before allowing the next song to be select</small>
   </div>
   <div class="form-group">
     <label for="ticker_other_info">Additional Ticker Information</label>

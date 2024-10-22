@@ -34,6 +34,7 @@
       $.get(baseUrl + 'api/fppd/status', function(data, status) {
         var static_sequence = pluginJson['static_sequence'];
         var current_sequence = data.current_sequence;
+        var current_status = data.status;
 
         // console.log('static_sequence: ' + static_sequence);
         // console.log('current_sequence: ' + current_sequence);
@@ -44,29 +45,28 @@
             console.log("static sequence playing play item");
             console.log("Playing: " + pluginJson["items"][i]["name"]);
             playItem(pluginJson["items"][i]["args"][0]);
-            Swal.fire({
-              title: "Playing: " + pluginJson["items"][i]["name"],
-              timer: 3000,
-              showConfirmButton: false,
-              icon: "success"
-            });
+            showAlert("Playing: " + pluginJson["items"][i]["name"]);
           } else {
             console.log("waiting for static sequence")
-            Swal.fire("waiting for static sequence");
+            Swal.fire("Waiting for static sequence");
           }
         } else {
-          if (current_sequence == '') {
-            console.log("Playing nothing play item");
-            console.log("Playing: " + pluginJson["items"][i]["name"]);
-            playItem(pluginJson["items"][i]["args"][0]);
-            Swal.fire({
-              title: "Playing: " + pluginJson["items"][i]["name"],
-              timer: 3000,
-              showConfirmButton: false,
-              icon: "success"
+          if (current_status == 1) {
+            console.log("something is playing stop it add start the selected item");
+            $.ajax({
+              type: "GET",
+              url: baseUrl + "api/playlists/stop",
+              async: false,
+              contentType: 'application/json',
+              success: function(data) {
+                playItem(pluginJson["items"][i]["args"][0]);
+                showAlert("Playing: " + pluginJson["items"][i]["name"])
+              }
             });
           } else {
-            console.log("waiting for static sequence")
+            console.log("nothing playing play item")
+            playItem(pluginJson["items"][i]["args"][0]);
+            showAlert("Playing: " + pluginJson["items"][i]["name"]);
           }
         }
       });
@@ -161,6 +161,15 @@
         console.log('outside active time send user back to locked page');
         window.location.replace("/plugin.php?_menu=status&plugin=fpp-jukebox&page=locked.php&nopage=1");
       }
+    }
+
+    function showAlert(text, type = "success") {
+      Swal.fire({
+        title: text,
+        timer: 3000,
+        showConfirmButton: false,
+        icon: type
+      });
     }
 
     $(function() {
