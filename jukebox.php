@@ -29,47 +29,42 @@
     var startTime = '<?php echo $start_time; ?>';
     var endTime = '<?php echo $end_time; ?>';
     var hide = "<?php echo isset($_GET['hide']) ? $_GET['hide'] : 'nothing' ?>";
+    var fpp_current_status = 0;
+    var fpp_current_sequence = "";
 
     function sendButtonCommand(i) {
-      $.get(baseUrl + 'api/fppd/status', function(data, status) {
-        var static_sequence = pluginJson['static_sequence'];
-        var current_sequence = data.current_sequence;
-        var current_status = data.status;
+      var static_sequence = pluginJson['static_sequence'];
 
-        // console.log('static_sequence: ' + static_sequence);
-        // console.log('current_sequence: ' + current_sequence);
-
-        if (static_sequence != '') {
-          console.log('static_sequence entered');
-          if (current_sequence === static_sequence) {
-            console.log("static sequence playing play item");
-            console.log("Playing: " + pluginJson["items"][i]["name"]);
-            playItem(pluginJson["items"][i]["args"][0]);
-            showAlert("Playing: " + pluginJson["items"][i]["name"]);
-          } else {
-            console.log("waiting for static sequence")
-            Swal.fire("Waiting for static sequence");
-          }
+      if (static_sequence != '') {
+        console.log('static_sequence entered');
+        if (fpp_current_sequence === static_sequence) {
+          console.log("static sequence playing play item");
+          console.log("Playing: " + pluginJson["items"][i]["name"]);
+          playItem(pluginJson["items"][i]["args"][0]);
+          showAlert("Playing: " + pluginJson["items"][i]["name"]);
         } else {
-          if (current_status == 1) {
-            console.log("something is playing stop it add start the selected item");
-            $.ajax({
-              type: "GET",
-              url: baseUrl + "api/playlists/stop",
-              async: false,
-              contentType: 'application/json',
-              success: function(data) {
-                playItem(pluginJson["items"][i]["args"][0]);
-                showAlert("Playing: " + pluginJson["items"][i]["name"])
-              }
-            });
-          } else {
-            console.log("nothing playing play item")
-            playItem(pluginJson["items"][i]["args"][0]);
-            showAlert("Playing: " + pluginJson["items"][i]["name"]);
-          }
+          console.log("waiting for static sequence")
+          Swal.fire("Waiting for static sequence");
         }
-      });
+      } else {
+        if (fpp_current_status == 1) {
+          console.log("something is playing stop it add start the selected item");
+          $.ajax({
+            type: "GET",
+            url: baseUrl + "api/playlists/stop",
+            async: false,
+            contentType: 'application/json',
+            success: function(data) {
+              playItem(pluginJson["items"][i]["args"][0]);
+              showAlert("Playing: " + pluginJson["items"][i]["name"])
+            }
+          });
+        } else {
+          console.log("nothing playing play item")
+          playItem(pluginJson["items"][i]["args"][0]);
+          showAlert("Playing: " + pluginJson["items"][i]["name"]);
+        }
+      }
     }
 
     function playItem(item) {
@@ -104,19 +99,22 @@
         data: JSON.stringify(data),
         processData: false,
         contentType: 'application/json',
-        success: function(data) {}
-      });
-
-      $.ajax({
-        type: "POST",
-        url: 'plugin.php?plugin=fpp-jukebox&page=other.php&command=save_song_count&nopage=1',
-        async: false,
-        data: {
-          item: item,
+        success: function(data) {
+          $.ajax({
+            type: "POST",
+            url: 'plugin.php?plugin=fpp-jukebox&page=other.php&command=save_song_count&nopage=1',
+            async: false,
+            data: {
+              item: item,
+            },
+            dataType: 'json',
+            async: false,
+            success: function(data) {}
+          });
         },
-        dataType: 'json',
-        async: false,
-        success: function(data) {}
+        error: function() {
+          showAlert("There was a problem playing you selected song, please try agin", "warning");
+        }
       });
     }
 
@@ -239,7 +237,7 @@
           } else if (pluginJson['static_sequence'] != '' && data.current_sequence == pluginJson['static_sequence']) {
             text = text + 'Playing static sequence - Please select a song';
           } else {
-            text = text + data.current_sequence.replace('.fseq', '') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
+            text = text + data.current_sequence.replace(/.fseq/g, '').replace(/_/g, ' ').replace(/-/g, ' ') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
           }
 
           if (pluginJson.ticker_other_info != '' && pluginJson.ticker_other_info_location == 'after') {
@@ -248,6 +246,8 @@
 
           $('.news-scroll').html(text);
           timer(data.time_remaining);
+          fpp_current_status = data.status;
+          fpp_current_sequence = data.current_sequence;
         });
       }
 
@@ -256,11 +256,11 @@
         $('.countdown').html(time);
       }
 
-      currently_playing();
+      // currently_playing();
       setInterval(currently_playing, 1000);
       if (hide == "buttons") {
         console.log(hide);
-        $(".back-to-top").hide();
+        $("#other-buttons").hide();
       }
 
       $('#stop').on('click', function(e) {
@@ -477,10 +477,12 @@
   </div>
   <div class="back-to-top">
     <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg" role="button">Donate</a>
-    <a id="stop" href="" class="btn btn-danger btn-lg">Stop All</a>
-    <?php if ($pluginJson['static_sequence'] != '') { ?>
-      <a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play static sequence</a>
-    <?php } ?>
+    <div id="other-buttons">
+      <a id="stop" href="" class="btn btn-danger btn-lg">Stop All</a>
+      <?php if ($pluginJson['static_sequence'] != '') { ?>
+        <a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play static sequence</a>
+      <?php } ?>
+    </div>
   </div>
 </body>
 
