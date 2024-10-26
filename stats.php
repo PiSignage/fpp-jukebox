@@ -58,4 +58,34 @@ ksort($songCounts);
       <?php } ?>
     </tbody>
   </table>
+  <input id="clear_stats" class="buttons" value="Clear Stats">
+  <script>
+    $(function() {
+      $("#clear_stats").on("click", function(e) {
+        e.preventDefault();
+        var stats = [];
+        $.ajax({
+          type: "POST",
+          url: 'plugin.php?plugin=fpp-jukebox&page=other.php&command=clear_stats&nopage=1',
+          dataType: 'json',
+          async: false,
+          data: JSON.stringify(stats),
+          processData: false,
+          contentType: 'application/json',
+          success: function(data) {
+            $.jGrowl('Stats cleared', {
+              themeState: 'success'
+            });
+            setTimeout(function() {
+              location.reload();
+            }, 3000);
+          },
+          error: function() {
+            $('#save').prop('disabled', false);
+            DialogError('Error', "ERROR: There was an error in saving your details, please try again!");
+          }
+        });
+      });
+    });
+  </script>
 </body>

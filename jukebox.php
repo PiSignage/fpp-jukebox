@@ -49,14 +49,21 @@
       } else {
         if (fpp_current_status == 1) {
           console.log("something is playing stop it add start the selected item");
+          // Stop command data
+          var data = new Object();
+          data['command'] = 'Stop Now';
+          data['args'] = [];
+          // Stop what ever is playing
           $.ajax({
-            type: "GET",
-            url: baseUrl + "api/playlists/stop",
+            type: "POST",
+            url: baseUrl + "api/command",
+            data: JSON.stringify(data),
             async: false,
             contentType: 'application/json',
             success: function(data) {
+              // Play the selected item
               playItem(pluginJson["items"][i]["args"][0]);
-              showAlert("Playing: " + pluginJson["items"][i]["name"])
+              showAlert("Playings: " + pluginJson["items"][i]["name"])
             }
           });
         } else {
@@ -94,12 +101,14 @@
       $.ajax({
         type: "POST",
         url: url,
-        dataType: 'json',
         async: false,
         data: JSON.stringify(data),
-        processData: false,
-        contentType: 'application/json',
         success: function(data) {
+          console.log('song playing');
+
+          var playing = new Object();
+          playing['item'] = item;
+
           $.ajax({
             type: "POST",
             url: 'plugin.php?plugin=fpp-jukebox&page=other.php&command=save_song_count&nopage=1',
@@ -109,7 +118,9 @@
             },
             dataType: 'json',
             async: false,
-            success: function(data) {}
+            success: function(data) {
+              console.log("Save song count");
+            }
           });
         },
         error: function() {

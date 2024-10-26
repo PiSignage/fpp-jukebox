@@ -1,10 +1,12 @@
 <?php
 
+include_once "/opt/fpp/www/common.php";
 include_once 'jukebox-common.php';
 
 
 $command_array = array(
-  'save_song_count' => 'SaveSongCount'
+  'save_song_count' => 'SaveSongCount',
+  'clear_stats' => 'ClearStats',
 );
 
 $command = "";
@@ -29,6 +31,15 @@ if (array_key_exists($command, $command_array)) {
 }
 return;
 
+function setPluginJSON($plugin, $js)
+{
+  global $settings;
+
+  $cfgFile = $settings['configDirectory'] . "/plugin." . $plugin . ".json";
+  file_put_contents($cfgFile, json_encode($js, JSON_PRETTY_PRINT));
+  // echo json_encode($js, JSON_PRETTY_PRINT);
+}
+
 function SaveSongCount()
 {
   $counts = convertAndGetSettings('jukebox-counts');
@@ -51,4 +62,17 @@ function SaveSongCount()
   // echo print_r($counts, true);
 
   writeToJsonFile('counts', $counts);
+
+  echo json_encode([
+    'error' => false,
+    'message' => 'Saved: ' . $_POST['item'],
+  ]);
+}
+
+function ClearStats()
+{
+  setPluginJSON('fpp-jukebox-counts', []);
+  echo json_encode([
+    'error' => false
+  ]);
 }
