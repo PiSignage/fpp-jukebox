@@ -7,6 +7,7 @@
   require_once("fppversion.php");
 
   $pluginJson = convertAndGetSettings('jukebox');
+  $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? 'http://' . $pluginJson['remote_ip'] : '';
   ?>
 
   <link rel="stylesheet" href="css/fpp-bootstrap/dist/fpp-bootstrap.css" />
@@ -61,7 +62,7 @@
     <h1 class="title">Donate</h1>
 
     <div class="d-flex" style="justify-content: center;">
-      <img src="/api/file/Images/<?php echo $pluginJson['qr_code'] ?>" class="img-fluid mb-3" width="30%">
+      <img src="<?php echo $baseUrl; ?>/api/file/Images/<?php echo $pluginJson['qr_code'] ?>" class="img-fluid mb-3" width="30%">
     </div>
     <p style="text-align: center; color: white">Scan QR CODE</p>
 
