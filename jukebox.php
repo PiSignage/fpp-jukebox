@@ -489,7 +489,7 @@
   <div class="back-to-top">
     <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg" role="button">Donate</a>
     <div id="other-buttons">
-      <a id="stop" href="" class="btn btn-danger btn-lg">Stop All</a>
+      <!-- <a id="stop" href="" class="btn btn-danger btn-lg">Stop All</a> -->
       <?php if ($pluginJson['static_sequence'] != '') { ?>
         <a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play static sequence</a>
       <?php } ?>
