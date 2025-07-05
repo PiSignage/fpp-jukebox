@@ -18,7 +18,7 @@
   ?>
 
   <script src="js/jquery.jgrowl.min.js"> </script>
-  <script src="/plugin.php?plugin=fpp-jukebox&page=assets/js/sweetalert2.js&nopage=1"></script>
+  <script src="/plugin.php?plugin=fpp-jukebox&file=assets/js/sweetalert2.js&nopage=1"></script>
   <link rel="stylesheet" href="css/jquery.jgrowl.min.css" />
   <link rel="stylesheet" href="css/fpp-bootstrap/dist/fpp-bootstrap.css" />
   <script type="text/javascript">
@@ -31,6 +31,7 @@
     var hide = "<?php echo isset($_GET['hide']) ? $_GET['hide'] : 'nothing' ?>";
     var fpp_current_status = 0;
     var fpp_current_sequence = "";
+    var itemPlaying = "";
 
     function sendButtonCommand(i) {
       var static_sequence = pluginJson['static_sequence'];
@@ -60,16 +61,18 @@
             data: JSON.stringify(data),
             async: false,
             contentType: 'application/json',
-            success: function(data) {
+            success: function (data) {
               // Play the selected item
               playItem(pluginJson["items"][i]["args"][0]);
               showAlert("Playings: " + pluginJson["items"][i]["name"])
+              itemPlaying = pluginJson["items"][i]["name"];
             }
           });
         } else {
           console.log("nothing playing play item")
           playItem(pluginJson["items"][i]["args"][0]);
           showAlert("Playing: " + pluginJson["items"][i]["name"]);
+          itemPlaying = pluginJson["items"][i]["name"];
         }
       }
     }
@@ -103,7 +106,7 @@
         url: url,
         async: false,
         data: JSON.stringify(data),
-        success: function(data) {
+        success: function (data) {
           console.log('song playing');
 
           var playing = new Object();
@@ -118,12 +121,12 @@
             },
             dataType: 'json',
             async: false,
-            success: function(data) {
+            success: function (data) {
               console.log("Save song count");
             }
           });
         },
-        error: function() {
+        error: function () {
           showAlert("There was a problem playing you selected song, please try agin", "warning");
         }
       });
@@ -181,7 +184,7 @@
       });
     }
 
-    $(function() {
+    $(function () {
       if (startTime != '') {
         inSideTime();
         setInterval(inSideTime, 10000);
@@ -191,10 +194,10 @@
       fppVersionTriplet = $('body').data('fpp-version-triplet');
 
       $.get('api/configfile/plugin.fpp-jukebox.json')
-        .done(function(data) {
+        .done(function (data) {
           processJukeboxConfig(data);
         })
-        .fail(function(data) {
+        .fail(function (data) {
           processJukeboxConfigFail([]);
         });
 
@@ -219,12 +222,12 @@
           $('#donate_btn').hide();
         }
 
-        $.each(pluginJson.items, function(i, item) {
+        $.each(pluginJson.items, function (i, item) {
           var $newItem = $($('#itemTemplate').html());
           $newItem.find('.itemName').html(item.name);
           $newItem.find('img').attr('src', baseUrl + '/api/file/Images/' + item.args[1]);
 
-          $newItem.on('click', function() {
+          $newItem.on('click', function () {
             // $.jGrowl(item.name + " has been activated", {
             //   themeState: 'success'
             // });
@@ -237,7 +240,7 @@
       }
 
       function currently_playing() {
-        $.get(baseUrl + '/api/fppd/status', function(data, status) {
+        $.get(baseUrl + '/api/fppd/status', function (data, status) {
           var text = '';
           if (pluginJson.ticker_other_info != '' && pluginJson.ticker_other_info_location == 'before') {
             text = pluginJson.ticker_other_info + '<span class="dot"></span>';
@@ -248,7 +251,8 @@
           } else if (pluginJson['static_sequence'] != '' && data.current_sequence == pluginJson['static_sequence']) {
             text = text + 'Playing static sequence - Please select a song';
           } else {
-            text = text + data.current_sequence.replace(/.fseq/g, '').replace(/_/g, ' ').replace(/-/g, ' ') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
+            text = text + itemPlaying + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
+            //text = text + data.current_sequence.replace(/.fseq/g, '').replace(/_/g, ' ').replace(/-/g, ' ') + '<span class="dot"></span>Remaining Time: <span class="countdown"></span>';
           }
 
           if (pluginJson.ticker_other_info != '' && pluginJson.ticker_other_info_location == 'after') {
@@ -274,10 +278,10 @@
         $("#other-buttons").hide();
       }
 
-      $('#stop').on('click', function(e) {
+      $('#stop').on('click', function (e) {
         e.preventDefault();
 
-        $.get(baseUrl + '/api/playlists/stop', function(data, status) {
+        $.get(baseUrl + '/api/playlists/stop', function (data, status) {
           Swal.fire({
             title: "Everything has stopped playing",
             timer: 3000,
@@ -287,7 +291,7 @@
         });
       });
 
-      $('#play_static').on('click', function(e) {
+      $('#play_static').on('click', function (e) {
         e.preventDefault();
         var url = "api/command/";
         var data = new Object();
@@ -308,7 +312,7 @@
           data: JSON.stringify(data),
           processData: false,
           contentType: 'application/json',
-          success: function(data) {
+          success: function (data) {
             Swal.fire({
               title: "Static sequence is  playing",
               timer: 3000,
@@ -476,8 +480,10 @@
 
 <body class="is-kiosk" data-fpp-version-triplet="<?= getFPPVersionTriplet(); ?>">
   <div class="d-flex justify-content-between align-items-center breaking-news bg-white mb-3">
-    <div class="d-flex flex-row flex-grow-1 flex-fill justify-content-center bg-danger py-2 text-white px-1 news"><span class="d-flex align-items-center">&nbsp;Currently Playing</span></div>
-    <marquee class="news-scroll" behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();">
+    <div class="d-flex flex-row flex-grow-1 flex-fill justify-content-center bg-danger py-2 text-white px-1 news"><span
+        class="d-flex align-items-center">&nbsp;Currently Playing</span></div>
+    <marquee class="news-scroll" behavior="scroll" direction="left" onmouseover="this.stop();"
+      onmouseout="this.start();">
       Loading.....
     </marquee>
   </div>
@@ -487,11 +493,13 @@
     <div class="row row-cols-2 g-3" id="items"></div>
   </div>
   <div class="back-to-top">
-    <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-light btn-lg" role="button">Donate</a>
+    <a id="donate_btn" href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1"
+      class="btn btn-light btn-lg" role="button">Donate</a>
     <div id="other-buttons">
       <!-- <a id="stop" href="" class="btn btn-danger btn-lg">Stop All</a> -->
       <?php if ($pluginJson['static_sequence'] != '') { ?>
-        <a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play static sequence</a>
+        <a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play
+          static sequence</a>
       <?php } ?>
     </div>
   </div>

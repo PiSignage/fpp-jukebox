@@ -15,8 +15,8 @@
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
   ?>
 
-  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&page=assets/css/bootstrap.min.css&nopage=1" />
-  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&page=assets/css/locked.css&nopage=1" />
+  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=assets/css/bootstrap.min.css&nopage=1" />
+  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=assets/css/locked.css&nopage=1" />
   <script type="text/javascript">
     var startTime = '<?php echo $start_time; ?>';
     var endTime = '<?php echo $end_time; ?>';
@@ -99,7 +99,7 @@
       setTimeout(showTime, 1000);
     }
 
-    $(function() {
+    $(function () {
       inSideTime();
       setInterval(inSideTime, 10000);
       showTime();
@@ -119,7 +119,8 @@
           <p class="lead"><?php echo $pluginJson['locked_additional_info'] ?? 'NOTHING SET'; ?></p>
           <?php if ($pluginJson['qr_code'] != '') { ?>
             <p class="lead">
-              <a href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1" class="btn btn-lg btn-secondary">Donation Information</a>
+              <a href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1"
+                class="btn btn-lg btn-secondary">Donation Information</a>
             </p>
           <?php } ?>
         </div>

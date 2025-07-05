@@ -7,9 +7,9 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
 <div id="global" class="settings">
   <link rel="stylesheet" type="text/css" href="css/jquery.timepicker.css">
   <script type="text/javascript" src="js/jquery.timepicker.js"></script>
-  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&page=config.css&nopage=1" />
-  <script src="/plugin.php?plugin=fpp-jukebox&page=assets/js/jquery-ui.js&nopage=1"></script>
-  <script src="/plugin.php?plugin=fpp-jukebox&page=config.js&nopage=1"></script>
+  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=config.css&nopage=1" />
+  <script src="/plugin.php?plugin=fpp-jukebox&file=assets/js/jquery-ui.js&nopage=1"></script>
+  <script src="/plugin.php?plugin=fpp-jukebox&file=config.js&nopage=1"></script>
 
   <script>
     var baseUrl = "<?php echo $baseUrl; ?>";
@@ -112,7 +112,9 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
   </div>
 
   <?php if (!file_exists('/home/fpp/media/config/plugin.fpp-jukebox.json')) { ?>
-    <div class="alert alert-danger">Base config file missing please run <strong>. /home/fpp/media/plugins/fpp-jukebox/scripts/fpp_install.sh</strong> in <a href="http://<?php echo $_SERVER['SERVER_NAME']; ?>:4200" target="_blank">SSH shell</a></div>
+    <div class="alert alert-danger">Base config file missing please run <strong>.
+        /home/fpp/media/plugins/fpp-jukebox/scripts/fpp_install.sh</strong> in <a
+        href="http://<?php echo $_SERVER['SERVER_NAME']; ?>:4200" target="_blank">SSH shell</a></div>
   <?php } ?>
 
 
@@ -123,17 +125,21 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
   <div class="form-group">
     <label for="remote_ip">Remote IP</label>
     <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp"></input>
-    <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and sequences/playlist on another? Enter the ip address on the remote controller.</small>
+    <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and
+      sequences/playlist on another? Enter the ip address on the remote controller.</small>
   </div>
   <div class="form-group">
     <label for="static_sequence">Static Sequence</label>
-    <select id="static_sequence" class="form-control" aria-describedby="staticSequenceHelp" data-contentlisturl="api/files/sequences?nameOnly=1"></select>
-    <small id="staticSequenceHelp" class="form-text text-muted">Do You have a sequence run between songs? and you want the system to wait before allowing the next song to be select</small>
+    <select id="static_sequence" class="form-control" aria-describedby="staticSequenceHelp"
+      data-contentlisturl="api/files/sequences?nameOnly=1"></select>
+    <small id="staticSequenceHelp" class="form-text text-muted">Do You have a sequence run between songs? and you want
+      the system to wait before allowing the next song to be select</small>
   </div>
   <div class="form-group">
     <label for="ticker_other_info">Additional Ticker Information</label>
     <input type="text" class="form-control" id="ticker_other_info" aria-describedby="tickerOtherInfoHelp">
-    <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the Currently Playing Ticker</small>
+    <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the Currently
+      Playing Ticker</small>
   </div>
   <div class="form-group">
     <label for="ticker_other_info_location">Location of additional Ticker Information</label>
@@ -141,12 +147,15 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
       <option value="before">Before</option>
       <option value="after">After</option>
     </select>
-    <small id="tickerOtherInfoLocationHelp" class="form-text text-muted">Display the what location do you want to put Additional Ticker Information to show - Before the currently playing song information or After it</small>
+    <small id="tickerOtherInfoLocationHelp" class="form-text text-muted">Display the what location do you want to put
+      Additional Ticker Information to show - Before the currently playing song information or After it</small>
   </div>
   <div class="form-group">
     <label for="qr_code">QR code</label>
-    <select id="qr_code" class="form-control" aria-describedby="qrCodeHelp" data-contentlisturl="api/files/images?nameOnly=1"></select>
-    <small id="qrCodeHelp" class="form-text text-muted">Do you have a QR code that you use for visitors to donate. Select the QR Code from your upload images</small>
+    <select id="qr_code" class="form-control" aria-describedby="qrCodeHelp"
+      data-contentlisturl="api/files/images?nameOnly=1"></select>
+    <small id="qrCodeHelp" class="form-text text-muted">Do you have a QR code that you use for visitors to donate.
+      Select the QR Code from your upload images</small>
   </div>
   <hr class="mb-3" />
 
