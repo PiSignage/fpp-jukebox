@@ -38,4 +38,6 @@ else
 	sudo chown fpp /home/fpp/media/images/placeholder.jpg
 fi
 
+echo "Please restart fppd for new FPP Commands to be visible."
+. /opt/fpp/scripts/common
 setSetting restartFlag 1
