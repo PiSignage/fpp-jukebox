@@ -2,6 +2,7 @@
 require_once("jukebox-common.php");
 $pluginJson = convertAndGetSettings('jukebox');
 $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? 'http://' . $pluginJson['remote_ip'] . '/' : null;
+$jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1";
 ?>
 
 <div id="global" class="settings">
@@ -10,6 +11,32 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
   <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=config.css&nopage=1" />
   <script src="/plugin.php?plugin=fpp-jukebox&file=assets/js/jquery-ui.js&nopage=1"></script>
   <script src="/plugin.php?plugin=fpp-jukebox&file=config.js&nopage=1"></script>
+
+  <style>
+    .alert {
+      position: relative !important;
+      padding: 0.75rem 1.25rem !important;
+      margin-bottom: 1rem !important;
+      border: 1px solid transparent !important;
+      border-radius: 0.25rem !important;
+    }
+
+    .alert-info {
+      color: #004085 !important;
+      background-color: #cce5ff !important;
+      border-color: #b8daff !important;
+    }
+
+    .alert-link {
+      color: #002752 !important;
+      font-weight: 700 !important;
+      text-decoration: none !important;
+    }
+
+    .alert-link:hover {
+      text-decoration: underline !important;
+    }
+  </style>
 
   <script>
     var baseUrl = "<?php echo $baseUrl; ?>";
@@ -63,6 +90,22 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
         }
       }
     };
+    $(document).ready(function() {
+      var remoteIpList = null;
+      var remoteIpLookupUrl = $('#remote_ip').attr('data-contentlisturl');
+      $.ajax({
+        dataType: 'json',
+        async: false,
+        url: baseUrl + remoteIpLookupUrl,
+        success: function(data) {
+          remoteIpList = data;
+        }
+      });
+
+      $.each(remoteIpList, function(k, v) {
+        $('#remote_ip_list').append("<option value='" + k + "'>" + v + "</option>");
+      });
+    });
   </script>
 
   <template class="configItemTemplate">
@@ -73,7 +116,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
           <div class="buttonCommandWrap mb-2">
             <div class="bb_commandTableWrap">
               <div class="bb_commandTableCrop">
-                <table border=0 id="tableReaderTPL" class="tableItem">
+                <table border="0" id="tableReaderTPL" class="tableItem">
                   <tr>
                     <td>Item Name:</td>
                     <td>
@@ -105,6 +148,10 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
     </div>
   </template>
 
+  <div class="alert alert-info">
+    All media needs to be upload to the <a href="filemanager.php" class="alert-link">file manager</a>.
+  </div>
+
   <div class="d-flex flex-row-reverse mb-1">
     <button id="saveItemConfigButton" class="buttons btn-success">
       Save Config
@@ -117,14 +164,14 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
         href="http://<?php echo $_SERVER['SERVER_NAME']; ?>:4200" target="_blank">SSH shell</a></div>
   <?php } ?>
 
-
   <legend>Jukebox Config</legend>
 
-  <p>Kiosk Url: http://localhost/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1</p>
+  <p><strong>Kiosk Url</strong>: <a href="<?php echo $jukeboxUrl; ?>" target="_blank"><?php echo $jukeboxUrl; ?></a></p>
 
   <div class="form-group">
     <label for="remote_ip">Remote IP</label>
-    <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp"></input>
+    <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp" data-contentlisturl="api/remotes" list="remote_ip_list"></input>
+    <datalist id="remote_ip_list"></datalist>
     <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and
       sequences/playlist on another? Enter the ip address on the remote controller.</small>
   </div>
@@ -139,7 +186,7 @@ $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? '
     <label for="ticker_other_info">Additional Ticker Information</label>
     <input type="text" class="form-control" id="ticker_other_info" aria-describedby="tickerOtherInfoHelp">
     <small id="tickerOtherInfoHelp" class="form-text text-muted">Want to display other information on the Currently
-      Playing Ticker</small>
+      Playing Ticker (Example: Welcome to SHOWNAME)</small>
   </div>
   <div class="form-group">
     <label for="ticker_other_info_location">Location of additional Ticker Information</label>
