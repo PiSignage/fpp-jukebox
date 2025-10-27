@@ -518,8 +518,8 @@
     <div id="other-buttons">
       <!-- <a id="stop" href="" class="btn btn-danger btn-lg">Stop All</a> -->
       <?php if ($pluginJson['static_sequence'] != '') { ?>
-        <a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play
-          static sequence</a>
+        <!--a id="play_static" href="" data-item="<?php echo $pluginJson['static_sequence']; ?>" class="btn btn-light">Play
+          static sequence</a-->
       <?php } ?>
     </div>
   </div>
