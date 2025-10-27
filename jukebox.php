@@ -341,6 +341,18 @@
       font-style: normal;
     }
 
+    @font-face {
+      font-family: 'Shantell Sans';
+      font-style: normal;
+      font-weight: 400;
+      src: url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.eot&nopage=1');
+      src: url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.eot&nopage=1?#iefix') format('embedded-opentype'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.woff2&nopage=1') format('woff2'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.woff&nopage=1') format('woff'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.ttf&nopage=1') format('truetype'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.svg&nopage=1#ShantellSans') format('svg');
+    }
+
     html,
     body {
       overscroll-behavior-x: none;
@@ -348,7 +360,7 @@
 
     body {
       background-color: black;
-      font-family: 'Comic-Queens';
+      font-family: '<?php echo isset($jsonConfig['font']) ? $jsonConfig['font'] : 'Comic-Queens'; ?>';
     }
 
     body::-webkit-scrollbar {

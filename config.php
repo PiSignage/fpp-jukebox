@@ -11,6 +11,29 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
   <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=config.css&nopage=1" />
   <script src="/plugin.php?plugin=fpp-jukebox&file=assets/js/jquery-ui.js&nopage=1"></script>
   <script src="/plugin.php?plugin=fpp-jukebox&file=config.js&nopage=1"></script>
+  <style>
+    @font-face {
+      font-family: 'Comic-Queens';
+      src: url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.woff&nopage=1') format('woff'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.svg&nopage=1#Comic-Queens') format('svg'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.eot&nopage=1'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/Comic-Queens.ttf.eot&nopage=1?#iefix') format('embedded-opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Shantell Sans';
+      font-style: normal;
+      font-weight: 400;
+      src: url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.eot&nopage=1');
+      src: url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.eot&nopage=1?#iefix') format('embedded-opentype'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.woff2&nopage=1') format('woff2'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.woff&nopage=1') format('woff'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.ttf&nopage=1') format('truetype'),
+        url('/plugin.php?plugin=fpp-jukebox&page=assets/fonts/shantell-sans-v13-latin-regular.svg&nopage=1#ShantellSans') format('svg');
+    }
+  </style>
 
   <style>
     .alert {
@@ -35,6 +58,14 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
 
     .alert-link:hover {
       text-decoration: underline !important;
+    }
+
+    .font-one {
+      font-family: 'Shantell Sans';
+    }
+
+    .font-two {
+      font-family: 'Comic-Queens';
     }
   </style>
 
@@ -90,19 +121,19 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
         }
       }
     };
-    $(document).ready(function() {
+    $(document).ready(function () {
       var remoteIpList = null;
       var remoteIpLookupUrl = $('#remote_ip').attr('data-contentlisturl');
       $.ajax({
         dataType: 'json',
         async: false,
         url: baseUrl + remoteIpLookupUrl,
-        success: function(data) {
+        success: function (data) {
           remoteIpList = data;
         }
       });
 
-      $.each(remoteIpList, function(k, v) {
+      $.each(remoteIpList, function (k, v) {
         $('#remote_ip_list').append("<option value='" + k + "'>" + v + "</option>");
       });
     });
@@ -170,7 +201,8 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
 
   <div class="form-group">
     <label for="remote_ip">Remote IP</label>
-    <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp" data-contentlisturl="api/remotes" list="remote_ip_list"></input>
+    <input type="text" id="remote_ip" class="form-control" aria-describedby="remoteIpHelp"
+      data-contentlisturl="api/remotes" list="remote_ip_list"></input>
     <datalist id="remote_ip_list"></datalist>
     <small id="remoteIpHelp" class="form-text text-muted">Do you have the plugin on one controller and
       sequences/playlist on another? Enter the ip address on the remote controller.</small>
@@ -203,6 +235,13 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
       data-contentlisturl="api/files/images?nameOnly=1"></select>
     <small id="qrCodeHelp" class="form-text text-muted">Do you have a QR code that you use for visitors to donate.
       Select the QR Code from your upload images</small>
+  </div>
+  <div class="form-group">
+    <label for="font">Font</label>
+    <select name="font" id="font" class="form-control">
+      <option value="Shantell Sans" style="font-family: Shantell Sans">Font One</option>
+      <option value="Comic-Queens" style="font-family: Comic-Queens">Font Two</option>
+    </select>
   </div>
   <hr class="mb-3" />
 

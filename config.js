@@ -53,6 +53,7 @@ function SaveItems() {
   jukeboxConfig["ticker_other_info"] = $('#ticker_other_info').val();
   jukeboxConfig["ticker_other_info_location"] = $('#ticker_other_info_location').val();
   jukeboxConfig["qr_code"] = $('#qr_code').val();
+  jukeboxConfig["font"] = $('#font').val();
 
   jukeboxConfig["locked_show_logo"] = $('#show_logo').val();
   jukeboxConfig["locked_show_name"] = $('#show_name').val();
