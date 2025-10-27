@@ -43,6 +43,7 @@
           console.log("Playing: " + pluginJson["items"][i]["name"]);
           playItem(pluginJson["items"][i]["args"][0]);
           showAlert("Playing: " + pluginJson["items"][i]["name"]);
+          itemPlaying = pluginJson["items"][i]["name"];
         } else {
           console.log("waiting for static sequence")
           Swal.fire("Waiting for static sequence");
@@ -61,7 +62,7 @@
             data: JSON.stringify(data),
             async: false,
             contentType: 'application/json',
-            success: function(data) {
+            success: function (data) {
               // Play the selected item
               playItem(pluginJson["items"][i]["args"][0]);
               showAlert("Playings: " + pluginJson["items"][i]["name"])
@@ -106,7 +107,7 @@
         url: url,
         async: false,
         data: JSON.stringify(data),
-        success: function(data) {
+        success: function (data) {
           console.log('song playing');
 
           var playing = new Object();
@@ -121,12 +122,12 @@
             },
             dataType: 'json',
             async: false,
-            success: function(data) {
+            success: function (data) {
               console.log("Save song count");
             }
           });
         },
-        error: function() {
+        error: function () {
           showAlert("There was a problem playing you selected song, please try agin", "warning");
         }
       });
@@ -184,7 +185,7 @@
       });
     }
 
-    $(function() {
+    $(function () {
       if (startTime != '') {
         inSideTime();
         setInterval(inSideTime, 10000);
@@ -194,10 +195,10 @@
       fppVersionTriplet = $('body').data('fpp-version-triplet');
 
       $.get('api/configfile/plugin.fpp-jukebox.json')
-        .done(function(data) {
+        .done(function (data) {
           processJukeboxConfig(data);
         })
-        .fail(function(data) {
+        .fail(function (data) {
           processJukeboxConfigFail([]);
         });
 
@@ -222,12 +223,12 @@
           $('#donate_btn').hide();
         }
 
-        $.each(pluginJson.items, function(i, item) {
+        $.each(pluginJson.items, function (i, item) {
           var $newItem = $($('#itemTemplate').html());
           $newItem.find('.itemName').html(item.name);
           $newItem.find('img').attr('src', baseUrl + '/api/file/Images/' + item.args[1]);
 
-          $newItem.on('click', function() {
+          $newItem.on('click', function () {
             // $.jGrowl(item.name + " has been activated", {
             //   themeState: 'success'
             // });
@@ -240,7 +241,7 @@
       }
 
       function currently_playing() {
-        $.get(baseUrl + '/api/fppd/status', function(data, status) {
+        $.get(baseUrl + '/api/fppd/status', function (data, status) {
           var text = '';
           if (pluginJson.ticker_other_info != '' && pluginJson.ticker_other_info_location == 'before') {
             text = pluginJson.ticker_other_info + '<span class="dot"></span>';
@@ -278,10 +279,10 @@
         $("#other-buttons").hide();
       }
 
-      $('#stop').on('click', function(e) {
+      $('#stop').on('click', function (e) {
         e.preventDefault();
 
-        $.get(baseUrl + '/api/playlists/stop', function(data, status) {
+        $.get(baseUrl + '/api/playlists/stop', function (data, status) {
           Swal.fire({
             title: "Everything has stopped playing",
             timer: 3000,
@@ -291,7 +292,7 @@
         });
       });
 
-      $('#play_static').on('click', function(e) {
+      $('#play_static').on('click', function (e) {
         e.preventDefault();
         var url = "api/command/";
         var data = new Object();
@@ -312,7 +313,7 @@
           data: JSON.stringify(data),
           processData: false,
           contentType: 'application/json',
-          success: function(data) {
+          success: function (data) {
             Swal.fire({
               title: "Static sequence is  playing",
               timer: 3000,
@@ -324,7 +325,7 @@
       });
 
       $('#currenttime').html(getval());
-      setInterval(function() {
+      setInterval(function () {
         $('#currenttime').html(getval());
       }, 10000);
     });
