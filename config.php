@@ -252,6 +252,15 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
     <select id="show_logo" class="form-control" data-contentlisturl="api/files/images?nameOnly=1"></select>
   </div>
   <div class="form-group">
+    <label for="logo_location">Logo Location</label>
+    <select name="logo_location" id="logo_location" class="form-control">
+      <option value="top">Top</option>
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+    </select>
+    <small class="form-text text-muted">The location where your show logo will show on the locked screen</small>
+  </div>
+  <div class="form-group">
     <label for="show_name">Show Name</label>
     <input type="text" id="show_name" class="form-control">
   </div>

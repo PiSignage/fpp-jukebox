@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jukebox Locked</title>
+
+    <!-- <link rel="stylesheet" href="assets/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="assets/css/locked.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <style>
+        .b-example-divider {
+            width: 100%;
+            height: 3rem;
+            background-color: #0000001a;
+            border: solid rgba(0, 0, 0, 0.15);
+            border-width: 1px 0;
+            box-shadow:
+                inset 0 0.5em 1.5em #0000001a,
+                inset 0 0.125em 0.5em #00000026;
+        }
+
+        @media (min-width: 992px) {
+            .rounded-lg-3 { border-radius: .3rem; }
+        }
+
+        .lead {
+            font-size: 2.25rem !important;
+        }
+    </style>
+</head>
+<body class="">
+
+    <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
+        <div class="inner cover mt-auto mb-auto">
+
+            <!-- <div class="container col-xxl-8 px-4 py-5">
+                <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+                    <div class="col-10 col-sm-8 col-lg-6"> <img
+                            src="https://placehold.co/500x500"
+                            class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" loading="lazy">
+                    </div>
+                    <div class="col-lg-6">
+                        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Welcome To HYTON DRIVE LIGHT SHOW</h1>
+                        <p class="lead">Show Run From 15:30 to 21:30 Every Day</p>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4"> <button type="button"
+                                class="btn btn-outline-secondary btn-lg px-4">Donation Information</button> </div>
+                        <p class="lead" id="clock"></p>
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- <div class="container col-xxl-8 px-4 py-5">
+                <div class="row align-items-center g-5 py-5">
+                    <div class="col-10 col-sm-8 col-lg-6"> <img src="https://placehold.co/500x500"
+                            class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" loading="lazy">
+                    </div>
+                    <div class="col-lg-6">
+                        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Welcome To HYTON DRIVE LIGHT SHOW</h1>
+                        <p class="lead">Show Run From 15:30 to 21:30 Every Day</p>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4"> <button type="button"
+                                class="btn btn-outline-secondary btn-lg px-4">Donation Information</button> </div>
+                        <p class="lead" id="clock"></p>
+                    </div>
+                </div>
+            </div> -->
+
+            <div class="px-4 py-5 my-5 text-center">
+                <div class="container px-5">
+                    <img class="img-fluid mb-4" src="https://placehold.co/800x100" alt="Show Logo" loading="lazy">
+                </div>
+                <h1 class="display-5 fw-bold text-body-emphasis">Welcome To HYTON DRIVE LIGHT SHOW</h1>
+                <div class="col-lg-12 mx-auto">
+                    <p class="lead mb-4">Show Run From 15:30 to 21:30 Every Day</p>
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-4">
+                        <button type="button" class="btn btn-outline-secondary btn-lg px-4">Donation Information</button>
+                    </div>
+                    <p class="lead" id="clock"></p>
+                </div>
+            </div>
+        
+        </div>
+    </div>
+
+    <!-- <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
+
+        <header class="mastheader mb-auto">
+            <div class="inner">
+                <img src="https://placehold.co/300x200" alt="" class="img-fluid">
+            </div>
+        </header>
+
+        <main role="main" class="inner cover">
+            <h1 class="cover-heading">Welcome To Jones Family Lights</h1>
+            <p class="lead">Cover is a one-page template for building simple and beautiful home pages. Download, edit the text,
+                and add your own fullscreen background photo to make it your own.</p>
+            <p class="lead" id="clock"></p>
+            <p class="lead">
+                <a href="#" class="btn btn-lg btn-secondary">Donation Information</a>
+            </p>
+        </main>
+
+        <footer class="mastfoot mt-auto">
+            <div class="inner">
+                <p>Cover template for <a href="https://getbootstrap.com/">Bootstrap</a>, by <a
+                        href="https://twitter.com/mdo">@mdo</a>.</p>
+            </div>
+        </footer>
+
+    </div> -->
+
+    <!-- <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
+        <main role="main" class="inner cover mt-auto mb-auto">
+            <div class="row">
+                <div class="col-4">
+                    <img src="https://placehold.co/600x400" alt="" class="img-fluid">
+                </div>
+                <div class="col-8">
+                    <h1 class="cover-heading">Welcome To locked_show_name
+                    </h1>
+                    <p class="lead">
+                        locked_additional_info
+                    </p>
+                </div>
+            </div>
+            <h3 id="clock"></h3>
+        </main>
+    </div> -->
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+        var startTime = '5.00 PM';
+        var endTime = '9.00 PM';
+
+        function get24Hr(time) {
+            var hours = Number(time.match(/^(\d+)/)[1]);
+            var AMPM = time.match(/\s(.*)$/)[1];
+            if (AMPM == "PM" && hours < 12) hours = hours + 12;
+            if (AMPM == "AM" && hours == 12) hours = hours - 12;
+
+            var minutes = Number(time.match(/:(\d+)/)[1]);
+            hours = hours * 100 + minutes;
+            // console.log(time + " - " + hours);
+            return hours;
+        }
+
+        function getval() {
+            var currentTime = new Date()
+            var hours = currentTime.getHours()
+            var minutes = currentTime.getMinutes()
+
+            if (minutes < 10) minutes = "0" + minutes;
+
+            var suffix = "AM";
+            if (hours >= 12) {
+                suffix = "PM";
+                hours = hours - 12;
+            }
+            if (hours == 0) {
+                hours = 12;
+            }
+            var current_time = hours + ":" + minutes + " " + suffix;
+
+            return current_time;
+
+        }
+
+        function inSideTime() {
+            var curr_time = getval();
+
+            if (get24Hr(curr_time) > get24Hr(startTime) && get24Hr(curr_time) < get24Hr(endTime)) {
+                console.log('inside active time send user back to jukebox page');
+                window.location.replace("/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1");
+            } else {
+                console.log('outside active time stay here');
+            }
+        }
+
+        function showTime() {
+            // to get current time/ date.
+            var date = new Date();
+            // to get the current hour
+            var h = date.getHours();
+            // to get the current minutes
+            var m = date.getMinutes();
+            //to get the current second
+            var s = date.getSeconds();
+            // AM, PM setting
+            var session = "AM";
+
+            //conditions for times behavior
+            if (h == 0) {
+                h = 12;
+            }
+            if (h >= 12) {
+                session = "PM";
+            }
+
+            if (h > 12) {
+                h = h - 12;
+            }
+            m = (m < 10) ? m = "0" + m : m;
+            s = (s < 10) ? s = "0" + s : s;
+
+            //putting time in one variable
+            var time = "Current Time: " + h + ":" + m + ":" + s + " " + session;
+            //putting time in our div
+            $('#clock').html(time);
+            //to change time in every seconds
+            setTimeout(showTime, 1000);
+        }
+
+        $(document).ready(function () {
+            // inSideTime();
+            // setInterval(inSideTime, 10000);
+            showTime();
+        });
+    </script>
+</body>
+</html>

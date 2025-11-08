@@ -13,6 +13,7 @@ defalt_json=$(cat <<EOF
   "ticker_other_info": "",
 	"ticker_other_info_location": "before",
 	"font": "Comic-Queens",
+	"logo_location": "left",
   "items": []
 }
 EOF

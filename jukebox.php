@@ -226,7 +226,7 @@
         $.each(pluginJson.items, function (i, item) {
           var $newItem = $($('#itemTemplate').html());
           $newItem.find('.itemName').html(item.name);
-          $newItem.find('img').attr('src', baseUrl + '/api/file/Images/' + item.args[1]);
+          $newItem.find('img').attr('src', baseUrl + 'api/file/Images/' + item.args[1]);
 
           $newItem.on('click', function () {
             // $.jGrowl(item.name + " has been activated", {

@@ -10,12 +10,13 @@
   $pluginJson = convertAndGetSettings('jukebox');
   $start_time = $pluginJson['locked_start_time'] != '' ? $pluginJson['locked_start_time'] : '';
   $end_time = $pluginJson['locked_end_time'] != '' ? $pluginJson['locked_end_time'] : '';
+  $location = isset($pluginJson['logo_location']) ? $pluginJson['logo_location'] ? 'left';
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
   ?>
 
-  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=assets/css/bootstrap.min.css&nopage=1" />
+  <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=assets/css/bootstrap5.min.css&nopage=1" />
   <link rel="stylesheet" href="/plugin.php?plugin=fpp-jukebox&file=assets/css/locked.css&nopage=1" />
   <script type="text/javascript">
     var startTime = '<?php echo $start_time; ?>';
@@ -107,25 +108,10 @@
   </script>
 </head>
 
-<body class="text-center">
+<body>
   <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
     <main role="main" class="inner cover mt-auto mb-auto">
-      <div class="row">
-        <div class="col-4">
-          <img src="/api/file/Images/<?php echo $pluginJson['locked_show_logo'] ?>" alt="" class="img-fluid">
-        </div>
-        <div class="col-8">
-          <h1 class="cover-heading">Welcome To <?php echo $pluginJson['locked_show_name'] ?? 'NOTHING SET'; ?></h1>
-          <p class="lead"><?php echo $pluginJson['locked_additional_info'] ?? 'NOTHING SET'; ?></p>
-          <?php if ($pluginJson['qr_code'] != '') { ?>
-            <p class="lead">
-              <a href="plugin.php?_menu=status&plugin=fpp-jukebox&page=donate.php&nopage=1"
-                class="btn btn-lg btn-secondary">Donation Information</a>
-            </p>
-          <?php } ?>
-        </div>
-      </div>
-      <h3 id="clock"></h3>
+      <?php include_once('locked_templates/' . $location '.php'); ?>
     </main>
   </div>
 </body>
