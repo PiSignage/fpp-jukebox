@@ -151,6 +151,20 @@ function contentlisturl(contentListUrl, firstOption, item) {
 }
 
 $(function () {
+  if ($('#pluginupdate').length) {
+    $.ajax({
+      type: "POST",
+      url: 'api/plugin/fpp-jukebox/updates',
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function (data) {
+        if (data.updatesAvailable) {
+          $('#pluginupdate').show();
+        }
+      }
+    });
+  }
+
   $(document).on('change', '.itemOption', function () {
     var thisObj = $(this),
       thisId = thisObj.attr('id'),

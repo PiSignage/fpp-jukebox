@@ -179,6 +179,8 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
     </div>
   </template>
 
+  <?php include $settings["pluginDirectory"] . "/fpp-jukebox/pluginUpdate.php" ?>
+
   <div class="alert alert-info">
     All media needs to be upload to the <a href="filemanager.php" class="alert-link">file manager</a>.
   </div>
