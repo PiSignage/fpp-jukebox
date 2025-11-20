@@ -111,7 +111,7 @@
 <body>
   <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
     <main role="main" class="inner cover mt-auto mb-auto">
-      <?php include_once('locked_templates/' . $location '.php'); ?>
+      <?php include_once('locked_templates/' . $location . '.php'); ?>
     </main>
   </div>
 </body>
