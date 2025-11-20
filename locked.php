@@ -10,7 +10,7 @@
   $pluginJson = convertAndGetSettings('jukebox');
   $start_time = $pluginJson['locked_start_time'] != '' ? $pluginJson['locked_start_time'] : '';
   $end_time = $pluginJson['locked_end_time'] != '' ? $pluginJson['locked_end_time'] : '';
-  $location = isset($pluginJson['logo_location']) ? $pluginJson['logo_location'] ? 'left';
+  $location = isset($pluginJson['logo_location']) ? $pluginJson['logo_location'] : 'left';
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
