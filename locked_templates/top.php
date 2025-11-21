@@ -1,6 +1,7 @@
 <div class="px-4 py-5 my-5 text-center">
     <div class="container px-5">
-        <img class="img-fluid mb-4" src="/api/file/Images/<?php echo $pluginJson['locked_show_logo'] ?>" alt="Show Logo"
+        <img class="img-fluid mb-4"
+            src="<?php echo $base_url; ?>/api/file/Images/<?php echo $pluginJson['locked_show_logo'] ?>" alt="Show Logo"
             loading="lazy">
     </div>
     <h1 class="display-5 fw-bold text-body-emphasis">Welcome To

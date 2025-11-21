@@ -1,6 +1,7 @@
 <div class="container col-xxl-8 px-4 py-5">
     <div class="row align-items-center g-5 py-5">
-        <div class="col-10 col-sm-8 col-lg-6"> <img src="/api/file/Images/<?php echo $pluginJson['locked_show_logo'] ?>"
+        <div class="col-10 col-sm-8 col-lg-6"> <img
+                src="<?php echo $base_url; ?>/api/file/Images/<?php echo $pluginJson['locked_show_logo'] ?>"
                 class="d-block mx-lg-auto img-fluid" alt="Show Logo" loading="lazy">
         </div>
         <div class="col-lg-6">
