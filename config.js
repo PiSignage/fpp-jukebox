@@ -55,6 +55,7 @@ function SaveItems() {
   jukeboxConfig["qr_code"] = $('#qr_code').val();
   jukeboxConfig["font"] = $('#font').val();
   jukeboxConfig["logo_location"] = $('#logo_location').val();
+  jukeboxConfig["hide_images"] = $('#hide_images').val();
 
   jukeboxConfig["locked_show_logo"] = $('#show_logo').val();
   jukeboxConfig["locked_show_name"] = $('#show_name').val();
@@ -222,6 +223,7 @@ $(function () {
     $('#end_time').val(jukeboxConfig.locked_end_time);
     $('#font').val(jukeboxConfig.font);
     $('#logo_location').val(jukeboxConfig.logo_location);
+    $('#hide_images').val(jukeboxConfig.hide_images)
 
     $.each(jukeboxConfig.items, function (i, v) {
       $newItemRow = createItemRow(i, v);

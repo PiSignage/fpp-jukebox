@@ -139,6 +139,29 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
     });
   </script>
 
+  <template class="buttonTabTemplate">
+    <li class="buttonTab">
+      <div class="buttonTabInner">
+
+        <span class="buttonPageTitleValue"></span>
+        <span class="toggleButtonPageTitleWrap">
+          <button class="bb_circleButton toggleButtonPageTitle"><i class="fpp-icon-edit"></i><i
+              class="fpp-icon-check"></i></button>
+        </span>
+      </div>
+      <div class="hidden buttonTabSettings">
+        <div class="form-group">
+          <label>Title:</label>
+          <input type="text" class="form-control buttonPageTitleInput" placeholder="Name for this tab of buttons">
+        </div>
+        <div class="form-group">
+          <label>image:</label>
+          <select class="form-control"></select>
+        </div>
+      </div>
+    </li>
+  </template>
+
   <template class="configItemTemplate">
     <div class="col-md-6 item dragItem">
       <div class="card mb-4 box-shadow">
@@ -245,6 +268,14 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
       <option value="Comic-Queens" style="font-family: Comic-Queens">Font Two</option>
     </select>
   </div>
+  <div class="form-group">
+    <label for="hide_images">Hide Images</label>
+    <select name="hide_images" id="hide_images" class="form-control">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+    <small id="hideImageHelp" class="form-text text-muted">Want to hide the images and just show the song name</small>
+  </div>
   <hr class="mb-3" />
 
   <legend>Locked Config</legend>
@@ -287,5 +318,6 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
       <i class="fas fa-plus"></i> Add a Item
     </button>
   </div>
+
   <div id="dragArea" class="itemList row"></div>
 </div>

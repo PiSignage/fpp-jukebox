@@ -12,6 +12,7 @@
   $baseIp = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? $pluginJson['remote_ip'] : null;
   $start_time = $pluginJson['locked_start_time'] != '' ? $pluginJson['locked_start_time'] : '';
   $end_time = $pluginJson['locked_end_time'] != '' ? $pluginJson['locked_end_time'] : '';
+  $hide_images = $pluginJson['hide_images'] != '' ? $pluginJson['hide_images'] : 'no';
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
@@ -32,6 +33,7 @@
     var fpp_current_status = 0;
     var fpp_current_sequence = "";
     var itemPlaying = "";
+    var hideImages = "<?php echo $hide_images; ?>"
 
     function sendButtonCommand(i) {
       var static_sequence = pluginJson['static_sequence'];
@@ -224,9 +226,13 @@
         }
 
         $.each(pluginJson.items, function (i, item) {
-          var $newItem = $($('#itemTemplate').html());
+          if (hideImages == 'yes') {
+            var $newItem = $($('#itemNoImageTemplate').html());
+          } else {
+            var $newItem = $($('#itemTemplate').html());
+            $newItem.find('img').attr('src', baseUrl + 'api/file/Images/' + item.args[1]);
+          }
           $newItem.find('.itemName').html(item.name);
-          $newItem.find('img').attr('src', baseUrl + 'api/file/Images/' + item.args[1]);
 
           $newItem.on('click', function () {
             // $.jGrowl(item.name + " has been activated", {
@@ -487,6 +493,20 @@
           <img src="" class="img-fluid border border-white rounded">
         </div>
         <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title itemName">Card title</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="itemNoImageTemplate">
+  <div class="col">
+    <div class="card mb-3">
+      <div class="row g-0">
+        <div class="col-md-12">
           <div class="card-body">
             <h5 class="card-title itemName">Card title</h5>
           </div>
