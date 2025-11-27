@@ -276,6 +276,12 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
     </select>
     <small id="hideImageHelp" class="form-text text-muted">Want to hide the images and just show the song name</small>
   </div>
+  <div class="form-group">
+    <label for="button_timeout">Button Timeout (Seconds)</label>
+    <input type="number" name="button_timeout" id="button_timeout" class="form-control">
+    <small id="buttonTimeoutHelp" class="form-text text-muted">If you dont have a static sequence set and you want to
+      set a button timeout. This will stop guests selecting another song right after. 60000 = 1 minute</small>
+  </div>
   <hr class="mb-3" />
 
   <legend>Locked Config</legend>

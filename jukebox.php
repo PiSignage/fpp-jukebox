@@ -13,6 +13,7 @@
   $start_time = $pluginJson['locked_start_time'] != '' ? $pluginJson['locked_start_time'] : '';
   $end_time = $pluginJson['locked_end_time'] != '' ? $pluginJson['locked_end_time'] : '';
   $hide_images = $pluginJson['hide_images'] != '' ? $pluginJson['hide_images'] : 'no';
+  $button_timeout_sec = isset($pluginJson['button_timeout']) != '' ? $pluginJson['button_timeout'] : 60000;
 
   $jquery = glob("$fppDir/www/js/jquery-*.min.js");
   printf("<script type='text/javascript' src='js/%s'></script>\n", basename($jquery[0]));
@@ -34,6 +35,8 @@
     var fpp_current_sequence = "";
     var itemPlaying = "";
     var hideImages = "<?php echo $hide_images; ?>"
+    var buttonTimeoutSet = false;
+    var buttonTimeoutSecounds = parseInt(<?php echo $button_timeout_sec; ?>);
 
     function sendButtonCommand(i) {
       var static_sequence = pluginJson['static_sequence'];
@@ -51,31 +54,36 @@
           Swal.fire("Waiting for static sequence");
         }
       } else {
-        if (fpp_current_status == 1) {
-          console.log("something is playing stop it add start the selected item");
-          // Stop command data
-          var data = new Object();
-          data['command'] = 'Stop Now';
-          data['args'] = [];
-          // Stop what ever is playing
-          $.ajax({
-            type: "POST",
-            url: baseUrl + "api/command",
-            data: JSON.stringify(data),
-            async: false,
-            contentType: 'application/json',
-            success: function (data) {
-              // Play the selected item
-              playItem(pluginJson["items"][i]["args"][0]);
-              showAlert("Playings: " + pluginJson["items"][i]["name"])
-              itemPlaying = pluginJson["items"][i]["name"];
-            }
-          });
+        if (buttonTimeoutSet) {
+          showAlert('Please wait');
         } else {
-          console.log("nothing playing play item")
-          playItem(pluginJson["items"][i]["args"][0]);
-          showAlert("Playing: " + pluginJson["items"][i]["name"]);
-          itemPlaying = pluginJson["items"][i]["name"];
+          buttonTimeout();
+          if (fpp_current_status == 1) {
+            console.log("something is playing stop it add start the selected item");
+            // Stop command data
+            var data = new Object();
+            data['command'] = 'Stop Now';
+            data['args'] = [];
+            // Stop what ever is playing
+            $.ajax({
+              type: "POST",
+              url: baseUrl + "api/command",
+              data: JSON.stringify(data),
+              async: false,
+              contentType: 'application/json',
+              success: function (data) {
+                // Play the selected item
+                playItem(pluginJson["items"][i]["args"][0]);
+                showAlert("Playings: " + pluginJson["items"][i]["name"])
+                itemPlaying = pluginJson["items"][i]["name"];
+              }
+            });
+          } else {
+            console.log("nothing playing play item")
+            playItem(pluginJson["items"][i]["args"][0]);
+            showAlert("Playing: " + pluginJson["items"][i]["name"]);
+            itemPlaying = pluginJson["items"][i]["name"];
+          }
         }
       }
     }
@@ -185,6 +193,13 @@
         showConfirmButton: false,
         icon: type
       });
+    }
+
+    function buttonTimeout() {
+      buttonTimeoutSet = true;
+      setTimeout(() => {
+        buttonTimeoutSet = false;
+      }, 6000);
     }
 
     $(function () {

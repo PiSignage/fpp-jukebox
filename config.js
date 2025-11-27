@@ -62,6 +62,7 @@ function SaveItems() {
   jukeboxConfig["locked_additional_info"] = $('#additional_info').val();
   jukeboxConfig["locked_start_time"] = $('#start_time').val();
   jukeboxConfig["locked_end_time"] = $('#end_time').val();
+  jukeboxConfig["button_timeout"] = $('#button_timeout').val();
   // Reset items to empty array
   jukeboxConfig["items"] = [];
   // Look over itemList children
@@ -223,7 +224,8 @@ $(function () {
     $('#end_time').val(jukeboxConfig.locked_end_time);
     $('#font').val(jukeboxConfig.font);
     $('#logo_location').val(jukeboxConfig.logo_location);
-    $('#hide_images').val(jukeboxConfig.hide_images)
+    $('#hide_images').val(jukeboxConfig.hide_images);
+    $('#button_timeout').val(jukeboxConfig.button_timeout);
 
     $.each(jukeboxConfig.items, function (i, v) {
       $newItemRow = createItemRow(i, v);
