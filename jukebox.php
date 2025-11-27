@@ -199,7 +199,7 @@
       buttonTimeoutSet = true;
       setTimeout(() => {
         buttonTimeoutSet = false;
-      }, 6000);
+      }, buttonTimeoutSecounds);
     }
 
     $(function () {
