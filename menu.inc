@@ -1,8 +1,7 @@
 <?php
-
-# $menuEntries is an array of menu entries for this plugin
-# type is an enum of status/content/output/help (main menu area)
-
+# menu.inc — Jukebox
+# FPP reads this file from each plugin directory and injects matching entries
+# into the nav dropdown for the current menu section ($menu variable).
 
 $menuEntries = Array(
     Array(
@@ -12,7 +11,7 @@ $menuEntries = Array(
         'wrap' => 1
     ),
     Array(
-        'text' => 'Jukebox',
+        'text' => 'Jukebox Interface',
         'type' => 'status',
         'page' => 'jukebox.php',
         'wrap' => 0

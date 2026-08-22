@@ -6,6 +6,7 @@
   "homeURL": "https://github.com/PiSignage/fpp-jukebox",
   "srcURL": "https://github.com/PiSignage/fpp-jukebox.git",
   "bugURL": "https://github.com/PiSignage/fpp-jukebox/issues",
+  "iconURL": "https://raw.githubusercontent.com/PiSignage/fpp-jukebox/master/icon.png",
   "allowUpdates": 1,
   "versions": [
     {
