@@ -119,21 +119,51 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
             "default": "placeholder.jpg"
           },
         }
+      },
+      "script": {
+        "name": "script",
+        "description": "Script",
+        "args": {
+          "scriptName": {
+            "name": "scriptName",
+            "description": "Script",
+            "contentListUrl": baseUrl + "api/scripts",
+            "type": "string",
+            "optional": false,
+            "simpleUI": true
+          },
+          "scriptArgs": {
+            "name": "scriptArgs",
+            "description": "Args",
+            "type": "string",
+            "optional": false,
+            "simpleUI": true
+          },
+          "imageName": {
+            "name": "imageName",
+            "description": "Image",
+            "contentListUrl": baseUrl + "api/files/images?nameOnly=1",
+            "type": "string",
+            "optional": false,
+            "simpleUI": true,
+            "default": "placeholder.jpg"
+          },
+        }
       }
     };
-    $(document).ready(function () {
+    $(document).ready(function() {
       var remoteIpList = null;
       var remoteIpLookupUrl = $('#remote_ip').attr('data-contentlisturl');
       $.ajax({
         dataType: 'json',
         async: false,
         url: baseUrl + remoteIpLookupUrl,
-        success: function (data) {
+        success: function(data) {
           remoteIpList = data;
         }
       });
 
-      $.each(remoteIpList, function (k, v) {
+      $.each(remoteIpList, function(k, v) {
         $('#remote_ip_list').append("<option value='" + k + "'>" + v + "</option>");
       });
     });
@@ -184,6 +214,7 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
                         <option value="">Select</option>
                         <option value="playlist">Playlist</option>
                         <option value="sequence">Sequence</option>
+                        <option value="script">Script</option>
                       </select>
                     </td>
                   </tr>

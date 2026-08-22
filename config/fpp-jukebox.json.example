@@ -1,0 +1,16 @@
+{
+    "remote_ip": "",
+    "static_sequence": "",
+    "ticker_other_info": "",
+    "ticker_other_info_location": "before",
+    "font": "Comic-Queens",
+    "hide_images": "no",
+    "button_timeout": "",
+    "show_logo": "",
+    "logo_location": "left",
+    "show_name": "",
+    "additional_info": "",
+    "start_time": "",
+    "end_time": "",
+    "items": []
+}

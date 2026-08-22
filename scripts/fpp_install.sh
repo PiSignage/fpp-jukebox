@@ -1,45 +1,77 @@
 #!/bin/bash
+# fpp_install.sh — Announce SumUp plugin installer
+# Called by FPP when the plugin is installed or updated.
 
-# fpp-jukebox install script
-echo "Installing Jukebox Plugin for FPP...."
+PLUGIN_DIR="$(dirname "$0")"
 
-echo "Writing config file...."
+# Resolve FPP's logs directory the documented way (supports a relocated
+# media directory) rather than hard-coding /home/fpp/media/logs, and use
+# the single FPP-conformant log file (plugin-<repoName>.log) for both this
+# install script and the daemon, per the plugin guidelines' logging rules.
+: "${FPPDIR:=/opt/fpp}"
+. "${FPPDIR}/scripts/common" 2>/dev/null || true
+LOGDIR="$(getSetting logDirectory 2>/dev/null)"
+LOGDIR="${LOGDIR:-/home/fpp/media/logs}"
+LOGFILE="${LOGDIR}/plugin-fpp-jukebox.log"
 
-file=/home/fpp/media/config/plugin.fpp-jukebox.json
-
-defalt_json=$(cat <<EOF
-{
-  "static_sequence": "",
-  "ticker_other_info": "",
-	"ticker_other_info_location": "before",
-	"font": "Comic-Queens",
-	"logo_location": "left",
-  "items": []
+log() {
+    local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+    mkdir -p "$LOGDIR" 2>/dev/null || true
+    echo "$msg" >> "$LOGFILE" 2>/dev/null || echo "$msg"
 }
-EOF
-)
 
-if [ -s "$file" ]
-then
-	echo " Config file exists and is not empty... continuing "
-else
-	echo " Config file does not exist, or is empty "
-   	touch $file
-	echo "$defalt_json" > /home/fpp/media/config/plugin.fpp-jukebox.json
-	sudo chown fpp /home/fpp/media/config/plugin.fpp-jukebox.json
+log "=== Jukebox install started (user=$(whoami), uid=$(id -u)) ==="
+
+# ── Create media directories ─────────────────────────────────────
+# (log() already mkdir -p's $LOGDIR on every call)
+# Do this FIRST so the media log path is available.
+mkdir -p /home/fpp/media/config
+
+# ── Make scripts executable ──────────────────────────────────────
+log "Setting script permissions..."
+chmod +x "${PLUGIN_DIR}/scripts/"*.sh 2>/dev/null || true
+
+# ── Write default config if none exists ─────────────────────────
+CONFIG="/home/fpp/media/config/plugin.fpp-jukebox.json"
+if [[ ! -f "$CONFIG" ]]; then
+	log "Writing default config to $CONFIG"
+  cp "${PLUGIN_DIR}/config/fpp-jukebox.json.example" "$CONFIG" 2>/dev/null || \
+  cat > "$CONFIG" <<'JSONEOF'
+{
+	"remote_ip": "",
+    "static_sequence": "",
+    "ticker_other_info": "",
+    "ticker_other_info_location": "before",
+    "font": "Comic-Queens",
+    "hide_images": "no",
+    "button_timeout": "",
+    "show_logo": "",
+    "logo_location": "left",
+    "show_name": "",
+    "additional_info": "",
+    "start_time": "",
+    "end_time": "",
+    "items": []
+}
+JSONEOF
 fi
 
+# ── Change logfile owner to fpp ──────────────────────────────────
+log "=== Jukebox config and log file owner to fpp insted of root ==="
+chown fpp:fpp "${LOGFILE}"
+chown fpp:fpp "${CONFIG}"
 
-placeholder_image=/home/fpp/media/images/placeholder.jpg
-if [ -s "$placeholder_image" ]
+PLACEHOLDERIMAGE=/home/fpp/media/images/placeholder.jpg
+if [ -s "$PLACEHOLDERIMAGE" ]
 then
 	echo "Placehoolder image found"
 else
 	echo "Placehoolder image not found, Copy placeholder image to images folder"
-	sudo cp /home/fpp/media/plugins/fpp-jukebox/img/placeholder.jpg /home/fpp/media/images/placeholder.jpg
-	sudo chown fpp /home/fpp/media/images/placeholder.jpg
+	cp "${PLUGIN_DIR}/fpp-jukebox/img/placeholder.jpg" "${PLACEHOLDERIMAGE}"
+	chown fpp "${PLACEHOLDERIMAGE}"
 fi
 
-echo "Please restart fppd for new FPP Commands to be visible."
-. /opt/fpp/scripts/common
-setSetting restartFlag 1
+log "=== Jukebox install complete ==="
+
+source ${FPPDIR}/scripts/common; setSetting restartFlag 1
+exit 0
