@@ -1,5 +1,5 @@
 #!/bin/bash
-# fpp_install.sh — Announce SumUp plugin installer
+# fpp_install.sh — Jukebox plugin installer
 # Called by FPP when the plugin is installed or updated.
 
 PLUGIN_DIR="$(dirname "$0")"
@@ -26,6 +26,7 @@ log "=== Jukebox install started (user=$(whoami), uid=$(id -u)) ==="
 # (log() already mkdir -p's $LOGDIR on every call)
 # Do this FIRST so the media log path is available.
 mkdir -p /home/fpp/media/config
+mkdir -p /home/fpp/media/images
 
 # ── Make scripts executable ──────────────────────────────────────
 log "Setting script permissions..."
@@ -62,13 +63,13 @@ chown fpp:fpp "${LOGFILE}"
 chown fpp:fpp "${CONFIG}"
 
 PLACEHOLDERIMAGE=/home/fpp/media/images/placeholder.jpg
-if [ -s "$PLACEHOLDERIMAGE" ]
+if [ -f "$PLACEHOLDERIMAGE" ]
 then
 	echo "Placehoolder image found"
 else
 	echo "Placehoolder image not found, Copy placeholder image to images folder"
-	cp "${PLUGIN_DIR}/fpp-jukebox/img/placeholder.jpg" "${PLACEHOLDERIMAGE}"
-	chown fpp "${PLACEHOLDERIMAGE}"
+	cp "${PLUGIN_DIR}/img/placeholder.jpg" "${PLACEHOLDERIMAGE}"
+	chown fpp:fpp "${PLACEHOLDERIMAGE}"
 fi
 
 log "=== Jukebox install complete ==="
