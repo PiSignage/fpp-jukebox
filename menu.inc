@@ -11,12 +11,6 @@ $menuEntries = Array(
         'wrap' => 1
     ),
     Array(
-        'text' => 'Jukebox Interface',
-        'type' => 'status',
-        'page' => 'jukebox.php',
-        'wrap' => 0
-    ),
-    Array(
         'text' => 'Jukebox - Config',
         'type' => 'content',
         'page' => 'config.php',
