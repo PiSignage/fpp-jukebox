@@ -29,13 +29,13 @@ mkdir -p /home/fpp/media/config
 mkdir -p /home/fpp/media/images
 
 # ── Make scripts executable ──────────────────────────────────────
-log "Setting script permissions..."
+log "=== Jukebox Setting script permissions ==="
 chmod +x "${PLUGIN_DIR}/scripts/"*.sh 2>/dev/null || true
 
 # ── Write default config if none exists ─────────────────────────
 CONFIG="/home/fpp/media/config/plugin.fpp-jukebox.json"
 if [[ ! -f "$CONFIG" ]]; then
-	log "Writing default config to $CONFIG"
+	log "=== Jukebox Writing default config to $CONFIG ==="
   cp "${PLUGIN_DIR}/config/fpp-jukebox.json.example" "$CONFIG" 2>/dev/null || \
   cat > "$CONFIG" <<'JSONEOF'
 {
@@ -63,13 +63,12 @@ chown fpp:fpp "${LOGFILE}"
 chown fpp:fpp "${CONFIG}"
 
 PLACEHOLDERIMAGE=/home/fpp/media/images/placeholder.jpg
-if [ -f "$PLACEHOLDERIMAGE" ]
-then
-	echo "Placehoolder image found"
-else
-	echo "Placehoolder image not found, Copy placeholder image to images folder"
+if [[ ! -f "$PLACEHOLDERIMAGE" ]]; then
+	log "=== Jukebox Placehoolder image not found, Copy placeholder image to images folder ==="
 	cp "${PLUGIN_DIR}/img/placeholder.jpg" "${PLACEHOLDERIMAGE}"
 	chown fpp:fpp "${PLACEHOLDERIMAGE}"
+else
+    log "=== Jukebox Place holder image found ==="
 fi
 
 log "=== Jukebox install complete ==="
