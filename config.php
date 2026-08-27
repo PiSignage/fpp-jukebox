@@ -3,6 +3,7 @@ require_once("jukebox-common.php");
 $pluginJson = convertAndGetSettings('jukebox');
 $baseUrl = isset($pluginJson['remote_ip']) && $pluginJson['remote_ip'] != '' ? 'http://' . $pluginJson['remote_ip'] . '/' : null;
 $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox.php&nopage=1";
+$jukeboxUrl2 = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&plugin=fpp-jukebox&page=jukebox_new_layout.php&nopage=1";
 ?>
 
 <div id="global" class="settings">
@@ -254,6 +255,7 @@ $jukeboxUrl = "http://" . $_SERVER['SERVER_NAME'] . "/plugin.php?_menu=status&pl
   <legend>Jukebox Config</legend>
 
   <p><strong>Kiosk Url</strong>: <a href="<?php echo $jukeboxUrl; ?>" target="_blank"><?php echo $jukeboxUrl; ?></a></p>
+  <p><strong>Kiosk Url New Layout</strong>: <a href="<?php echo $jukeboxUrl; ?>" target="_blank"><?php echo $jukeboxUrl2; ?></a></p>
 
   <div class="form-group">
     <label for="remote_ip">Remote IP</label>
