@@ -74,4 +74,4 @@ fi
 log "=== Jukebox install complete ==="
 
 source ${FPPDIR}/scripts/common; setSetting restartFlag 1
-exit 0
+set -e
