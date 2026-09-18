@@ -8,6 +8,16 @@
   "bugURL": "https://github.com/PiSignage/fpp-jukebox/issues",
   "iconURL": "https://raw.githubusercontent.com/PiSignage/fpp-jukebox/master/icon.png",
   "allowUpdates": 1,
+  "privacy": {
+    "summary": "Nothing leaves the device. No registration, no license server.",
+    "sends": [],
+    "collects": [],
+    "sensors": [],
+    "remoteAccess": "none",
+    "systemChanges": [],
+    "closedCode": false,
+    "other": "none"
+  },
   "versions": [
     {
       "minFPPVersion": "5.0",
