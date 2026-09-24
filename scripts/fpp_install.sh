@@ -77,7 +77,7 @@ fi
 PLACEHOLDERIMAGE=/home/fpp/media/images/placeholder.jpg
 if [[ ! -f "$PLACEHOLDERIMAGE" ]]; then
 	log "=== Jukebox Placehoolder image not found, Copy placeholder image to images folder ==="
-	cp "/home/fpp/media/plugins/fpp-jukebox/img/assets/placeholder.jpg" "${PLACEHOLDERIMAGE}"
+	cp "/home/fpp/media/plugins/fpp-jukebox/assets/img/placeholder.jpg" "${PLACEHOLDERIMAGE}"
 	chown fpp:fpp "${PLACEHOLDERIMAGE}"
 else
     log "=== Jukebox Place holder image found ==="
