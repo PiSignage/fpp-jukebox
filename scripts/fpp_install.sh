@@ -38,13 +38,14 @@ chmod +x "${PLUGIN_DIR}/scripts/"*.sh 2>/dev/null || true
 # ── Change logfile owner to fpp ──
 chown fpp:fpp "${LOGFILE}"
 
-log "Plugin Dir: ${PLUGIN_DIR}"
+PLUGIN_PATH="/home/fpp/media/plugins/${PLUGIN_NAME}"
+log "Plugin Path: ${PLUGIN_PATH}"
 
 # ── Write default config if none exists ── 
 CONFIG="/home/fpp/media/config/plugin.${PLUGIN_NAME}.json"
 if [[ ! -f "$CONFIG" ]]; then
     log "Write default config to $CONFIG"
-    cp "${PLUGIN_DIR}/config/${PLUGIN_NAME}.json.example" "$CONFIG" 2>/dev/null || \
+    cp "${PLUGIN_PATH}/config/${PLUGIN_NAME}.json.example" "$CONFIG" 2>/dev/null || \
 cat > "$CONFIG" <<'JSONEOF'
 {
     "enabled": true,
@@ -68,7 +69,7 @@ fi
 STATS="/home/fpp/media/config/plugin.${PLUGIN_NAME}-stats.json"
 if [[ ! -f "$STATS" ]]; then
     log "Write default stats to $STATS"
-    cp "${PLUGIN_DIR}/config/${PLUGIN_NAME}-stats.json.example" "$CONFIG" 2>/dev/null || \
+    cp "${PLUGIN_PATH}/config/${PLUGIN_NAME}-stats.json.example" "$CONFIG" 2>/dev/null || \
 cat > "$STATS" <<'JSONEOF'
 {
     "totalPlays" => 0,
@@ -84,7 +85,7 @@ chown fpp:fpp "${STATS}"
 PLACEHOLDERIMAGE=/home/fpp/media/images/placeholder.jpg
 if [[ ! -f "$PLACEHOLDERIMAGE" ]]; then
 	log "=== Jukebox Placehoolder image not found, Copy placeholder image to images folder ==="
-	cp "/home/fpp/media/plugins/fpp-jukebox/assets/img/placeholder.jpg" "${PLACEHOLDERIMAGE}"
+	cp "${PLUGIN_PATH}/assets/img/placeholder.jpg" "${PLACEHOLDERIMAGE}"
 	chown fpp:fpp "${PLACEHOLDERIMAGE}"
 else
     log "=== Jukebox Place holder image found ==="
