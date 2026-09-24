@@ -1,0 +1,862 @@
+/* ==========================================================================
+   FPP Jukebox
+   ========================================================================== */
+
+:root {
+    --jukebox-background: #111;
+    --jukebox-card-background: #222;
+    --jukebox-text: #fff;
+    --jukebox-muted: rgba(255, 255, 255, 0.7);
+    --jukebox-overlay: rgba(0, 0, 0, 0.65);
+    --jukebox-error: #dc3545;
+
+    --jukebox-gap: 20px;
+    --jukebox-radius: 18px;
+}
+
+
+/* ==========================================================================
+   Reset
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    overflow: hidden;
+}
+
+
+body {
+    background: var(--jukebox-background);
+    color: var(--jukebox-text);
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+
+/* ==========================================================================
+   Main screens
+   ========================================================================== */
+
+.jukebox-screen {
+    position: fixed;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: none;
+
+    overflow: hidden;
+}
+
+
+.jukebox-screen.active {
+    display: flex;
+}
+
+
+/* ==========================================================================
+   Selection screen
+   ========================================================================== */
+
+#selectionScreen {
+    flex-direction: column;
+
+    padding: 30px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ==========================================================================
+   Jukebox Title
+   ========================================================================== */
+
+.jukebox-title {
+    width: 100%;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: var(--heading-font);
+    font-size: clamp(2rem,
+            5vw,
+            3.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--jukebox-text);
+    letter-spacing: 0.02em;
+}
+
+.jukebox-header {
+    flex: 0 0 auto;
+    text-align: center;
+    padding-bottom: 25px;
+}
+
+.jukebox-header h1 {
+    margin: 0;
+    font-size: clamp(2rem,
+            4vw,
+            3.5rem);
+    font-weight: 700;
+}
+
+.jukebox-header p {
+    margin: 8px 0 0;
+    color: var(--jukebox-muted);
+    font-size: clamp(1rem,
+            2vw,
+            1.4rem);
+}
+
+/* ==========================================================================
+   Sequence grid
+   ========================================================================== */
+
+.jukebox-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit,
+            minmax(220px,
+                1fr));
+
+    gap: var(--jukebox-gap);
+
+    padding-bottom: 30px;
+}
+
+
+/* ==========================================================================
+   Sequence card
+   ========================================================================== */
+
+.jukebox-sequence {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 1 / 1;
+
+    display: block;
+
+    padding: 0;
+
+    border: 0;
+
+    border-radius: var(--jukebox-radius);
+
+    background-color:
+        var(--jukebox-card-background);
+
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    overflow: hidden;
+
+    cursor: pointer;
+
+    -webkit-tap-highlight-color: transparent;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.35);
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+/* Dark overlay on card */
+
+.jukebox-sequence::before {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.05) 25%,
+            rgba(0, 0, 0, 0.25) 50%,
+            rgba(0, 0, 0, 0.9) 100%);
+
+    pointer-events: none;
+}
+
+
+/* Touch feedback */
+
+.jukebox-sequence:active {
+    transform: scale(0.97);
+
+    box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+
+/* ==========================================================================
+   Sequence card content
+   ========================================================================== */
+
+.jukebox-sequence-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 1;
+
+    display: flex;
+
+    align-items: flex-end;
+
+    padding: 20px;
+}
+
+
+.jukebox-sequence-title {
+    width: 100%;
+
+    color: #fff;
+
+    font-size: clamp(1.1rem,
+            2vw,
+            1.6rem);
+
+    font-weight: 700;
+
+    line-height: 1.2;
+
+    text-align: left;
+
+    text-shadow:
+        0 2px 5px rgba(0, 0, 0, 0.8);
+
+    overflow-wrap: anywhere;
+}
+
+
+/* ==========================================================================
+   Loading screen
+   ========================================================================== */
+
+#loadingScreen,
+#playingScreen,
+#lockoutScreen {
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 30px;
+}
+
+
+.jukebox-centre {
+    width: 100%;
+    max-width: 700px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+
+.jukebox-centre h1,
+.jukebox-centre h2 {
+    margin: 15px 0 5px;
+}
+
+
+.jukebox-centre p {
+    margin: 5px 0;
+
+    color: var(--jukebox-muted);
+
+    font-size: clamp(1rem,
+            2vw,
+            1.5rem);
+}
+
+
+/* ==========================================================================
+   Spinner
+   ========================================================================== */
+
+.jukebox-spinner {
+    width: 70px;
+    height: 70px;
+
+    border: 6px solid rgba(255, 255, 255, 0.2);
+
+    border-top-color: #fff;
+
+    border-radius: 50%;
+
+    animation:
+        jukebox-spin 0.8s linear infinite;
+}
+
+
+@keyframes jukebox-spin {
+
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* ==========================================================================
+   Now playing
+   ========================================================================== */
+
+.playing-artwork {
+    width: min(55vw,
+            55vh,
+            500px);
+
+    height: min(55vw,
+            55vh,
+            500px);
+
+    object-fit: cover;
+
+    border-radius: var(--jukebox-radius);
+
+    background: var(--jukebox-card-background);
+
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+
+#playingTitle {
+    max-width: 90vw;
+
+    margin-top: 25px;
+
+    font-size: clamp(2rem,
+            5vw,
+            4rem);
+
+    line-height: 1.1;
+}
+
+
+/* ==========================================================================
+   Lockout
+   ========================================================================== */
+
+.lockout-countdown {
+    margin: 20px 0;
+
+    font-size: clamp(5rem,
+            15vw,
+            10rem);
+
+    font-weight: 700;
+
+    line-height: 1;
+
+    font-variant-numeric:
+        tabular-nums;
+}
+
+
+/* ==========================================================================
+   Error message
+   ========================================================================== */
+
+.jukebox-error {
+    position: fixed;
+
+    top: 20px;
+    left: 50%;
+
+    z-index: 9999;
+
+    transform:
+        translateX(-50%);
+
+    width: calc(100% - 40px);
+
+    max-width: 700px;
+
+    padding: 15px 20px;
+
+    border-radius: 10px;
+
+    background:
+        var(--jukebox-error);
+
+    color: #fff;
+
+    font-size: 1rem;
+
+    text-align: center;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.4);
+}
+
+
+.d-none {
+    display: none !important;
+}
+
+
+/* ==========================================================================
+   Tablet / touchscreen
+   ========================================================================== */
+
+@media (max-width: 900px) {
+
+    :root {
+        --jukebox-gap: 15px;
+    }
+
+
+    #selectionScreen {
+        padding: 20px;
+    }
+
+
+    .jukebox-grid {
+        grid-template-columns:
+            repeat(2,
+                minmax(0, 1fr));
+    }
+
+
+    .jukebox-sequence-title {
+        font-size: 1.15rem;
+    }
+
+}
+
+
+/* ==========================================================================
+   Smaller touchscreen
+   ========================================================================== */
+
+@media (max-width: 600px) {
+
+    #selectionScreen {
+        padding: 15px;
+    }
+
+
+    .jukebox-header {
+        padding-bottom: 15px;
+    }
+
+
+    .jukebox-grid {
+        gap: 12px;
+    }
+
+
+    .jukebox-sequence {
+        border-radius: 12px;
+    }
+
+
+    .jukebox-sequence-overlay {
+        padding: 12px;
+    }
+
+
+    .jukebox-sequence-title {
+        font-size: 1rem;
+    }
+
+
+    .playing-artwork {
+        width: 70vw;
+        height: 70vw;
+    }
+
+}
+
+
+/* ==========================================================================
+   Very small screens
+   ========================================================================== */
+
+@media (max-width: 400px) {
+
+    #selectionScreen {
+        padding: 10px;
+    }
+
+
+    .jukebox-grid {
+        gap: 10px;
+    }
+
+
+    .jukebox-sequence-overlay {
+        padding: 10px;
+    }
+
+
+    .jukebox-sequence-title {
+        font-size: 0.9rem;
+    }
+
+}
+
+
+/* ==========================================================================
+   Landscape touchscreen optimisation
+   ========================================================================== */
+
+@media (orientation: landscape) and (max-height: 700px) {
+
+    #selectionScreen {
+        padding: 15px 20px;
+    }
+
+
+    .jukebox-header {
+        padding-bottom: 12px;
+    }
+
+
+    .jukebox-header h1 {
+        font-size: 2rem;
+    }
+
+
+    .jukebox-header p {
+        margin-top: 3px;
+    }
+
+
+    .jukebox-grid {
+        grid-template-columns:
+            repeat(4,
+                minmax(0, 1fr));
+
+        gap: 12px;
+    }
+
+
+    .jukebox-sequence-title {
+        font-size: 1rem;
+    }
+
+
+    .jukebox-sequence-overlay {
+        padding: 12px;
+    }
+
+
+    .playing-artwork {
+        width: min(45vh,
+                400px);
+
+        height: min(45vh,
+                400px);
+    }
+
+}
+
+.playing-lockout {
+    margin-top: 25px;
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.playing-lockout-label {
+    margin-top: 8px !important;
+    font-size: clamp(0.9rem, 1.5vw, 1.2rem) !important;
+    color: var(--jukebox-muted);
+}
+
+/* ==========================================================================
+   Selection Screen - Now Playing
+   ========================================================================== */
+
+.selection-now-playing {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 12px 15px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.25);
+    animation: nowPlayingIn 0.45s ease-out;
+}
+
+
+/* ==========================================================================
+   Artwork
+   ========================================================================== */
+
+.selection-now-playing img {
+    width: 70px;
+    height: 70px;
+    flex: 0 0 70px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: var(--jukebox-card-background);
+    animation: artworkPulse 3s ease-in-out infinite;
+}
+
+
+/* ==========================================================================
+   Information
+   ========================================================================== */
+
+.selection-now-playing-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.selection-now-playing-label {
+    margin-bottom: 3px;
+    color: var(--jukebox-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.selection-now-playing-label::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    border-radius: 50%;
+    background: #fff;
+    animation:
+        nowPlayingPulse 1.5s ease-in-out infinite;
+}
+
+.selection-now-playing-title {
+    color: var(--jukebox-text);
+    font-size: clamp(1.1rem,
+            2vw,
+            1.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@media (max-width: 600px) {
+    .selection-now-playing {
+        gap: 12px;
+        margin-bottom: 15px;
+        padding: 10px 12px;
+    }
+
+    .selection-now-playing img {
+        width: 60px;
+        height: 60px;
+        flex-basis: 60px;
+    }
+
+    .selection-now-playing-title {
+        font-size: 1.1rem;
+    }
+}
+
+
+/* ==========================================================================
+   Landscape touchscreen
+   ========================================================================== */
+
+@media (orientation: landscape) and (max-height: 700px) {
+    .selection-now-playing {
+        margin-bottom: 12px;
+        padding: 8px 12px;
+    }
+
+    .selection-now-playing img {
+        width: 55px;
+        height: 55px;
+        flex-basis: 55px;
+    }
+
+    .selection-now-playing-label {
+        font-size: 0.7rem;
+    }
+
+    .selection-now-playing-title {
+        font-size: 1rem;
+    }
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+@keyframes nowPlayingIn {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes nowPlayingPulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(0.8);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes artworkPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+/* ==========================================================================
+   Now Playing - Lockout Countdown
+   ========================================================================== */
+.playing-lockout {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.playing-lockout-countdown {
+    display: inline-block;
+    min-width: 2ch;
+    font-size: clamp(3rem,
+            7vw,
+            5rem);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Countdown animation
+ */
+
+.playing-lockout-countdown.animate {
+    animation: lockoutTick 0.4s ease-out;
+}
+
+@keyframes lockoutTick {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ==========================================================================
+   Jukebox Disabled
+   ========================================================================== */
+#disabledScreen.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#disabledScreen .jukebox-title {
+    margin-bottom: 15px;
+}
+
+.jukebox-disabled {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 50px 30px;
+    text-align: center;
+    border-radius: 20px;
+    background: rgba(255,
+            255,
+            255,
+            0.08);
+}
+
+.jukebox-disabled h1 {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-family: var(--heading-font);
+    font-size: clamp(2rem,
+            5vw,
+            3.5rem);
+    color: var(--gold);
+}
+
+.jukebox-disabled p {
+    margin: 0;
+    font-size: 1.1rem;
+    opacity: 0.8;
+}

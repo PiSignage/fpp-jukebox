@@ -1,0 +1,41 @@
+{
+    "repoName": "fpp-jukebox",
+    "name": "Jukebox",
+    "author": "Michael Jones",
+    "description": "A touchscreen jukebox for FPP allowing guests to select individual sequences.",
+    "homeURL": "https://github.com/PiSignage/fpp-jukebox",
+    "srcURL": "https://github.com/PiSignage/fpp-jukebox.git",
+    "bugURL": "https://github.com/PiSignage/fpp-jukebox/issues",
+    "iconURL": "https://raw.githubusercontent.com/PiSignage/fpp-jukebox/master/icon.png",
+    "allowUpdates": 1,
+    "versions": [
+        {
+            "minFPPVersion": "8.0",
+            "maxFPPVersion": "8.99",
+            "branch": "main",
+            "sha": ""
+        },
+        {
+            "minFPPVersion": "9.0",
+            "maxFPPVersion": "9.99",
+            "branch": "main",
+            "sha": ""
+        },
+        {
+            "minFPPVersion": "10.0",
+            "maxFPPVersion": "0",
+            "branch": "main",
+            "sha": ""
+        }
+    ],
+    "privacy": {
+        "summary": "Nothing leaves the device. No registration, no license server.",
+        "sends": [],
+        "collects": [],
+        "sensors": [],
+        "remoteAccess": "none",
+        "systemChanges": [],
+        "closedCode": false,
+        "other": "none"
+    }
+}
