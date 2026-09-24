@@ -38,6 +38,8 @@ chmod +x "${PLUGIN_DIR}/scripts/"*.sh 2>/dev/null || true
 # ── Change logfile owner to fpp ──
 chown fpp:fpp "${LOGFILE}"
 
+log "Plugin Dir: ${PLUGIN_DIR}"
+
 # ── Write default config if none exists ── 
 CONFIG="/home/fpp/media/config/plugin.${PLUGIN_NAME}.json"
 if [[ ! -f "$CONFIG" ]]; then
@@ -45,7 +47,8 @@ if [[ ! -f "$CONFIG" ]]; then
     cp "${PLUGIN_DIR}/config/${PLUGIN_NAME}.json.example" "$CONFIG" 2>/dev/null || \
 cat > "$CONFIG" <<'JSONEOF'
 {
-    enabled": true,
+    "enabled": true,
+    "jukeboxTitle": "Jukebox",
     "scheduleEnabled": false,
     "schedules": [
         [
@@ -73,6 +76,10 @@ cat > "$STATS" <<'JSONEOF'
 }
 JSONEOF
 fi
+
+# ── Change config files owner to fpp ──
+chown fpp:fpp "${CONFIG}"
+chown fpp:fpp "${STATS}"
 
 PLACEHOLDERIMAGE=/home/fpp/media/images/placeholder.jpg
 if [[ ! -f "$PLACEHOLDERIMAGE" ]]; then

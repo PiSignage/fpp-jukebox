@@ -1,5 +1,6 @@
 {
     "enabled": true,
+    "jukeboxTitle": "Jukebox",
     "scheduleEnabled": false,
     "schedules": [
         [
