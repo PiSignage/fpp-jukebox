@@ -12,7 +12,7 @@ define(
     __DIR__ . '/../../config/plugin.fpp-jukebox-stats.json'
 );
 
-function getEndpointsfpppluginJukebox()
+function getEndpointsfppJukebox()
 {
     return array(
         array(
