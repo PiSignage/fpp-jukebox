@@ -42,7 +42,7 @@ chown fpp:fpp "${LOGFILE}"
 CONFIG="${FPPDIR}/config/plugin.${PLUGIN_NAME}.json"
 if [[ ! -f "$CONFIG" ]]; then
     log "Write default config to $CONFIG"
-    cp "${PLUGIN_DIR}/config/${PLUGIN_NAME}.json.exmple" "$CONFIG" 2>/dev/null || \
+    cp "${PLUGIN_DIR}/config/${PLUGIN_NAME}.json.example" "$CONFIG" 2>/dev/null || \
 cat > "$CONFIG" <<'JSONEOF'
 {
     enabled": true,
@@ -65,7 +65,7 @@ fi
 STATS="${FPPDIR}/config/plugin.${PLUGIN_NAME}-stats.json"
 if [[ ! -f "$STATS" ]]; then
     log "Write default stats to $STATS"
-    cp "${PLUGIN_DIR}/config/${PLUGIN_NAME}-stats.json.exmple" "$CONFIG" 2>/dev/null || \
+    cp "${PLUGIN_DIR}/config/${PLUGIN_NAME}-stats.json.example" "$CONFIG" 2>/dev/null || \
 cat > "$STATS" <<'JSONEOF'
 {
     "totalPlays" => 0,
