@@ -7,6 +7,7 @@
     "srcURL": "https://github.com/PiSignage/fpp-jukebox.git",
     "bugURL": "https://github.com/PiSignage/fpp-jukebox/issues",
     "iconURL": "https://raw.githubusercontent.com/PiSignage/fpp-jukebox/master/icon.png",
+    "releaseNotesStyle": "gitHistory",
     "allowUpdates": 1,
     "versions": [
         {
