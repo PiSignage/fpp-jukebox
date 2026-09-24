@@ -29,6 +29,7 @@ log "=== Jukebox install started (user=$(whoami), , uid=$(id -u))"
 # (log() already mkdir -p's $LOGDIR on every call)
 # Do this FIRST so the media log path is available.
 mkdir -p /home/fpp/media/config
+mkdir -p /home/fpp/media/images
 
 # ── Make scripts executable ──
 log "Setting script permissions..."
@@ -71,6 +72,15 @@ cat > "$STATS" <<'JSONEOF'
     "sequences" => []
 }
 JSONEOF
+fi
+
+PLACEHOLDERIMAGE=/home/fpp/media/images/placeholder.jpg
+if [[ ! -f "$PLACEHOLDERIMAGE" ]]; then
+	log "=== Jukebox Placehoolder image not found, Copy placeholder image to images folder ==="
+	cp "/home/fpp/media/plugins/fpp-jukebox/img/assets/placeholder.jpg" "${PLACEHOLDERIMAGE}"
+	chown fpp:fpp "${PLACEHOLDERIMAGE}"
+else
+    log "=== Jukebox Place holder image found ==="
 fi
 
 log "=== Jukebox install complete ==="
