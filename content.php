@@ -1419,7 +1419,7 @@ usort(
 
                             row.innerHTML = `
                     <td>
-                        ${escapeHtml(title)}
+                        ${title}
                     </td>
 
                     <td class="text-end">
@@ -1447,6 +1447,38 @@ usort(
                             </td>
                         </tr>
                     `;
+                }
+            }
+
+            function findConfiguredSequence(sequenceName) {
+                const rows =
+                    document.querySelectorAll(
+                        '.jukebox-sequence-row'
+                    );
+
+                for (const row of rows) {
+                    const sequenceInput =
+                        row.querySelector(
+                            'input[name="sequence[]"]'
+                        );
+
+                    if (
+                        !sequenceInput ||
+                        sequenceInput.value !== sequenceName
+                    ) {
+                        continue;
+                    }
+
+                    const titleInput =
+                        row.querySelector(
+                            'input[name="title[]"]'
+                        );
+
+                    return {
+                        sequence: sequenceName,
+                        title: titleInput ?
+                            titleInput.value : sequenceName
+                    };
                 }
             }
 
