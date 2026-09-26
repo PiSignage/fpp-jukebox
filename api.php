@@ -574,10 +574,10 @@ function jukeboxPlay()
             foreach ($queue as $queuedItem) {
                 if (
                     isset($queuedItem['sequence']) &&
-                    $queuedItem['sequence'] === $sequence
+                    $queuedItem['sequence'] === $sequence['sequence']
                 ) {
                     return jukeboxError(
-                        'This song is already in the queue.'
+                        $sequence['title'] . ' is already in the queue.'
                     );
                     // return json(array(
                     //     'success' => false,
