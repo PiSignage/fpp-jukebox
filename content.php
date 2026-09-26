@@ -705,6 +705,52 @@ usort(
             </div>
         </div>
 
+        <div class="card mb-4">
+
+            <div class="card-header">
+                Current Queue
+            </div>
+
+            <div class="card-body">
+
+                <div
+                    id="adminQueueEmpty"
+                    class="text-muted">
+                    The queue is currently empty.
+                </div>
+
+
+                <div
+                    id="adminQueueContainer"
+                    class="d-none">
+
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-3">
+
+                        <strong>
+                            Queue
+                        </strong>
+
+                        <span
+                            id="adminQueueCount"
+                            class="badge bg-secondary">
+                            0 / 5
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="adminQueueList"
+                        class="list-group">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <div class="card">
             <div class="card-header d-flex justify-content-between">
                 <span>
@@ -991,6 +1037,7 @@ usort(
 
 <script>
     var pluginName = '<?php echo $pluginName; ?>';
+    const API_BASE = '/api/plugin/fpp-jukebox';
     document.addEventListener(
         'DOMContentLoaded',
         function() {
@@ -1540,6 +1587,198 @@ usort(
                         }
                     }
                 );
+            }
+
+            async function loadAdminQueue() {
+                const emptyMessage =
+                    document.getElementById(
+                        'adminQueueEmpty'
+                    );
+
+                const container =
+                    document.getElementById(
+                        'adminQueueContainer'
+                    );
+
+                const list =
+                    document.getElementById(
+                        'adminQueueList'
+                    );
+
+                const count =
+                    document.getElementById(
+                        'adminQueueCount'
+                    );
+
+                if (
+                    !emptyMessage ||
+                    !container ||
+                    !list ||
+                    !count
+                ) {
+                    return;
+                }
+
+                try {
+                    const response =
+                        await fetch(
+                            API_BASE + '/queue', {
+                                cache: 'no-store'
+                            }
+                        );
+
+                    const data =
+                        await response.json();
+
+                    if (!data.success) {
+                        throw new Error(
+                            data.message ||
+                            'Unable to load queue.'
+                        );
+                    }
+
+                    const queue =
+                        data.queue || [];
+
+                    const queueLength =
+                        data.queueLength || 0;
+
+                    const queueLimit =
+                        data.queueLimit || 0;
+
+                    count.textContent =
+                        `${queueLength} / ${queueLimit}`;
+
+                    // Queue empty.
+                    if (queueLength === 0) {
+                        emptyMessage.classList.remove(
+                            'd-none'
+                        );
+
+                        container.classList.add(
+                            'd-none'
+                        );
+
+                        list.innerHTML = '';
+                        return;
+                    }
+
+                    // Queue contains songs.
+                    emptyMessage.classList.add(
+                        'd-none'
+                    );
+
+                    container.classList.remove(
+                        'd-none'
+                    );
+
+                    list.innerHTML = '';
+
+                    queue.forEach(function(item, index) {
+                        const row =
+                            document.createElement(
+                                'div'
+                            );
+
+                        row.className =
+                            'list-group-item d-flex align-items-center';
+
+
+                        const position =
+                            document.createElement(
+                                'div'
+                            );
+
+                        position.className = 'fw-bold me-3';
+                        position.style.width = '30px';
+                        position.textContent = index + 1;
+
+                        const title =
+                            document.createElement(
+                                'div'
+                            );
+
+                        title.className = 'flex-grow-1';
+                        title.textContent = item.title;
+
+                        const removeButton =
+                            document.createElement(
+                                'button'
+                            );
+
+                        removeButton.type = 'button';
+                        removeButton.className =
+                            'btn btn-sm btn-outline-danger';
+                        removeButton.textContent = 'Remove';
+                        removeButton.addEventListener(
+                            'click',
+                            function() {
+                                removeAdminQueueItem(index);
+                            }
+                        );
+
+                        row.appendChild(position);
+                        row.appendChild(title);
+                        row.appendChild(removeButton);
+
+                        list.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error(
+                        'Unable to load admin queue:',
+                        error
+                    );
+                }
+            }
+            loadAdminQueue();
+            setInterval(
+                loadAdminQueue,
+                2000
+            );
+
+            async function removeAdminQueueItem(index) {
+                try {
+                    const response =
+                        await fetch(
+                            API_BASE + '/queue/remove', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    index: index
+                                }),
+                                cache: 'no-store'
+                            }
+                        );
+
+                    const data =
+                        await response.json();
+
+                    if (!data.success) {
+                        throw new Error(
+                            data.message ||
+                            'Unable to remove queue item.'
+                        );
+                    }
+
+                    // Refresh the queue immediately.
+                    await loadAdminQueue();
+                } catch (error) {
+                    console.error(
+                        'Unable to remove queue item:',
+                        error
+                    );
+
+                    /*
+                     * Use your existing admin error/alert
+                     * mechanism here if you have one.
+                     */
+                    alert(
+                        error.message ||
+                        'Unable to remove queue item.'
+                    );
+                }
             }
         }
     );

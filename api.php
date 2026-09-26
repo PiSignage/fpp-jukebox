@@ -61,14 +61,19 @@ function getEndpointsfppJukebox()
             'callback' => 'jukeboxResetStatistics'
         ),
         array(
+            'method' => 'GET',
+            'endpoint' => 'queue',
+            'callback' => 'jukeboxGetQueue'
+        ),
+        array(
             'method' => 'POST',
             'endpoint' => 'queue/next',
             'callback' => 'jukeboxPlayNextQueued'
         ),
         array(
-            'method' => 'GET',
-            'endpoint' => 'queue',
-            'callback' => 'jukeboxGetQueue'
+            'method' => 'POST',
+            'endpoint' => 'queue/remove',
+            'callback' => 'jukeboxRemoveQueueItem'
         )
     );
 }
@@ -1173,5 +1178,55 @@ function jukeboxGetQueue()
         'queue' => $queue,
         'queueLength' => count($queue),
         'queueLimit' => $queueLimit
+    ));
+}
+
+// Remove queue item
+function jukeboxRemoveQueueItem()
+{
+    $input =
+        json_decode(
+            file_get_contents('php://input'),
+            true
+        );
+
+    $index =
+        isset($input['index'])
+        ? (int) $input['index']
+        : -1;
+
+    $queue = jukeboxLoadQueue();
+
+    // Make sure the requested item exists.
+    if (
+        $index < 0 ||
+        !isset($queue[$index])
+    ) {
+        return jukeboxError(
+            'Queue item not found.'
+        );
+    }
+
+    // Remove the item.
+    array_splice(
+        $queue,
+        $index,
+        1
+    );
+
+    // Save the updated queue.
+    if (
+        !jukeboxSaveQueue(
+            $queue
+        )
+    ) {
+        return jukeboxError(
+            'Unable to update the queue.'
+        );
+    }
+
+    return json(array(
+        'success' => true,
+        'queueLength' => count($queue)
     ));
 }
