@@ -427,10 +427,10 @@ usort(
             <div class="card-body">
 
                 <!-- Enable Jukebox -->
-                <div class="form-check form-switch mb-3">
+                <div class="form-check mb-3">
 
                     <input
-                        class="form-check-input"
+                        class="form-check-input mr-2"
                         type="checkbox"
                         name="enabled"
                         id="jukeboxEnabled"
@@ -472,10 +472,10 @@ usort(
 
                 <!-- Schedule -->
                 <div class="border rounded p-3 mb-3">
-                    <div class="form-check form-switch mb-3">
+                    <div class="form-check mb-3">
 
                         <input
-                            class="form-check-input"
+                            class="form-check-input mr-2"
                             type="checkbox"
                             name="scheduleEnabled"
                             id="scheduleEnabled"
@@ -638,9 +638,9 @@ usort(
 
                 <!-- Enable Queuing -->
                 <div class="mb-3">
-                    <div class="form-check form-switch">
+                    <div class="form-check">
                         <input
-                            class="form-check-input"
+                            class="form-check-input mr-2"
                             type="checkbox"
                             name="queueEnabled"
                             id="queueEnabled"
@@ -683,9 +683,9 @@ usort(
                 </div>
 
                 <!-- allowDuplicateQueueSongs -->
-                <div class="form-check form-switch">
+                <div class="form-check">
                     <input
-                        class="form-check-input"
+                        class="form-check-input mr-2"
                         type="checkbox"
                         name="allowDuplicateQueueSongs"
                         id="allowDuplicateQueueSongs"
@@ -860,9 +860,11 @@ usort(
 
 
                                     <div class="col-auto">
+                                        <label class="form-check-label">
+                                            Enabled
+                                        </label>
 
                                         <div class="form-check">
-
                                             <input
                                                 type="checkbox"
                                                 class="form-check-input"
@@ -872,11 +874,6 @@ usort(
                                                     ? 'checked'
                                                     : ''
                                                 ?>>
-
-                                            <label class="form-check-label">
-                                                Enabled
-                                            </label>
-
                                         </div>
 
                                     </div>
