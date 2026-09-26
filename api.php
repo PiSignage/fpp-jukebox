@@ -12,6 +12,11 @@ define(
     __DIR__ . '/../../config/plugin.fpp-jukebox-stats.json'
 );
 
+define(
+    'JUKEBOX_QUEUE_FILE',
+    __DIR__ . '/../../config/plugin.fpp-jukebox-queue'
+);
+
 function getEndpointsfppJukebox()
 {
     return array(
@@ -54,6 +59,16 @@ function getEndpointsfppJukebox()
             'method' => 'POST',
             'endpoint' => 'statistics/reset',
             'callback' => 'jukeboxResetStatistics'
+        ),
+        array(
+            'method' => 'POST',
+            'endpoint' => 'queue/next',
+            'callback' => 'jukeboxPlayNextQueued'
+        ),
+        array(
+            'method' => 'GET',
+            'endpoint' => 'queue',
+            'callback' => 'jukeboxGetQueue'
         )
     );
 }
@@ -78,6 +93,9 @@ function jukeboxDefaultConfig()
         ],
         'lockoutSeconds' => 30,
         'lockoutStarts' => 'play',
+        'queueEnabled' => false,
+        'queueLimit' => 5,
+        'allowDuplicateQueueSongs' => false,
         'backgroundSequence' => '',
         'sequences' => array()
     );
@@ -344,6 +362,53 @@ function jukeboxMediaUrl($relativePath)
     return '/api/file/' . implode('/', $encodedParts);
 }
 
+/*
+ * --------------------------------------------------------------------------
+ * Check whether FPP is currently playing
+ * --------------------------------------------------------------------------
+ */
+
+function jukeboxIsPlaying()
+{
+    $url = 'http://127.0.0.1/api/fppd/status';
+
+    $context =
+        stream_context_create(
+            array(
+                'http' => array(
+                    'method' => 'GET',
+                    'timeout' => 2,
+                    'ignore_errors' => true
+                )
+            )
+        );
+
+    $response =
+        @file_get_contents(
+            $url,
+            false,
+            $context
+        );
+
+    if ($response === false) {
+        return false;
+    }
+
+    $status =
+        json_decode(
+            $response,
+            true
+        );
+
+    if (!is_array($status)) {
+        return false;
+    }
+
+    return (
+        isset($status['status_name']) &&
+        $status['status_name'] !== 'idle'
+    );
+}
 
 // Get playback status
 function jukeboxGetStatus()
@@ -420,6 +485,7 @@ function jukeboxGetStatus()
 function jukeboxPlay()
 {
     $config = jukeboxLoadConfig();
+    $queue = jukeboxLoadQueue();
 
     if (!$config['enabled']) {
         return jukeboxError(
@@ -475,6 +541,79 @@ function jukeboxPlay()
         return jukeboxError(
             'Sequence is not available.'
         );
+    }
+
+    // Queue selected sequence if something is already playing.
+    if (
+        !empty($config['queueEnabled']) &&
+        jukeboxIsPlaying()
+    ) {
+        $queueLimit =
+            max(
+                1,
+                (int)(
+                    $config['queueLimit']
+                    ?? 5
+                )
+            );
+
+        // Queue is full.
+        if (
+            count($queue) >= $queueLimit
+        ) {
+            return jukeboxError(
+                'The jukebox queue is full.'
+            );
+        }
+
+        // Check whether duplicate queue entries are allowed.
+        if (
+            empty($config['allowDuplicateQueueSongs']) &&
+            !empty($queue)
+        ) {
+            foreach ($queue as $queuedItem) {
+                if (
+                    isset($queuedItem['sequence']) &&
+                    $queuedItem['sequence'] === $sequence
+                ) {
+                    return jukeboxError(
+                        'This song is already in the queue.'
+                    );
+                    // return json(array(
+                    //     'success' => false,
+                    //     'message' => 'This song is already in the queue.'
+                    // ));
+                }
+            }
+        }
+
+        // Add the selected sequence.
+        $queue[] = array(
+            'sequence' => $selected['sequence'],
+            'title' => $selected['title'],
+            'artwork' => $selected['artwork'],
+        );
+
+        // Save the queue.
+        if (!jukeboxSaveQueue($queue)) {
+            return jukeboxError(
+                'Unable to add sequence to the queue.'
+            );
+        }
+
+        /*
+        * Tell the touchscreen that the
+        * sequence has been queued.
+        */
+        return json(array(
+            'success' => true,
+            'queued' => true,
+            'position' => count($queue),
+            'queueLength' => count($queue),
+            'queueLimit' => $queueLimit,
+            'sequence' => $selected['sequence'],
+            'title' => $selected['title']
+        ));
     }
 
     // Start sequence using FPP's API.
@@ -841,5 +980,198 @@ function jukeboxResetStatistics()
 
     return json(array(
         'success' => true
+    ));
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Load queue
+ * --------------------------------------------------------------------------
+ */
+
+function jukeboxLoadQueue()
+{
+    if (!file_exists(JUKEBOX_QUEUE_FILE)) {
+        return array();
+    }
+
+    $contents =
+        file_get_contents(
+            JUKEBOX_QUEUE_FILE
+        );
+
+    if ($contents === false) {
+        return array();
+    }
+
+    $queue =
+        json_decode(
+            $contents,
+            true
+        );
+
+    if (!is_array($queue)) {
+        return array();
+    }
+
+    return $queue;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Save queue
+ * --------------------------------------------------------------------------
+ */
+function jukeboxSaveQueue($queue)
+{
+    return file_put_contents(
+        JUKEBOX_QUEUE_FILE,
+        json_encode(
+            $queue,
+            JSON_PRETTY_PRINT |
+                JSON_UNESCAPED_SLASHES
+        )
+    ) !== false;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Clear queue
+ * --------------------------------------------------------------------------
+ */
+function jukeboxClearQueue()
+{
+    return jukeboxSaveQueue(
+        array()
+    );
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Play next queued sequence
+ * --------------------------------------------------------------------------
+ */
+
+function jukeboxPlayNextQueued()
+{
+    $queue = jukeboxLoadQueue();
+
+    // Nothing waiting.
+    if (empty($queue)) {
+        return json(array(
+            'success' => true,
+            'queued' => false,
+            'message' => 'Queue is empty.'
+        ));
+    }
+
+    /*
+     * Check that FPP is actually idle before
+     * starting another queued sequence.
+     */
+    if (jukeboxIsPlaying()) {
+
+        return jukeboxError(
+            'FPP is still playing.'
+        );
+    }
+
+    // Get the first item in the queue.
+    $next = array_shift(
+        $queue
+    );
+
+    /*
+     * Save the queue immediately.
+     *
+     * The item has now been removed from the queue.
+     */
+    if (
+        !jukeboxSaveQueue(
+            $queue
+        )
+    ) {
+        return jukeboxError(
+            'Unable to update the jukebox queue.'
+        );
+    }
+
+    // Start the sequence in FPP.
+    $sequenceName =
+        rawurlencode(
+            $next['sequence']
+        ) . '.fseq';
+
+    $url =
+        'http://127.0.0.1/api/playlist/' .
+        $sequenceName .
+        '/start';
+
+    $context =
+        stream_context_create(
+            array(
+                'http' => array(
+                    'method' => 'GET',
+                    'timeout' => 5,
+                    'ignore_errors' => true
+                )
+            )
+        );
+
+    $response =
+        @file_get_contents(
+            $url,
+            false,
+            $context
+        );
+
+    // FPP failed to start the sequence
+    if ($response === false) {
+        // Put it back at the front of the queue.
+        array_unshift(
+            $queue,
+            $next
+        );
+
+        jukeboxSaveQueue(
+            $queue
+        );
+
+        return jukeboxError(
+            'Unable to start the queued sequence.'
+        );
+    }
+
+    return json(array(
+        'success' => true,
+        'queued' => true,
+        'sequence' => $next['sequence'],
+        'title' => $next['title'],
+        'artwork' => 'api/file/' . $next['artwork'],
+        'queueLength' => count($queue)
+    ));
+}
+
+// Get jukebox queue
+function jukeboxGetQueue()
+{
+    $queue = jukeboxLoadQueue();
+
+    $config = jukeboxLoadConfig();
+
+    $queueLimit =
+        max(
+            1,
+            (int)(
+                $config['queueLimit']
+                ?? 5
+            )
+        );
+
+    return json(array(
+        'success' => true,
+        'queue' => $queue,
+        'queueLength' => count($queue),
+        'queueLimit' => $queueLimit
     ));
 }

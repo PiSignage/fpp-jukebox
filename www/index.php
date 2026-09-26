@@ -14,7 +14,7 @@
 
     <link
         rel="stylesheet"
-        href="/plugin.php?plugin=fpp-plugin-jukebox&file=www/css/jukebox.css&nopage=1">
+        href="/plugin.php?plugin=fpp-jukebox&file=www/css/jukebox.css&nopage=1">
 
 </head>
 
@@ -25,9 +25,11 @@
         id="jukeboxError"
         class="jukebox-error d-none"></div>
 
+    <div
+        id="jukeboxQueueMessage"
+        class="jukebox-queue-message d-none"></div>
 
     <!-- Selection -->
-
     <section
         id="selectionScreen"
         class="jukebox-screen active">
@@ -38,7 +40,6 @@
 
         <div class="jukebox-header">
             <h1>Choose a Song</h1>
-
             <p>Select a sequence to play</p>
         </div>
 
@@ -64,6 +65,31 @@
             </div>
         </div>
 
+        <div
+            id="selectionQueue"
+            class="selection-queue d-none">
+            <div class="selection-queue-header">
+                <span>Queue</span>
+
+                <span
+                    id="selectionQueueCount"
+                    class="selection-queue-count">
+                    0 / 5
+                </span>
+            </div>
+
+            <div
+                id="selectionQueueList"
+                class="selection-queue-list">
+            </div>
+
+            <div
+                id="selectionQueueFull"
+                class="selection-queue-full d-none">
+                Queue Full — Please wait for a song to finish.
+            </div>
+
+        </div>
 
         <div
             id="sequenceGrid"
@@ -181,7 +207,7 @@
     </section>
 
     <script
-        src="/plugin.php?plugin=fpp-plugin-jukebox&file=www/js/jukebox.js&nopage=1"></script>
+        src="/plugin.php?plugin=fpp-jukebox&file=www/js/jukebox.js&nopage=1"></script>
 
 </body>
 

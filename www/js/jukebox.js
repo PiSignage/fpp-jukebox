@@ -1,10 +1,11 @@
-const API_BASE = '/api/plugin/fpp-plugin-jukebox';
+const API_BASE = '/api/plugin/fpp-jukebox';
 
 let lockoutSeconds = 30;
 
 let statusTimer = null;
 let countdownTimer = null;
 let availabilityTimer = null;
+let queueTimer = null;
 let lockoutRemaining = 0;
 
 let currentSequence = null;
@@ -175,29 +176,51 @@ function renderSequences(sequences) {
 
 // Play sequence
 async function playSequence(sequence) {
-    if (lockoutActive) {
+    /*
+     * If there is no current sequence, the lockout
+     * prevents a new selection.
+     *
+     * If something is already playing, however,
+     * we are allowed to send the selection to the
+     * API so it can be queued.
+     */
+    if (
+        lockoutActive &&
+        currentSequence === null
+    ) {
         return;
     }
 
-    // Clear any old timers.
-    clearInterval(
-        statusTimer
-    );
+    // Remember whether something was already playing.
+    const alreadyPlaying =
+        currentSequence !== null &&
+        playbackStarted;
 
-    clearInterval(
-        countdownTimer
-    );
+    /*
+     * Only clear the playback monitor when
+     * starting a completely new sequence.
+     *
+     * If something is already playing, we MUST
+     * keep statusTimer running so we can detect
+     * when the current song finishes.
+     */
+    if (!alreadyPlaying) {
+        clearInterval(
+            statusTimer
+        );
+    }
 
-    // Remember selected sequence.
-    currentSequence = sequence;
-
-    // Reset playback state.
-    playbackStarted = false;
-
-    // Immediately show Now Playing.
-    showPlayingScreen(
-        sequence
-    );
+    /*
+     * Only set currentSequence immediately when
+     * nothing is currently playing.
+     *
+     * If something is playing, the selected sequence
+     * may only be going into the queue.
+     */
+    if (!alreadyPlaying) {
+        currentSequence = sequence;
+        playbackStarted = false;
+    }
 
     try {
         const response =
@@ -226,6 +249,43 @@ async function playSequence(sequence) {
             );
         }
 
+        // Sequence was added to the queue.
+        if (data.queued) {
+            console.log(
+                'Sequence added to queue:',
+                data.title
+            );
+
+            showQueueAddedMessage(
+                data.title,
+                data.position
+            );
+
+            // Refresh the queue immediately.
+            loadQueue();
+
+            /*
+             * Keep the existing Now Playing
+             * sequence exactly as it is.
+             *
+             * Most importantly, statusTimer is
+             * still running because another song
+             * is currently playing.
+             */
+            return;
+        }
+
+        // This was a new sequnce that fpp
+        // actually stated
+        currentSequence = sequence;
+
+        playbackStarted = false;
+
+        // Immediately show Now Playing.
+        showPlayingScreen(
+            sequence
+        );
+
         // Start the lockout as soon as playback starts
         startLockout()
 
@@ -238,9 +298,30 @@ async function playSequence(sequence) {
             error
         );
 
-        currentSequence = null;
+        /*
+        * If this was a queue attempt while another
+        * sequence is playing, leave the current
+        * Now Playing state completely untouched.
+        */
+        if (alreadyPlaying) {
+            showError(
+                error.message ||
+                'Unable to add song to queue.'
+            );
+            return;
+        }
 
-        playbackStarted = false;
+        /*
+         * Only clear currentSequence if this
+         * was a new playback attempt.
+         *
+         * Don't destroy the existing Now Playing
+         * sequence because a queue request failed.
+         */
+        if (!alreadyPlaying) {
+            currentSequence = null;
+            playbackStarted = false;
+        }
 
         showSelectionScreen();
 
@@ -345,12 +426,81 @@ async function checkPlaybackStatus() {
 }
 
 // Playback finished
-function handlePlaybackFinished() {
+async function handlePlaybackFinished() {
     console.log(
         'Jukebox sequence finished.'
     );
 
     playbackStarted = false;
+
+    // If queueing is enabled, try to start
+    // the next queued sequence.
+    try {
+        const configResponse =
+            await fetch(
+                API_BASE + '/config',
+                {
+                    cache: 'no-store'
+                }
+            );
+
+        const configData =
+            await configResponse.json();
+
+        if (
+            configData.success &&
+            configData.config.queueEnabled
+        ) {
+            const response =
+                await fetch(
+                    API_BASE + '/queue/next',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        cache: 'no-store'
+                    }
+                );
+
+            const data = await response.json();
+
+            // A queued sequence was started
+            if (
+                data.success &&
+                data.queued
+            ) {
+                console.log(
+                    'Started queued sequence:',
+                    data.title
+                );
+
+                // Keep the current sequence object
+                // representing the newly started item.
+                currentSequence = {
+                    id: data.sequence,
+                    title: data.title,
+                    artwork: data.artwork,
+                };
+
+                // We have not yet seen FPP report
+                // that the new sequence is playing.
+                playbackStarted = false;
+
+                showSelectionScreen();
+
+                // Start monitoring the new sequence
+                monitorPlayback();
+
+                return;
+            }
+        }
+    } catch (error) {
+        console.error(
+            'Unable to start next queued sequence:',
+            error
+        );
+    }
 
     // Lockout is still active
     if (lockoutRemaining > 0) {
@@ -468,9 +618,22 @@ async function finishLockout() {
 // Screens
 function showSelectionScreen() {
     updateSelectionNowPlaying();
+
     showScreen(
         'selectionScreen'
     );
+
+    loadQueue();
+
+    clearInterval(
+        queueTimer
+    );
+
+    queueTimer =
+        setInterval(
+            loadQueue,
+            1000
+        );
 }
 
 function showLoadingScreen() {
@@ -537,6 +700,14 @@ function showScreen(id) {
                 );
             }
         );
+
+    if (
+        id !== 'selectionScreen'
+    ) {
+        clearInterval(
+            queueTimer
+        );
+    }
 
     const screen =
         document.getElementById(
@@ -644,9 +815,7 @@ function updatePlayingLockout(seconds) {
 }
 
 function hidePlayingLockout() {
-    showScreen(
-        'selectionScreen'
-    );
+    showSelectionScreen();
 }
 
 function updateSelectionNowPlaying() {
@@ -857,4 +1026,215 @@ async function handleJukeboxAvailable() {
     }
 
     showSelectionScreen();
+}
+
+/* ==========================================================================
+   Load Queue
+   ========================================================================== */
+async function loadQueue() {
+    const queueContainer =
+        document.getElementById(
+            'selectionQueue'
+        );
+
+    const queueList =
+        document.getElementById(
+            'selectionQueueList'
+        );
+
+    const queueCount =
+        document.getElementById(
+            'selectionQueueCount'
+        );
+
+    const queueFullMessage =
+        document.getElementById(
+            'selectionQueueFull'
+        );
+
+    if (
+        !queueContainer ||
+        !queueList ||
+        !queueCount
+    ) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE + '/queue',
+                {
+                    cache: 'no-store'
+                }
+            );
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            return;
+        }
+
+        const queue =
+            data.queue || [];
+
+        const queueLength =
+            data.queueLength || 0;
+
+        const queueLimit =
+            data.queueLimit || 0;
+
+        const queueFull =
+            queueLength >= queueLimit;
+
+        if (queueFullMessage) {
+            queueFullMessage.classList.toggle(
+                'd-none',
+                !queueFull
+            );
+        }
+
+        // Update count.
+        queueCount.textContent =
+            `${queueLength} / ${queueLimit}`;
+
+        updateQueueAvailability(
+            queueFull
+        );
+
+        // Nothing queued.
+        if (queueLength === 0) {
+            queueContainer.classList.add(
+                'd-none'
+            );
+
+            queueList.innerHTML = '';
+            return;
+        }
+
+        // Show queue.
+        queueContainer.classList.remove(
+            'd-none'
+        );
+
+        queueList.innerHTML = '';
+
+        queue.forEach(
+            function (
+                item,
+                index
+            ) {
+                const element =
+                    document.createElement(
+                        'div'
+                    );
+
+                element.className = 'selection-queue-item';
+
+                element.innerHTML = `
+                    <div class="selection-queue-position">
+                        ${index + 1}
+                    </div>
+
+                    <div class="selection-queue-title">
+                        ${escapeHtml(item.title)}
+                    </div>
+                `;
+
+                queueList.appendChild(
+                    element
+                );
+            }
+        );
+
+    } catch (error) {
+        console.error(
+            'Unable to load jukebox queue:',
+            error
+        );
+    }
+}
+
+/* ==========================================================================
+   Queue Availability
+   ========================================================================== */
+function updateQueueAvailability(queueFull) {
+    const buttons =
+        document.querySelectorAll(
+            '.jukebox-sequence'
+        );
+
+    // If the queue isn't full, selections
+    // are always allowed.
+
+    if (!queueFull) {
+        buttons.forEach(
+            function (button) {
+                button.disabled = false;
+
+                button.classList.remove(
+                    'queue-full'
+                );
+            }
+        );
+
+        return
+    }
+
+    // Queue is full.
+    if (!currentSequence) {
+        return;
+    }
+
+    buttons.forEach(
+        function (button) {
+            button.disabled = true;
+            button.classList.add('queue-full');
+        }
+    );
+}
+
+// Queue Added Message
+function showQueueAddedMessage(
+    title,
+    position
+) {
+    const message =
+        document.getElementById(
+            'jukeboxQueueMessage'
+        );
+
+    if (!message) {
+        return;
+    }
+
+    message.innerHTML = `
+        <strong>
+            ${escapeHtml(title)}
+        </strong>
+        added to the queue
+        <span>
+            Position ${position}
+        </span>
+    `;
+
+    message.classList.remove(
+        'd-none'
+    );
+
+    // Automatically hide the message.
+    setTimeout(
+        function () {
+            message.classList.add(
+                'd-none'
+            );
+        },
+        3000
+    );
 }

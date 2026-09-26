@@ -23,6 +23,9 @@ $config = array(
     ],
     'lockoutSeconds' => 30,
     'lockoutStarts' => 'play',
+    'queueEnabled' => false,
+    'queueLimit' => 5,
+    'allowDuplicateQueueSongs' => false,
     'backgroundSequence' => "",
     'sequences' => array()
 );
@@ -126,6 +129,12 @@ if (
             0,
             (int)($_POST['lockoutSeconds'] ?? 30)
         ),
+        'queueEnabled' => isset($_POST['queueEnabled']),
+        'queueLimit' => max(
+            1,
+            (int)($_POST['queueLimit'] ?? 5)
+        ),
+        'allowDuplicateQueueSongs' => isset($_POST['allowDuplicateQueueSongs']),
         'lockoutStarts' => 'play',
         'backgroundSequence' => $_POST['backgroundSequence'],
         'sequences' => array()
@@ -625,6 +634,73 @@ usort(
                         Select the sequence controlled by FPP when the jukebox
                         is not playing a guest selection.
                     </small>
+                </div>
+
+                <!-- Enable Queuing -->
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="queueEnabled"
+                            id="queueEnabled"
+                            <?= !empty($config['queueEnabled']) ? 'checked' : '' ?>>
+
+                        <label
+                            class="form-check-label"
+                            for="queueEnabled">
+                            Enable Queue
+                        </label>
+                    </div>
+
+                    <div class="form-text">
+                        Allow guests to select additional sequences
+                        while another sequence is playing.
+                    </div>
+                </div>
+
+                <!-- Queue Limit -->
+                <div class="mb-3">
+                    <label for="queueLimit" class="form-label">
+                        Queue Limit
+                    </label>
+
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="queueLimit"
+                        name="queueLimit"
+                        min="1"
+                        max="100"
+                        value="<?= htmlspecialchars(
+                                    $config['queueLimit'] ?? 'Jukebox'
+                                ) ?>">
+
+                    <div class="form-text">
+                        Maximum number of sequences that can wait
+                        in the queue.
+                    </div>
+                </div>
+
+                <!-- allowDuplicateQueueSongs -->
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="allowDuplicateQueueSongs"
+                        id="allowDuplicateQueueSongs"
+                        value="1"
+                        <?= !empty($config['allowDuplicateQueueSongs']) ? 'checked' : '' ?>>
+
+                    <label
+                        class="form-check-label"
+                        for="allowDuplicateQueueSongs">
+                        Allow duplicate songs in queue
+                    </label>
+                </div>
+
+                <div class="form-text">
+                    Allow the same sequence to be added to the queue more than once.
                 </div>
             </div>
         </div>

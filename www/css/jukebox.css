@@ -397,32 +397,20 @@ body {
 
 .jukebox-error {
     position: fixed;
-
     top: 20px;
     left: 50%;
-
     z-index: 9999;
-
     transform:
         translateX(-50%);
-
     width: calc(100% - 40px);
-
     max-width: 700px;
-
     padding: 15px 20px;
-
     border-radius: 10px;
-
     background:
         var(--jukebox-error);
-
     color: #fff;
-
     font-size: 1rem;
-
     text-align: center;
-
     box-shadow:
         0 5px 20px rgba(0, 0, 0, 0.4);
 }
@@ -859,4 +847,123 @@ body {
     margin: 0;
     font-size: 1.1rem;
     opacity: 0.8;
+}
+
+/* ==========================================================================
+   Selection Queue
+   ========================================================================== */
+.selection-queue {
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto 25px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+}
+
+.selection-queue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.selection-queue-count {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.selection-queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.selection-queue-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+.selection-queue-position {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.selection-queue-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.jukebox-sequence.queue-full {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.jukebox-queue-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    z-index: 9999;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 700px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #000000;
+    font-size: 1rem;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+
+    /* width: 100%;
+    max-width: 600px;
+    margin: 15px auto;
+    padding: 14px 20px;
+    text-align: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 0.95rem; */
+    animation:
+        jukeboxQueueMessageIn 0.3s ease-out;
+}
+
+.jukebox-queue-message strong {
+    font-weight: 700;
+}
+
+.jukebox-queue-message span {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+@keyframes jukeboxQueueMessageIn {
+    from {
+        opacity: 0;
+        /* transform: translateY(-10px); */
+    }
+
+    to {
+        opacity: 1;
+        /* transform: translateY(0); */
+    }
 }

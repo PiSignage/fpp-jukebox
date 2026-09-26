@@ -59,6 +59,9 @@ cat > "$CONFIG" <<'JSONEOF'
     ],
     "lockoutSeconds": 30,
     "lockoutStarts": "play",
+    "queueEnabled": false,
+    "queueLimit": 5,
+    "allowDuplicateQueueSongs": false,
     "backgroundSequence": "",
     "sequences": []	
 }
