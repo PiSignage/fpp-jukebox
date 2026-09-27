@@ -753,6 +753,21 @@ function startLockout() {
     lockoutRemaining =
         lockoutSeconds;
 
+    /*
+     * Store when the lockout expires.
+     *
+     * This allows us to restore the remaining
+     * lockout time if the page is refreshed.
+     */
+    const lockoutExpiresAt =
+        Date.now() +
+        (lockoutSeconds * 1000);
+
+    sessionStorage.setItem(
+        'jukeboxLockoutExpiresAt',
+        lockoutExpiresAt.toString()
+    );
+
     updatePlayingLockout(
         lockoutRemaining
     );
@@ -760,6 +775,10 @@ function startLockout() {
     // If timeout is zero, there is no lockout.
     if (lockoutRemaining <= 0) {
         countdownTimer = null;
+        lockoutActive = false;
+        sessionStorage.removeItem(
+            'jukeboxLockoutExpiresAt'
+        );
         hidePlayingLockout();
         return;
     }
@@ -794,6 +813,15 @@ function startLockout() {
                     countdownTimer = null;
 
                     lockoutActive = false;
+
+                    /*
+                     * The lockout has expired,
+                     * so the stored expiry is no
+                     * longer required.
+                     */
+                    sessionStorage.removeItem(
+                        'jukeboxLockoutExpiresAt'
+                    );
 
                     // The lockout has expired
                     hidePlayingLockout();
@@ -1797,6 +1825,12 @@ async function restoreInitialPlayback() {
     updateSelectionNowPlaying();
 
     /*
+    * Restore any lockout that was active
+    * before the page was refreshed.
+    */
+    restoreLockout();
+
+    /*
      * Start watching for the current sequence
      * to finish.
      */
@@ -1804,3 +1838,116 @@ async function restoreInitialPlayback() {
 }
 
 restoreInitialPlayback();
+
+function restoreLockout() {
+    const storedExpiry =
+        sessionStorage.getItem(
+            'jukeboxLockoutExpiresAt'
+        );
+
+    // No stored lockout.
+    if (!storedExpiry) {
+        return false;
+    }
+
+    const expiresAt =
+        parseInt(
+            storedExpiry,
+            10
+        );
+
+    // Invalid stored value.
+    if (isNaN(expiresAt)) {
+
+        sessionStorage.removeItem(
+            'jukeboxLockoutExpiresAt'
+        );
+
+        return false;
+    }
+
+    // Calculate how many seconds remain.
+    lockoutRemaining =
+        Math.ceil(
+            (expiresAt - Date.now()) /
+            1000
+        );
+
+    /*
+     * Lockout already expired while the
+     * page was reloading.
+     */
+    if (lockoutRemaining <= 0) {
+        lockoutRemaining = 0;
+        lockoutActive = false;
+
+        sessionStorage.removeItem(
+            'jukeboxLockoutExpiresAt'
+        );
+
+        hidePlayingLockout();
+
+        return false;
+    }
+
+    console.log(
+        'Restoring lockout:',
+        lockoutRemaining,
+        'seconds remaining'
+    );
+
+    lockoutActive = true;
+
+    updatePlayingLockout(
+        lockoutRemaining
+    );
+
+    // Make sure an old timer isn't running.
+    clearInterval(
+        countdownTimer
+    );
+
+    /*
+     * Continue counting down from the
+     * remaining time.
+     */
+    countdownTimer =
+        setInterval(
+            function () {
+                lockoutRemaining--;
+
+                updatePlayingLockout(
+                    lockoutRemaining
+                );
+
+                if (lockoutRemaining <= 0) {
+                    lockoutRemaining = 0;
+
+                    clearInterval(
+                        countdownTimer
+                    );
+
+                    countdownTimer = null;
+
+                    lockoutActive = false;
+
+                    sessionStorage.removeItem(
+                        'jukeboxLockoutExpiresAt'
+                    );
+
+                    hidePlayingLockout();
+
+                    /*
+                     * If playback has also finished,
+                     * return to normal selection.
+                     */
+                    if (!playbackStarted) {
+                        finishLockout();
+                    }
+                }
+            },
+            1000
+        );
+
+    return true;
+}
