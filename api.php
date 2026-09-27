@@ -456,6 +456,8 @@ function jukeboxGetStatus()
     );
 
     $playing = false;
+    $statusName = 'idle';
+    $playlist = null;
 
     if ($response !== false) {
 
@@ -466,11 +468,10 @@ function jukeboxGetStatus()
 
         if (is_array($status)) {
 
-            if (
-                isset($status['status_name']) &&
-                $status['status_name'] !== 'idle'
-            ) {
-                $playing = true;
+            if (isset($status['status_name'])) {
+                $statusName = $status['status_name'];
+                $playing = $statusName !== 'idle';
+                $playlist = $status['current_playlist']['playlist'];
             }
         }
     }
@@ -481,6 +482,9 @@ function jukeboxGetStatus()
         'scheduled' => $scheduled,
         'available' => $available,
         'playing' => $playing,
+        'statusName' => $statusName,
+        'playlist' => $playlist,
+        // 'fppStatus' => $status,
         'lockoutSeconds' => (int)$config['lockoutSeconds']
     ));
 }
@@ -551,7 +555,8 @@ function jukeboxPlay()
     // Queue selected sequence if something is already playing.
     if (
         !empty($config['queueEnabled']) &&
-        jukeboxIsPlaying()
+        jukeboxIsPlaying() &&
+        !jukeboxIsBackgroundPlaying()
     ) {
         $queueLimit =
             max(
@@ -579,7 +584,7 @@ function jukeboxPlay()
             foreach ($queue as $queuedItem) {
                 if (
                     isset($queuedItem['sequence']) &&
-                    $queuedItem['sequence'] === $sequence['sequence']
+                    $queuedItem['sequence'] === $selected['sequence']
                 ) {
                     return jukeboxError(
                         $sequence['title'] . ' is already in the queue.'
@@ -1074,7 +1079,10 @@ function jukeboxPlayNextQueued()
      * Check that FPP is actually idle before
      * starting another queued sequence.
      */
-    if (jukeboxIsPlaying()) {
+    if (
+        jukeboxIsPlaying() &&
+        !jukeboxIsBackgroundPlaying()
+    ) {
 
         return jukeboxError(
             'FPP is still playing.'
@@ -1229,4 +1237,83 @@ function jukeboxRemoveQueueItem()
         'success' => true,
         'queueLength' => count($queue)
     ));
+}
+
+/**
+ * Check whether FPP is currently playing the
+ * configured Background Sequence.
+ *
+ * @return bool
+ */
+function jukeboxIsBackgroundPlaying()
+{
+    $config = jukeboxLoadConfig();
+
+    $backgroundSequence =
+        $config['backgroundSequence'] ?? '';
+
+    if ($backgroundSequence === '') {
+        return false;
+    }
+
+    $url = 'http://127.0.0.1/api/fppd/status';
+
+    $context =
+        stream_context_create(
+            array(
+                'http' => array(
+                    'method' => 'GET',
+                    'timeout' => 2,
+                    'ignore_errors' => true
+                )
+            )
+        );
+
+    $response =
+        @file_get_contents(
+            $url,
+            false,
+            $context
+        );
+
+    if ($response === false) {
+        return false;
+    }
+
+    $status =
+        json_decode(
+            $response,
+            true
+        );
+
+    if (!is_array($status)) {
+        return false;
+    }
+
+    $currentPlaylist =
+        $status['current_playlist']['playlist']
+        ?? '';
+
+    /*
+     * FPP may report the sequence with or
+     * without the .fseq extension.
+     */
+    $currentPlaylist =
+        preg_replace(
+            '/\.fseq$/i',
+            '',
+            $currentPlaylist
+        );
+
+    $backgroundSequence =
+        preg_replace(
+            '/\.fseq$/i',
+            '',
+            $backgroundSequence
+        );
+
+    return (
+        $currentPlaylist ===
+        $backgroundSequence
+    );
 }

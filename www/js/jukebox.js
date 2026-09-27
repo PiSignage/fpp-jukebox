@@ -9,6 +9,7 @@ let queueTimer = null;
 let lockoutRemaining = 0;
 
 let currentSequence = null;
+let currentPlaylist = null;
 
 let playbackStarted = false;
 let lockoutActive = false;
@@ -218,6 +219,36 @@ async function playSequence(sequence) {
      * may only be going into the queue.
      */
     if (!alreadyPlaying) {
+        // Remember what FPP is playing before
+        // the jukebox sequence starts.
+
+        try {
+            const statusResponse =
+                await fetch(
+                    API_BASE + '/status',
+                    {
+                        cache: 'no-store'
+                    }
+                );
+
+            const statusData = await statusResponse.json();
+
+            if (statusData.success) {
+                currentPlaylist = statusData.playlist || null;
+                console.log(
+                    'Playlist before jukebox:',
+                    currentPlaylist
+                );
+            }
+        } catch (error) {
+            console.warn(
+                'Unable to get current playlist:',
+                error
+            );
+
+            currentPlaylist = null;
+        }
+
         currentSequence = sequence;
         playbackStarted = false;
     }
@@ -388,35 +419,90 @@ async function checkPlaybackStatus() {
 
         console.log(
             'Jukebox playback status:',
-            data.playing
+            data.playing,
+            'Playlist:',
+            data.playlist
         );
 
-        // Playback has started
-        if (data.playing) {
-            playbackStarted = true;
-            updateSelectionNowPlaying();
+        // FPP is not playing
+        if (!data.playing) {
+            if (playbackStarted) {
+                clearInterval(
+                    statusTimer
+                );
+                handlePlaybackFinished();
+                return;
+            }
+        }
+
+        // We are waiting for the jukebox song to take over.
+        if (!playbackStarted) {
+            /*
+             * The playlist has changed from whatever was
+             * playing before the jukebox song started.
+             *
+             * Therefore the jukebox song has now taken over.
+             */
+            if (
+                currentPlaylist !== null &&
+                data.playlist !== currentPlaylist
+            ) {
+                console.log(
+                    'Jukebox sequence has taken over:',
+                    data.playlist
+                );
+
+                currentPlaylist = data.playlist;
+
+                playbackStarted = true;
+
+                updateSelectionNowPlaying();
+
+                return;
+            }
+
+            // Still playing the Background Sequence.
+            // Do NOT mark the jukebox song as playing.
             return;
         }
 
         /*
          * ---------------------------------------------------------------
-         * Playback has finished
+         * Jukebox song is playing.
          * ---------------------------------------------------------------
          *
-         * We ONLY consider playback finished if we previously
-         * saw FPP report that something was playing.
+         * If FPP changes playlist, the jukebox song
+         * has finished and the Background Sequence
+         * or another playlist has taken over.
          */
-
         if (
-            playbackStarted &&
-            !data.playing
+            data.playlist !== currentPlaylist
         ) {
+            console.log(
+                'Jukebox sequence finished.'
+            );
+
+            console.log(
+                'Previous playlist:',
+                currentPlaylist
+            );
+
+            console.log(
+                'New playlist:',
+                data.playlist
+            );
+
             clearInterval(
                 statusTimer
             );
 
             handlePlaybackFinished();
+
+            return;
         }
+
+        // Our jukebox song is still playing.
+        updateSelectionNowPlaying();
     } catch (error) {
         console.error(
             'Playback status error:',
@@ -486,6 +572,7 @@ async function handlePlaybackFinished() {
                 // We have not yet seen FPP report
                 // that the new sequence is playing.
                 playbackStarted = false;
+                // currentPlaylist = null;
 
                 showSelectionScreen();
 

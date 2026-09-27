@@ -614,20 +614,23 @@ usort(
                         <option value="">
                             None
                         </option>
+                        <optgroup label="Sequence">
+                            <?php foreach ($fppSequences as $sequence): ?>
 
-                        <?php foreach ($fppSequences as $sequence): ?>
+                                <option
+                                    value="<?= htmlspecialchars($sequence) ?>"
+                                    <?= (
+                                        ($config['backgroundSequence'] ?? '') ===
+                                        $sequence
+                                    ) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($sequence) ?>
+                                </option>
 
-                            <option
-                                value="<?= htmlspecialchars($sequence) ?>"
-                                <?= (
-                                    ($config['backgroundSequence'] ?? '') ===
-                                    $sequence
-                                ) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($sequence) ?>
-                            </option>
-
-                        <?php endforeach; ?>
-
+                            <?php endforeach; ?>
+                        </optgroup>
+                        <optgroup label="Playlist">
+                            <option value="TODO">TODO</option>
+                        </optgroup>
                     </select>
 
                     <small class="form-text text-muted">
