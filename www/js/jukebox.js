@@ -17,6 +17,10 @@ let lockoutActive = false;
 
 let playbackStartTime = null;
 const PLAYBACK_START_TIMEOUT = 10000;
+let playingFromQueue = false;
+
+let statusFailureCount = 0;
+const MAX_STATUS_FAILURES = 3;
 
 // Initialise
 document.addEventListener(
@@ -318,6 +322,8 @@ async function playSequence(sequence) {
 
         playbackStartTime = Date.now();
 
+        playingFromQueue = false;
+
         // Immediately show Now Playing.
         showPlayingScreen(
             sequence
@@ -406,22 +412,32 @@ async function checkPlaybackStatus() {
             );
 
         if (!response.ok) {
-            console.warn(
-                'FPP status request failed:',
-                response.status
+            // console.warn(
+            //     'FPP status request failed:',
+            //     response.status
+            // );
+            // return;
+            throw new Error(
+                `Status API returned HTTP ${response.status}`
             );
-            return;
         }
 
         const data =
             await response.json();
 
         if (!data.success) {
-            console.warn(
-                'Invalid FPP status response.'
+            // console.warn(
+            //     'Invalid FPP status response.'
+            // );
+            // return;
+            throw new Error(
+                data.message ||
+                'Status API returned ar error.'
             );
-            return;
         }
+
+        // Status request succeeded
+        statusFailureCount = 0;
 
         console.log(
             'Jukebox playback status:',
@@ -482,14 +498,48 @@ async function checkPlaybackStatus() {
                 clearInterval(statusTimer);
 
                 playbackStartTime = null;
-                currentSequence = null;
                 playbackStarted = false;
 
                 console.error(
-                    'Jukebox sequence failed to start.'
+                    'Jukebox sequence failed to start:',
+                    currentSequence
+                        ? currentSequence.title
+                        : 'Unknown'
                 );
 
-                showSelectionScreen();
+                /*
+                * If this sequence came from the queue,
+                * skip it and attempt to start the next
+                * queued sequence.
+                */
+                if (playingFromQueue) {
+                    console.log(
+                        'Queued sequence failed. Trying next queued sequence.'
+                    );
+
+                    /*
+                    * Keep currentPlaylist unchanged.
+                    *
+                    * It should still represent the
+                    * background sequence and is needed
+                    * to detect the next queued song
+                    * taking over.
+                    */
+                    currentSequence = null;
+
+                    await handlePlaybackFinished();
+
+                    return;
+                }
+
+                /*
+                * A song selected directly by the guest
+                * failed to start.
+                */
+                currentSequence = null;
+                playingFromQueue = false;
+
+                showPlaybackError();
 
                 return;
             }
@@ -537,10 +587,51 @@ async function checkPlaybackStatus() {
         // Our jukebox song is still playing.
         updateSelectionNowPlaying();
     } catch (error) {
-        console.error(
-            'Playback status error:',
+        statusFailureCount++;
+
+        console.warn(
+            `Playback status check failed (${statusFailureCount}/${MAX_STATUS_FAILURES}):`,
             error
         );
+
+        /*
+        * A single failed request should not
+        * interrupt playback monitoring.
+        */
+        if (
+            statusFailureCount <
+            MAX_STATUS_FAILURES
+        ) {
+            return;
+        }
+
+        console.error(
+            'Unable to monitor jukebox playback after repeated failures.'
+        );
+
+        /*
+        * Stop this monitoring interval.
+        */
+        clearInterval(statusTimer);
+
+        statusTimer = null;
+
+        statusFailureCount = 0;
+
+        playbackStartTime = null;
+
+        /*
+        * Do not try to stop anything in FPP.
+        *
+        * We don't actually know whether the
+        * sequence is still playing because the
+        * status API is unavailable.
+        */
+        playbackStarted = false;
+        currentSequence = null;
+        playingFromQueue = false;
+
+        showPlaybackError();
     }
 }
 
@@ -551,6 +642,7 @@ async function handlePlaybackFinished() {
     );
 
     playbackStarted = false;
+    playbackStartTime = null;
 
     // If queueing is enabled, try to start
     // the next queued sequence.
@@ -612,6 +704,8 @@ async function handlePlaybackFinished() {
                 */
                 playbackStartTime = Date.now();
 
+                playingFromQueue = true;
+
                 showSelectionScreen();
 
                 // Start monitoring the new sequence
@@ -626,6 +720,14 @@ async function handlePlaybackFinished() {
             error
         );
     }
+
+    /*
+     * No queued sequence was started.
+     *
+     * We are no longer processing a song
+     * that came from the queue.
+     */
+    playingFromQueue = false;
 
     // Lockout is still active
     if (lockoutRemaining > 0) {
@@ -1423,3 +1525,282 @@ async function clearQueueOnUnavailable() {
         );
     }
 }
+
+function showPlaybackError() {
+    const message =
+        document.getElementById(
+            'jukeboxError'
+        );
+
+    showSelectionScreen();
+
+    if (!message) {
+        return;
+    }
+
+    message.textContent =
+        'Sorry, this song could not be started. Please choose another song.';
+
+    message.classList.remove(
+        'd-none'
+    );
+
+    setTimeout(
+        function () {
+            message.classList.add(
+                'd-none'
+            );
+        },
+        5000
+    );
+}
+
+async function detectInitialPlayback() {
+    try {
+        const [
+            statusResponse,
+            configResponse,
+            sequencesResponse
+        ] = await Promise.all([
+            fetch(
+                API_BASE + '/status',
+                {
+                    cache: 'no-store'
+                }
+            ),
+
+            fetch(
+                API_BASE + '/config',
+                {
+                    cache: 'no-store'
+                }
+            ),
+
+            fetch(
+                API_BASE + '/sequences',
+                {
+                    cache: 'no-store'
+                }
+            )
+        ]);
+
+
+        if (
+            !statusResponse.ok ||
+            !configResponse.ok ||
+            !sequencesResponse.ok
+        ) {
+            throw new Error(
+                'Unable to retrieve initial playback state.'
+            );
+        }
+
+
+        const statusData =
+            await statusResponse.json();
+
+        const configData =
+            await configResponse.json();
+
+        const sequencesData =
+            await sequencesResponse.json();
+
+        if (
+            !statusData.success ||
+            !configData.success ||
+            !sequencesData.success
+        ) {
+            throw new Error(
+                'Invalid initial playback response.'
+            );
+        }
+
+        // Nothing is currently playing.
+        if (
+            !statusData.playing ||
+            !statusData.playlist
+        ) {
+
+            console.log(
+                'Initial playback: idle'
+            );
+
+            return {
+                type: 'idle',
+                playlist: null,
+                sequence: null
+            };
+        }
+
+        /*
+         * Normalise FPP sequence names so
+         * filename.fseq and filename match.
+         */
+        const currentPlaylist =
+            statusData.playlist.replace(
+                /\.fseq$/i,
+                ''
+            );
+
+        const backgroundSequence =
+            (
+                configData.config
+                    .backgroundSequence ||
+                ''
+            ).replace(
+                /\.fseq$/i,
+                ''
+            );
+
+        // Background sequence is playing.
+        if (
+            backgroundSequence &&
+            currentPlaylist ===
+            backgroundSequence
+        ) {
+
+            console.log(
+                'Initial playback: background',
+                statusData.playlist
+            );
+
+            return {
+                type: 'background',
+                playlist:
+                    statusData.playlist,
+                sequence: null
+            };
+        }
+
+        /*
+         * See whether the currently playing
+         * sequence belongs to the jukebox.
+         */
+        const sequence =
+            (
+                sequencesData.sequences ||
+                []
+            ).find(
+                function (item) {
+
+                    const sequenceId =
+                        (
+                            item.id || ''
+                        ).replace(
+                            /\.fseq$/i,
+                            ''
+                        );
+
+                    return (
+                        sequenceId ===
+                        currentPlaylist
+                    );
+                }
+            );
+
+        if (sequence) {
+            console.log(
+                'Initial playback: jukebox',
+                sequence.title
+            );
+
+            return {
+                type: 'jukebox',
+                playlist:
+                    statusData.playlist,
+                sequence: sequence
+            };
+        }
+
+        /*
+         * FPP is playing something, but it
+         * isn't the configured background or
+         * one of our jukebox sequences.
+         */
+        console.log(
+            'Initial playback: other',
+            statusData.playlist
+        );
+
+        return {
+            type: 'other',
+            playlist:
+                statusData.playlist,
+            sequence: null
+        };
+
+    } catch (error) {
+        console.error(
+            'Unable to detect initial playback:',
+            error
+        );
+
+        return {
+            type: 'unknown',
+            playlist: null,
+            sequence: null
+        };
+    }
+}
+
+async function restoreInitialPlayback() {
+    const state = await detectInitialPlayback();
+
+    /*
+     * For now we only need to recover when
+     * a jukebox sequence is already playing.
+     */
+    if (
+        state.type !== 'jukebox' ||
+        !state.sequence
+    ) {
+        return;
+    }
+
+    console.log(
+        'Restoring jukebox playback:',
+        state.sequence.title
+    );
+
+    // Restore our local playback state.
+    currentSequence = state.sequence;
+
+    currentPlaylist = state.playlist;
+
+    playbackStarted = true;
+
+    playbackStartTime = null;
+
+    /*
+     * We cannot reliably know whether the
+     * current song originally came from the
+     * queue after a browser reload.
+     *
+     * This does not matter while the song is
+     * playing because handlePlaybackFinished()
+     * will still check the queue when it ends.
+     */
+    playingFromQueue = false;
+
+    /*
+     * Show the normal selection screen.
+     *
+     * Guests can continue browsing/selecting
+     * songs while the restored song plays.
+     */
+    showSelectionScreen();
+
+    /*
+     * Update any "Now Playing" indication
+     * already used by the selection screen.
+     */
+    updateSelectionNowPlaying();
+
+    /*
+     * Start watching for the current sequence
+     * to finish.
+     */
+    monitorPlayback();
+}
+
+restoreInitialPlayback();
