@@ -74,6 +74,11 @@ function getEndpointsfppJukebox()
             'method' => 'POST',
             'endpoint' => 'queue/remove',
             'callback' => 'jukeboxRemoveQueueItem'
+        ),
+        array(
+            'method' => 'POST',
+            'endpoint' => 'queue/clear',
+            'callback' => 'jukeboxClearQueueApi'
         )
     );
 }
@@ -1064,6 +1069,28 @@ function jukeboxClearQueue()
 
 function jukeboxPlayNextQueued()
 {
+    $config = jukeboxLoadConfig();
+
+    /*
+     * Do not start another queued song if
+     * the jukebox is no longer available.
+     *
+     * Clear anything still waiting so the
+     * Background Sequence can take over.
+     */
+    if (
+        empty($config['enabled']) ||
+        !jukeboxIsWithinSchedule($config)
+    ) {
+        jukeboxClearQueue();
+
+        return json(array(
+            'success' => true,
+            'queued' => false,
+            'message' => 'Jukebox is no longer available.'
+        ));
+    }
+
     $queue = jukeboxLoadQueue();
 
     // Nothing waiting.
@@ -1316,4 +1343,25 @@ function jukeboxIsBackgroundPlaying()
         $currentPlaylist ===
         $backgroundSequence
     );
+}
+
+/**
+ * Clear the jukebox queue via the API.
+ *
+ * This does not stop the sequence that is
+ * currently playing. It only removes songs
+ * waiting in the queue.
+ */
+function jukeboxClearQueueApi()
+{
+    if (!jukeboxClearQueue()) {
+        return jukeboxError(
+            'Unable to clear the jukebox queue.'
+        );
+    }
+
+    return json(array(
+        'success' => true,
+        'queueLength' => 0
+    ));
 }

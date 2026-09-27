@@ -708,40 +708,39 @@ usort(
             </div>
         </div>
 
+        <!-- Current Queue -->
         <div class="card mb-4">
-
             <div class="card-header">
-                Current Queue
+                <div
+                    class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Current Queue</strong>
+                        <div class="text-muted">
+                            <span id="adminQueueCount">0</span>
+                            songs waiting
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="clearQueueButton"
+                        class="btn btn-danger">
+                        Clear Queue
+                    </button>
+
+                </div>
             </div>
 
             <div class="card-body">
-
                 <div
                     id="adminQueueEmpty"
                     class="text-muted">
                     The queue is currently empty.
                 </div>
 
-
                 <div
                     id="adminQueueContainer"
                     class="d-none">
-
-                    <div
-                        class="d-flex justify-content-between align-items-center mb-3">
-
-                        <strong>
-                            Queue
-                        </strong>
-
-                        <span
-                            id="adminQueueCount"
-                            class="badge bg-secondary">
-                            0 / 5
-                        </span>
-
-                    </div>
-
 
                     <div
                         id="adminQueueList"
@@ -1613,11 +1612,17 @@ usort(
                         'adminQueueCount'
                     );
 
+                const clearQueueButton =
+                    document.getElementById(
+                        'clearQueueButton'
+                    );
+
                 if (
                     !emptyMessage ||
                     !container ||
                     !list ||
-                    !count
+                    !count ||
+                    !clearQueueButton
                 ) {
                     return;
                 }
@@ -1663,6 +1668,8 @@ usort(
                         );
 
                         list.innerHTML = '';
+
+                        clearQueueButton.disabled = true;
                         return;
                     }
 
@@ -1782,6 +1789,57 @@ usort(
                         'Unable to remove queue item.'
                     );
                 }
+            }
+
+            async function clearAdminQueue() {
+                try {
+                    const response =
+                        await fetch(
+                            API_BASE + '/queue/clear', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                cache: 'no-store'
+                            }
+                        );
+
+                    const data =
+                        await response.json();
+
+                    if (!data.success) {
+                        throw new Error(
+                            data.message ||
+                            'Unable to clear queue.'
+                        );
+                    }
+
+                    // Immediately refresh the admin queue.
+                    await loadAdminQueue();
+
+                } catch (error) {
+                    console.error(
+                        'Unable to clear jukebox queue:',
+                        error
+                    );
+
+                    alert(
+                        error.message ||
+                        'Unable to clear the jukebox queue.'
+                    );
+                }
+            }
+
+            const clearQueueButton =
+                document.getElementById(
+                    'clearQueueButton'
+                );
+
+            if (clearQueueButton) {
+                clearQueueButton.addEventListener(
+                    'click',
+                    clearAdminQueue
+                );
             }
         }
     );

@@ -7,6 +7,7 @@ let countdownTimer = null;
 let availabilityTimer = null;
 let queueTimer = null;
 let lockoutRemaining = 0;
+let jukeboxWasAvailable = null;
 
 let currentSequence = null;
 let currentPlaylist = null;
@@ -1028,6 +1029,25 @@ async function checkAvailability() {
             data.available
         );
 
+        /*
+        * Jukebox has just changed from
+        * available -> unavailable.
+        *
+        * Clear any songs that are still waiting
+        * in the queue, but do not stop the
+        * currently playing sequence.
+        */
+        if (
+            jukeboxWasAvailable === true &&
+            !data.available
+        ) {
+            await clearQueueOnUnavailable();
+        }
+
+        // Remember the current availability
+        // for the next check.
+        jukeboxWasAvailable = data.available;
+
         // Jukebox is unavailable.
         if (!data.available) {
             handleJukeboxUnavailable();
@@ -1324,4 +1344,45 @@ function showQueueAddedMessage(
         },
         3000
     );
+}
+
+async function clearQueueOnUnavailable() {
+    try {
+        const response =
+            await fetch(
+                API_BASE + '/queue/clear',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+                    cache: 'no-store'
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            console.warn(
+                'Unable to clear queue when jukebox became unavailable.'
+            );
+
+            return;
+        }
+
+        console.log(
+            'Jukebox unavailable - queue cleared.'
+        );
+
+        // Refresh the touchscreen queue display.
+        loadQueue();
+
+    } catch (error) {
+        console.error(
+            'Unable to clear queue:',
+            error
+        );
+    }
 }
