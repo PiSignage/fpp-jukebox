@@ -124,6 +124,7 @@
                                 cache: 'no-store'
                             }
                         )
+
                     ]);
 
                     const statusData =
@@ -163,40 +164,29 @@
 
                     if (playbackStatus) {
                         let playbackLabel = 'Idle';
+
                         let playbackClass = 'bg-secondary';
 
                         if (statusData.playing) {
-                            const backgroundSequence =
-                                configData.success ?
-                                configData.config.backgroundSequence :
-                                null;
-
-                            const currentPlaylist =
-                                statusData.playlist || '';
-
-                            // FPP may return the sequence with
-                            // or without the .fseq extension
-                            const normalisedCurrent =
-                                currentPlaylist.replace(
-                                    /\.fseq$/i,
-                                    ''
+                            const isBackground =
+                                configData.success &&
+                                isBackgroundPlaying(
+                                    statusData.playlist,
+                                    configData.config
                                 );
 
-                            const normalisedBackground =
-                                (backgroundSequence || '').replace(
-                                    /\.fseq$/i,
-                                    ''
-                                );
+                            if (isBackground) {
+                                playbackLabel =
+                                    'Background Playing';
 
-                            if (
-                                normalisedBackground &&
-                                normalisedCurrent === normalisedBackground
-                            ) {
-                                playbackLabel = 'Background Playing';
-                                playbackClass = 'bg-info';
+                                playbackClass =
+                                    'bg-info';
                             } else {
-                                playbackLabel = 'Jukebox Playing';
-                                playbackClass = 'bg-success';
+                                playbackLabel =
+                                    'Jukebox Playing';
+
+                                playbackClass =
+                                    'bg-success';
                             }
                         }
 
@@ -207,9 +197,7 @@
                         `;
                     }
 
-                    /*
-                     * Current FPP playlist / sequence
-                     */
+                    // Current FPP playlist / sequence
                     const currentPlaylist =
                         document.getElementById(
                             'adminCurrentPlaylist'
@@ -220,9 +208,7 @@
                             statusData.playlist || '-';
                     }
 
-                    /*
-                     * Queue
-                     */
+                    // Queue
                     const queueStatus =
                         document.getElementById(
                             'adminStatusQueue'
@@ -242,6 +228,7 @@
                             `${queueLength} / ${queueLimit} songs`;
                     }
 
+                    // Up Next
                     const upNext =
                         document.getElementById(
                             'adminUpNext'
@@ -251,8 +238,7 @@
                         upNext &&
                         queueData.success
                     ) {
-                        const queue =
-                            queueData.queue || [];
+                        const queue = queueData.queue || [];
 
                         if (queue.length === 0) {
                             upNext.innerHTML = `
@@ -268,16 +254,13 @@
                                     item,
                                     index
                                 ) {
-
                                     const row =
                                         document.createElement(
                                             'div'
                                         );
 
-
                                     row.className =
                                         'd-flex align-items-center gap-3 py-2 border-bottom';
-
 
                                     /*
                                      * Queue artwork is stored as the media
@@ -343,6 +326,7 @@
                         }
                     }
 
+                    // Now Playing
                     const nowPlaying =
                         document.getElementById(
                             'adminNowPlaying'
@@ -356,11 +340,10 @@
                                 </span>
                             `;
                         } else {
-                            const backgroundSequence =
-                                configData.success ?
-                                configData.config.backgroundSequence :
-                                '';
-
+                            /*
+                             * Normalised version is still needed below
+                             * when matching jukebox sequences.
+                             */
                             const current =
                                 (statusData.playlist || '')
                                 .replace(
@@ -368,16 +351,16 @@
                                     ''
                                 );
 
-                            const background =
-                                (backgroundSequence || '')
-                                .replace(
-                                    /\.fseq$/i,
-                                    ''
-                                );
-
+                            /*
+                             * Determine whether the current FPP item is
+                             * the configured background.
+                             */
                             const isBackground =
-                                background !== '' &&
-                                current === background;
+                                configData.success &&
+                                isBackgroundPlaying(
+                                    statusData.playlist,
+                                    configData.config
+                                );
 
                             /*
                              * Find the configured jukebox sequence
@@ -391,49 +374,72 @@
                                 sequencesData.success
                             ) {
                                 sequence =
-                                    (sequencesData.sequences || [])
-                                    .find(
+                                    (
+                                        sequencesData.sequences || []
+                                    ).find(
                                         function(item) {
+
                                             const id =
-                                                (item.id || '')
-                                                .replace(
+                                                (
+                                                    item.id || ''
+                                                ).replace(
                                                     /\.fseq$/i,
                                                     ''
                                                 );
 
-                                            return id === current;
+                                            return (
+                                                id === current
+                                            );
                                         }
                                     );
                             }
 
-                            // Use the configured title when we have
-                            // a matching jukebox sequence.
+                            /*
+                             * Use the configured title when we have
+                             * a matching jukebox sequence.
+                             */
                             const displayTitle =
                                 sequence ?
                                 sequence.title :
-                                statusData.playlist || 'Unknown';
+                                statusData.playlist ||
+                                'Unknown';
 
-                            // Build the artwork
+                            // Build the artwork.
                             const artworkHtml =
                                 sequence &&
                                 sequence.artwork ?
-                                `<img 
-                                    src="${sequence.artwork}" 
-                                    alt="" 
+                                `<img
+                                    src="${sequence.artwork}"
+                                    alt=""
                                     style="
                                         width: 80px;
                                         height: 80px;
                                         object-fit: cover;
                                         border-radius: 6px;
                                     "
-                                >` : '';
+                                >` :
+                                '';
+
+                            // Background badge text.
+                            let playbackType = 'Jukebox Song';
+
+                            if (isBackground) {
+                                playbackType =
+                                    configData.config
+                                    .backgroundType ===
+                                    'playlist' ?
+                                    'Background Playlist' :
+                                    'Background Sequence';
+                            }
 
                             nowPlaying.innerHTML = `
                                 <div class="d-flex align-items-center gap-3">
                                     ${artworkHtml}
                                     <div>
                                         <div class="mb-1">
-                                            <strong>${escapeHtml(displayTitle)}</strong>
+                                            <strong>
+                                                ${escapeHtml(displayTitle)}
+                                            </strong>
                                         </div>
 
                                         <span class="badge ${
@@ -441,11 +447,7 @@
                                                 ? 'bg-info'
                                                 : 'bg-success'
                                         }">
-                                            ${
-                                                isBackground
-                                                    ? 'Background Sequence'
-                                                    : 'Jukebox Song'
-                                            }
+                                            ${playbackType}
                                         </span>
                                     </div>
                                 </div>
@@ -459,18 +461,6 @@
                         error
                     );
                 }
-            }
-
-            function escapeHtml(value) {
-                const div =
-                    document.createElement(
-                        'div'
-                    );
-
-                div.textContent =
-                    value ?? '';
-
-                return div.innerHTML;
             }
 
         });

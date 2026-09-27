@@ -26,6 +26,7 @@ $config = array(
     'queueEnabled' => false,
     'queueLimit' => 5,
     'allowDuplicateQueueSongs' => false,
+    'backgroundType' => "sequence",
     'backgroundSequence' => "",
     'sequences' => array()
 );
@@ -136,7 +137,8 @@ if (
         ),
         'allowDuplicateQueueSongs' => isset($_POST['allowDuplicateQueueSongs']),
         'lockoutStarts' => 'play',
-        'backgroundSequence' => $_POST['backgroundSequence'],
+        'backgroundType' => $_POST['backgroundType'] ?? 'sequence',
+        'backgroundSequence' => $_POST['backgroundSequence'] ?? '',
         'sequences' => array()
     );
 
@@ -241,6 +243,21 @@ if ($sequenceResponse !== false) {
     }
 }
 
+$playlistResponse = @file_get_contents(
+    'http://127.0.0.1/api/playlists'
+);
+
+$fppPlaylists = array();
+if ($playlistResponse !== false) {
+    $decoded = json_decode(
+        $playlistResponse,
+        true
+    );
+
+    if (is_array($decoded)) {
+        $fppPlaylists = $decoded;
+    }
+}
 
 /*
  * --------------------------------------------------------------------------
@@ -601,40 +618,49 @@ usort(
 
                 </div>
 
-                <!-- Background Sequence -->
                 <div class="form-group">
-                    <label for="backgroundSequence">
-                        Background Sequence
+                    <label for="backgroundType">
+                        Background Type
                     </label>
 
                     <select
-                        class="form-control"
+                        id="backgroundType"
+                        name="backgroundType"
+                        class=" form-control">
+                        <option
+                            value="sequence"
+                            <?= ($config['backgroundType'] ?? 'sequence') === 'sequence'
+                                ? 'selected'
+                                : '' ?>>
+                            Sequence
+                        </option>
+
+                        <option
+                            value="playlist"
+                            <?= ($config['backgroundType'] ?? 'playlist') === 'playlist'
+                                ? 'selected'
+                                : '' ?>>
+                            Playlist
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="backgroundSequence">
+                        Background
+                    </label>
+
+                    <select
                         id="backgroundSequence"
-                        name="backgroundSequence">
+                        name="backgroundSequence"
+                        class="form-control">
                         <option value="">
                             None
                         </option>
-                        <optgroup label="Sequence">
-                            <?php foreach ($fppSequences as $sequence): ?>
-
-                                <option
-                                    value="<?= htmlspecialchars($sequence) ?>"
-                                    <?= (
-                                        ($config['backgroundSequence'] ?? '') ===
-                                        $sequence
-                                    ) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($sequence) ?>
-                                </option>
-
-                            <?php endforeach; ?>
-                        </optgroup>
-                        <optgroup label="Playlist">
-                            <option value="TODO">TODO</option>
-                        </optgroup>
                     </select>
 
                     <small class="form-text text-muted">
-                        Select the sequence controlled by FPP when the jukebox
+                        Select the sequence/playlist controlled by FPP when the jukebox
                         is not playing a guest selection.
                     </small>
                 </div>
@@ -1040,6 +1066,10 @@ usort(
 <script>
     var pluginName = '<?php echo $pluginName; ?>';
     const API_BASE = '/api/plugin/fpp-jukebox';
+    const savedBackgroundItem =
+        <?= json_encode(
+            $config['backgroundSequence'] ?? ''
+        ) ?>;
     document.addEventListener(
         'DOMContentLoaded',
         function() {
@@ -1841,6 +1871,144 @@ usort(
                     clearAdminQueue
                 );
             }
+
+            async function loadBackgroundOptions(
+                selectedValue = ''
+            ) {
+
+                const backgroundType =
+                    document.getElementById(
+                        'backgroundType'
+                    ).value;
+
+                const backgroundSelect =
+                    document.getElementById(
+                        'backgroundSequence'
+                    );
+
+                backgroundSelect.innerHTML =
+                    '<option value="">None</option>';
+
+                try {
+                    /*
+                     * Load playlists
+                     */
+                    if (backgroundType === 'playlist') {
+
+                        const response =
+                            await fetch(
+                                API_BASE + '/fpp-playlists', {
+                                    cache: 'no-store'
+                                }
+                            );
+
+                        const data =
+                            await response.json();
+
+                        if (!data.success) {
+                            throw new Error(
+                                'Unable to load playlists.'
+                            );
+                        }
+
+                        data.playlists.forEach(
+                            function(playlist) {
+
+                                const option =
+                                    document.createElement(
+                                        'option'
+                                    );
+
+                                option.value =
+                                    playlist;
+
+                                option.textContent =
+                                    playlist;
+
+                                backgroundSelect.appendChild(
+                                    option
+                                );
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /*
+                     * Load sequences
+                     */
+                    const response =
+                        await fetch(
+                            API_BASE + '/fpp-sequences', {
+                                cache: 'no-store'
+                            }
+                        );
+
+                    const data =
+                        await response.json();
+
+                    if (!data.success) {
+                        throw new Error(
+                            'Unable to load sequences.'
+                        );
+                    }
+
+                    /*
+                     * Your existing fpp-sequences endpoint
+                     * should provide the available sequence
+                     * filenames here.
+                     */
+                    data.sequences.forEach(
+                        function(sequence) {
+
+                            const option =
+                                document.createElement(
+                                    'option'
+                                );
+
+                            option.value =
+                                sequence;
+
+                            option.textContent =
+                                sequence.replace(
+                                    /\.fseq$/i,
+                                    ''
+                                );
+
+                            backgroundSelect.appendChild(
+                                option
+                            );
+                        }
+                    );
+
+                    if (selectedValue) {
+                        backgroundSelect.value = selectedValue;
+                    }
+
+                    return;
+
+                } catch (error) {
+                    console.error(
+                        'Unable to load background options:',
+                        error
+                    );
+                }
+            }
+
+            loadBackgroundOptions(
+                savedBackgroundItem
+            );
+
+            document
+                .getElementById(
+                    'backgroundType'
+                )
+                .addEventListener(
+                    'change',
+                    function() {
+                        loadBackgroundOptions();
+                    }
+                );
         }
     );
 </script>

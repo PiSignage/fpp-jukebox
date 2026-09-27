@@ -21,6 +21,7 @@ let playingFromQueue = false;
 
 let statusFailureCount = 0;
 const MAX_STATUS_FAILURES = 3;
+let queueEnabled = false;
 
 // Initialise
 document.addEventListener(
@@ -77,6 +78,9 @@ async function loadConfiguration() {
             data.config.lockoutSeconds,
             10
         ) || 30;
+
+    queueEnabled =
+        data.config.queueEnabled === true;
 
     const title = document.getElementById(
         'jukeboxTitle'
@@ -878,17 +882,21 @@ function showSelectionScreen() {
         'selectionScreen'
     );
 
-    loadQueue();
-
     clearInterval(
         queueTimer
     );
+    queueTimer = null;
 
-    queueTimer =
-        setInterval(
-            loadQueue,
-            1000
-        );
+    if (queueEnabled) {
+        loadQueue();
+        queueTimer =
+            setInterval(
+                loadQueue,
+                1000
+            );
+    } else {
+        hideQueue();
+    }
 }
 
 function showLoadingScreen() {
@@ -1306,6 +1314,10 @@ async function handleJukeboxAvailable() {
    Load Queue
    ========================================================================== */
 async function loadQueue() {
+    if (!queueEnabled) {
+        return;
+    }
+
     const queueContainer =
         document.getElementById(
             'selectionQueue'
@@ -1612,7 +1624,6 @@ async function detectInitialPlayback() {
             )
         ]);
 
-
         if (
             !statusResponse.ok ||
             !configResponse.ok ||
@@ -1622,7 +1633,6 @@ async function detectInitialPlayback() {
                 'Unable to retrieve initial playback state.'
             );
         }
-
 
         const statusData =
             await statusResponse.json();
@@ -1660,33 +1670,66 @@ async function detectInitialPlayback() {
             };
         }
 
+        // Current item reported by FPP.
+        const currentPlaylist = statusData.playlist;
+
+        // Configured background.
+        const backgroundType =
+            configData.config.backgroundType || 'sequence';
+
+        const backgroundItem =
+            configData.config
+                .backgroundSequence ||
+            '';
+
         /*
-         * Normalise FPP sequence names so
-         * filename.fseq and filename match.
+         * Determine whether FPP is currently
+         * playing the configured background.
          */
-        const currentPlaylist =
-            statusData.playlist.replace(
-                /\.fseq$/i,
-                ''
-            );
+        let backgroundPlaying = false;
 
-        const backgroundSequence =
-            (
-                configData.config
-                    .backgroundSequence ||
-                ''
-            ).replace(
-                /\.fseq$/i,
-                ''
-            );
-
-        // Background sequence is playing.
+        /*
+         * Background playlist.
+         *
+         * FPP reports the playlist name directly,
+         * so compare it without modifying it.
+         */
         if (
-            backgroundSequence &&
-            currentPlaylist ===
-            backgroundSequence
+            backgroundType === 'playlist' &&
+            backgroundItem
         ) {
+            backgroundPlaying =
+                currentPlaylist === backgroundItem;
+        }
 
+        /*
+         * Background sequence.
+         *
+         * FPP may report the sequence with or
+         * without the .fseq extension.
+         */
+        if (
+            backgroundType === 'sequence' &&
+            backgroundItem
+        ) {
+            const normalisedCurrent =
+                currentPlaylist.replace(
+                    /\.fseq$/i,
+                    ''
+                );
+
+            const normalisedBackground =
+                backgroundItem.replace(
+                    /\.fseq$/i,
+                    ''
+                );
+
+            backgroundPlaying =
+                normalisedCurrent === normalisedBackground;
+        }
+
+        // Background is playing
+        if (backgroundPlaying) {
             console.log(
                 'Initial playback: background',
                 statusData.playlist
@@ -1694,11 +1737,23 @@ async function detectInitialPlayback() {
 
             return {
                 type: 'background',
-                playlist:
-                    statusData.playlist,
+                playlist: statusData.playlist,
                 sequence: null
             };
         }
+
+        /*
+         * From this point on we are checking
+         * jukebox sequences.
+         *
+         * Normalise the current FPP item so
+         * filename.fseq and filename match.
+         */
+        const normalisedCurrentPlaylist =
+            currentPlaylist.replace(
+                /\.fseq$/i,
+                ''
+            );
 
         /*
          * See whether the currently playing
@@ -1721,7 +1776,7 @@ async function detectInitialPlayback() {
 
                     return (
                         sequenceId ===
-                        currentPlaylist
+                        normalisedCurrentPlaylist
                     );
                 }
             );
@@ -1734,8 +1789,7 @@ async function detectInitialPlayback() {
 
             return {
                 type: 'jukebox',
-                playlist:
-                    statusData.playlist,
+                playlist: statusData.playlist,
                 sequence: sequence
             };
         }
@@ -1752,8 +1806,7 @@ async function detectInitialPlayback() {
 
         return {
             type: 'other',
-            playlist:
-                statusData.playlist,
+            playlist: statusData.playlist,
             sequence: null
         };
 
@@ -1950,4 +2003,37 @@ function restoreLockout() {
         );
 
     return true;
+}
+
+function hideQueue() {
+    const queueContainer =
+        document.getElementById(
+            'selectionQueue'
+        );
+
+    const queueList =
+        document.getElementById(
+            'selectionQueueList'
+        );
+
+    const queueFullMessage =
+        document.getElementById(
+            'selectionQueueFull'
+        );
+
+    if (queueContainer) {
+        queueContainer.classList.add(
+            'd-none'
+        );
+    }
+
+    if (queueList) {
+        queueList.innerHTML = '';
+    }
+
+    if (queueFullMessage) {
+        queueFullMessage.classList.add(
+            'd-none'
+        );
+    }
 }

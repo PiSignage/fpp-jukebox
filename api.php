@@ -32,6 +32,11 @@ function getEndpointsfppJukebox()
         ),
         array(
             'method' => 'GET',
+            'endpoint' => 'fpp-playlists',
+            'callback' => 'jukeboxGetFppPlaylists'
+        ),
+        array(
+            'method' => 'GET',
             'endpoint' => 'artwork',
             'callback' => 'jukeboxGetArtwork'
         ),
@@ -245,6 +250,56 @@ function jukeboxGetFppSequences()
         array(
             'success' => true,
             'sequences' => $data
+        )
+    );
+}
+
+function jukeboxGetFppPlaylists()
+{
+    $url =
+        'http://127.0.0.1/api/playlists';
+
+    $context =
+        stream_context_create(
+            array(
+                'http' => array(
+                    'method' => 'GET',
+                    'timeout' => 5,
+                    'ignore_errors' => true
+                )
+            )
+        );
+
+    $response =
+        @file_get_contents(
+            $url,
+            false,
+            $context
+        );
+
+    if ($response === false) {
+
+        return jukeboxError(
+            'Unable to retrieve playlists from FPP.'
+        );
+    }
+
+    $data =
+        json_decode(
+            $response,
+            true
+        );
+
+    if (!is_array($data)) {
+        return jukeboxError(
+            'Invalid sequence response from FPP.'
+        );
+    }
+
+    return json(
+        array(
+            'success' => true,
+            'playlists' => $data
         )
     );
 }
@@ -1276,10 +1331,14 @@ function jukeboxIsBackgroundPlaying()
 {
     $config = jukeboxLoadConfig();
 
-    $backgroundSequence =
+    $backgroundType =
+        $config['backgroundType']
+        ?? 'sequence';
+
+    $backgroundItem =
         $config['backgroundSequence'] ?? '';
 
-    if ($backgroundSequence === '') {
+    if ($backgroundItem === '') {
         return false;
     }
 
@@ -1321,11 +1380,31 @@ function jukeboxIsBackgroundPlaying()
         $status['current_playlist']['playlist']
         ?? '';
 
+    if ($currentPlaylist === '') {
+        return false;
+    }
+
     /*
+     * Background playlist
+     *
+     * FPP reports the playlist name in
+     * current_playlist.playlist.
+     */
+    if ($backgroundType === 'playlist') {
+
+        return (
+            $currentPlaylist ===
+            $backgroundItem
+        );
+    }
+
+    /*
+     * Background sequence
+     * 
      * FPP may report the sequence with or
      * without the .fseq extension.
      */
-    $currentPlaylist =
+    $currentSequence =
         preg_replace(
             '/\.fseq$/i',
             '',
@@ -1336,11 +1415,11 @@ function jukeboxIsBackgroundPlaying()
         preg_replace(
             '/\.fseq$/i',
             '',
-            $backgroundSequence
+            $backgroundItem
         );
 
     return (
-        $currentPlaylist ===
+        $currentSequence ===
         $backgroundSequence
     );
 }
