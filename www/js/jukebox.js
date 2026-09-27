@@ -15,6 +15,9 @@ let currentPlaylist = null;
 let playbackStarted = false;
 let lockoutActive = false;
 
+let playbackStartTime = null;
+const PLAYBACK_START_TIMEOUT = 10000;
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -313,6 +316,8 @@ async function playSequence(sequence) {
 
         playbackStarted = false;
 
+        playbackStartTime = Date.now();
+
         // Immediately show Now Playing.
         showPlayingScreen(
             sequence
@@ -457,7 +462,34 @@ async function checkPlaybackStatus() {
 
                 playbackStarted = true;
 
+                playbackStartTime = null;
+
                 updateSelectionNowPlaying();
+
+                return;
+            }
+
+            /*
+            * FPP accepted the play request, but the
+            * selected sequence never took over.
+            */
+            if (
+                !playbackStarted &&
+                playbackStartTime !== null &&
+                Date.now() - playbackStartTime >
+                PLAYBACK_START_TIMEOUT
+            ) {
+                clearInterval(statusTimer);
+
+                playbackStartTime = null;
+                currentSequence = null;
+                playbackStarted = false;
+
+                console.error(
+                    'Jukebox sequence failed to start.'
+                );
+
+                showSelectionScreen();
 
                 return;
             }
@@ -573,7 +605,12 @@ async function handlePlaybackFinished() {
                 // We have not yet seen FPP report
                 // that the new sequence is playing.
                 playbackStarted = false;
-                // currentPlaylist = null;
+
+                /*
+                * Start the same timeout used when a
+                * guest manually selects a sequence.
+                */
+                playbackStartTime = Date.now();
 
                 showSelectionScreen();
 
