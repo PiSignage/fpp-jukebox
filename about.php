@@ -33,7 +33,7 @@
                 from:
             </p>
 
-            <pre>/plugin.php?plugin=fpp-plugin-jukebox&page=www/index.php&nopage=1</pre>
+            <pre>/plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1</pre>
 
             <p class="text-muted">
                 The final touchscreen URL can be changed
