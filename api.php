@@ -647,12 +647,8 @@ function jukeboxPlay()
                     $queuedItem['sequence'] === $selected['sequence']
                 ) {
                     return jukeboxError(
-                        $sequence['title'] . ' is already in the queue.'
+                        $selected['title'] . ' is already in the queue.'
                     );
-                    // return json(array(
-                    //     'success' => false,
-                    //     'message' => 'This song is already in the queue.'
-                    // ));
                 }
             }
         }
@@ -686,34 +682,139 @@ function jukeboxPlay()
         ));
     }
 
-    // Start sequence using FPP's API.
-    $sequenceName = rawurlencode(
-        $requestedSequence
-    );
+    // Start jukebox sequence
+    $backgroundType =
+        $config['backgroundType']
+        ?? 'sequence';
 
-    $url =
-        'http://127.0.0.1/api/playlist/' .
-        $sequenceName . '.fseq' .
-        '/start';
+    /*
+     * Background is an FPP playlist.
+     *
+     * Use Insert Playlist Immediate so FPP
+     * temporarily interrupts the background
+     * playlist and resumes it afterwards.
+     */
+    if ($backgroundType === 'playlist') {
+        /*
+        * If queueing is disabled and a jukebox
+        * song is currently playing, stop it before
+        * inserting the newly selected song.
+        *
+        * Do not stop anything if the background
+        * playlist itself is currently playing.
+        */
+        if (
+            empty($config['queueEnabled']) &&
+            jukeboxIsPlaying() &&
+            !jukeboxIsBackgroundPlaying()
+        ) {
+            // Stop current inserted jukebox song
+            $stopUrl = 'http://127.0.0.1/api/playlists/stop';
 
-    $context = stream_context_create(array(
-        'http' => array(
-            'method' => 'GET',
-            'timeout' => 5,
-            'ignore_errors' => true
-        )
-    ));
+            $stopContext =
+                stream_context_create(
+                    array(
+                        'http' => array(
+                            'method' => 'GET',
+                            'timeout' => 5,
+                            'ignore_errors' => true
+                        )
+                    )
+                );
 
-    $response = @file_get_contents(
-        $url,
-        false,
-        $context
-    );
+            $stopResponse =
+                @file_get_contents(
+                    $stopUrl,
+                    false,
+                    $stopContext
+                );
 
-    if ($response === false) {
-        return jukeboxError(
-            'FPP could not start the sequence.'
+
+            if ($stopResponse === false) {
+                return jukeboxError(
+                    'FPP could not stop the current sequence.'
+                );
+            }
+
+            // Give FPP a short moment to return
+            usleep(100000);
+        }
+
+
+        $sequenceFile = $requestedSequence;
+
+        if (!str_ends_with(
+            strtolower($sequenceFile),
+            '.fseq'
+        )) {
+            $sequenceFile .= '.fseq';
+        }
+
+        $url =
+            'http://127.0.0.1/api/command/' .
+            rawurlencode(
+                'Insert Playlist Immediate'
+            ) .
+            '/' .
+            rawurlencode(
+                $sequenceFile
+            );
+
+        $context =
+            stream_context_create(
+                array(
+                    'http' => array(
+                        'method' => 'GET',
+                        'timeout' => 5,
+                        'ignore_errors' => true
+                    )
+                )
+            );
+
+        $response =
+            @file_get_contents(
+                $url,
+                false,
+                $context
+            );
+
+        if ($response === false) {
+            return jukeboxError(
+                'FPP could not insert the sequence.'
+            );
+        }
+    } else {
+        // Background is a sequence.
+
+        // Start sequence using FPP's API.
+        $sequenceName = rawurlencode(
+            $requestedSequence
         );
+
+        $url =
+            'http://127.0.0.1/api/playlist/' .
+            $sequenceName . '.fseq' .
+            '/start';
+
+        $context = stream_context_create(array(
+            'http' => array(
+                'method' => 'GET',
+                'timeout' => 5,
+                'ignore_errors' => true
+            )
+        ));
+
+        $response = @file_get_contents(
+            $url,
+            false,
+            $context
+        );
+
+        if ($response === false) {
+            return jukeboxError(
+                'FPP could not start the sequence.'
+            );
+        }
     }
 
     // Record the jukebox play
@@ -1191,34 +1292,97 @@ function jukeboxPlayNextQueued()
         );
     }
 
-    // Start the sequence in FPP.
-    $sequenceName =
-        rawurlencode(
-            $next['sequence']
-        ) . '.fseq';
+    /*
+     * Determine how the Background
+     * has been configured.
+     */
+    $backgroundType =
+        $config['backgroundType']
+        ?? 'sequence';
 
-    $url =
-        'http://127.0.0.1/api/playlist/' .
-        $sequenceName .
-        '/start';
+    /*
+     * --------------------------------------------------
+     * Background Playlist
+     * --------------------------------------------------
+     *
+     * FPP may have already resumed the Background
+     * Playlist after the previous jukebox song.
+     *
+     * Insert Playlist Immediate interrupts it again
+     * with the next queued song.
+     */
+    if ($backgroundType === 'playlist') {
+        $sequenceFile = $next['sequence'];
 
-    $context =
-        stream_context_create(
-            array(
-                'http' => array(
-                    'method' => 'GET',
-                    'timeout' => 5,
-                    'ignore_errors' => true
-                )
+        // Make sure the filename includes
+        // the .fseq extension.
+        if (
+            !str_ends_with(
+                strtolower($sequenceFile),
+                '.fseq'
             )
-        );
+        ) {
+            $sequenceFile .= '.fseq';
+        }
 
-    $response =
-        @file_get_contents(
-            $url,
-            false,
-            $context
-        );
+        $url =
+            'http://127.0.0.1/api/command/' .
+            rawurlencode(
+                'Insert Playlist Immediate'
+            ) .
+            '/' .
+            rawurlencode(
+                $sequenceFile
+            );
+
+        $context =
+            stream_context_create(
+                array(
+                    'http' => array(
+                        'method' => 'GET',
+                        'timeout' => 5,
+                        'ignore_errors' => true
+                    )
+                )
+            );
+
+        $response =
+            @file_get_contents(
+                $url,
+                false,
+                $context
+            );
+    } else {
+        // Background Sequence
+        // Start the sequence in FPP.
+        $sequenceName =
+            rawurlencode(
+                $next['sequence']
+            ) . '.fseq';
+
+        $url =
+            'http://127.0.0.1/api/playlist/' .
+            $sequenceName .
+            '/start';
+
+        $context =
+            stream_context_create(
+                array(
+                    'http' => array(
+                        'method' => 'GET',
+                        'timeout' => 5,
+                        'ignore_errors' => true
+                    )
+                )
+            );
+
+        $response =
+            @file_get_contents(
+                $url,
+                false,
+                $context
+            );
+    }
 
     // FPP failed to start the sequence
     if ($response === false) {
@@ -1236,6 +1400,11 @@ function jukeboxPlayNextQueued()
             'Unable to start the queued sequence.'
         );
     }
+
+    // Record the queued song as played
+    jukeboxRecordPlay(
+        $next['sequence']
+    );
 
     return json(array(
         'success' => true,
@@ -1391,7 +1560,6 @@ function jukeboxIsBackgroundPlaying()
      * current_playlist.playlist.
      */
     if ($backgroundType === 'playlist') {
-
         return (
             $currentPlaylist ===
             $backgroundItem

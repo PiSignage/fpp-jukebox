@@ -1931,6 +1931,10 @@ usort(
                             }
                         );
 
+                        if (selectedValue) {
+                            backgroundSelect.value = selectedValue;
+                        }
+
                         return;
                     }
 
