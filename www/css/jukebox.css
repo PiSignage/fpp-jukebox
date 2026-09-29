@@ -128,6 +128,7 @@ body {
    ========================================================================== */
 
 .jukebox-grid {
+    flex: 1;
     width: 100%;
 
     display: grid;
@@ -142,6 +143,38 @@ body {
     padding-bottom: 30px;
 }
 
+.jukebox-no-sequences {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 25px;
+    text-align: center;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.jukebox-no-sequences-icon {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+.jukebox-no-sequences-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.jukebox-no-sequences-message {
+    font-size: 1rem;
+    opacity: 0.65;
+}
 
 /* ==========================================================================
    Sequence card
@@ -529,7 +562,8 @@ body {
 
 @media (orientation: landscape) and (max-height: 700px) {
 
-    #selectionScreen {
+    #selectionScreen,
+    #disabledScreen {
         padding: 15px 20px;
     }
 
@@ -809,11 +843,13 @@ body {
    Jukebox Disabled
    ========================================================================== */
 #disabledScreen.active {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
+    padding: 30px;
 }
 
 #disabledScreen .jukebox-title {
@@ -821,32 +857,39 @@ body {
 }
 
 .jukebox-disabled {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 50px 30px;
+    padding: 40px 25px;
     text-align: center;
-    border-radius: 20px;
-    background: rgba(255,
-            255,
-            255,
-            0.08);
+}
+
+.jukebox-disabled-icon {
+    font-size: 5rem;
+    line-height: 1;
+    margin-bottom: 25px;
+    opacity: 0.7;
 }
 
 .jukebox-disabled h1 {
-    margin-top: 15px;
-    margin-bottom: 15px;
-    font-family: var(--heading-font);
-    font-size: clamp(2rem,
-            5vw,
-            3.5rem);
-    color: var(--gold);
+    margin: 0 0 15px;
+    font-size: 2.2rem;
+    font-weight: 700;
 }
 
 .jukebox-disabled p {
     margin: 0;
-    font-size: 1.1rem;
-    opacity: 0.8;
+    font-size: 1.25rem;
+    opacity: 0.75;
+}
+
+.jukebox-disabled-footer {
+    margin-top: 12px;
+    font-size: 1rem;
+    opacity: 0.55;
 }
 
 /* ==========================================================================

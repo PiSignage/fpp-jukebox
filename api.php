@@ -924,6 +924,8 @@ function jukeboxIsWithinSchedule($config)
         }
 
         // Normal schedule.
+        // Example:
+        // 18:00 -> 22:00
         if ($start < $end) {
             if (
                 $currentTime >= $start &&
@@ -935,55 +937,18 @@ function jukeboxIsWithinSchedule($config)
         }
 
         // Overnight schedule
+        // Example:
+        // 18:00 -> 01:00
         if (
             $currentTime >= $start ||
             $currentTime < $end
         ) {
             return true;
         }
-
-        // Current time isn't inside any configured schedule
-        return false;
     }
 
-    $start = $config['scheduleStart'] ?? '18:00';
-
-    $end = $config['scheduleEnd'] ?? '23:00';
-
-    $current =
-        date('H:i');
-
-    /*
-     * Same start/end means the schedule is effectively
-     * available all day.
-     */
-    if ($start === $end) {
-        return true;
-    }
-
-    /*
-     * Normal schedule.
-     *
-     * Example:
-     * 18:00 → 23:00
-     */
-    if ($start < $end) {
-        return (
-            $current >= $start &&
-            $current < $end
-        );
-    }
-
-    /*
-     * Overnight schedule.
-     *
-     * Example:
-     * 22:00 → 02:00
-     */
-    return (
-        $current >= $start ||
-        $current < $end
-    );
+    // Current time isn't inside any configured schedule
+    return false;
 }
 
 /**

@@ -136,7 +136,17 @@ function renderSequences(sequences) {
     ) {
         container.innerHTML = `
             <div class="jukebox-no-sequences">
-                No songs are currently available.
+                <div class="jukebox-no-sequences-icon">
+                    ♪
+                </div>
+
+                <div class="jukebox-no-sequences-title">
+                    No songs available
+                </div>
+
+                <div class="jukebox-no-sequences-message">
+                    Please check back shortly.
+                </div>
             </div>
         `;
 
@@ -1225,6 +1235,7 @@ async function checkAvailability() {
 
         // Jukebox is unavailable.
         if (!data.available) {
+            updateDisabledScreen(data);
             handleJukeboxUnavailable();
             return;
         }
@@ -2036,4 +2047,68 @@ function hideQueue() {
             'd-none'
         );
     }
+}
+
+function updateDisabledScreen(status) {
+    const title =
+        document.getElementById(
+            'disabledTitle'
+        );
+
+    const message =
+        document.getElementById(
+            'disabledMessage'
+        );
+
+    const footer =
+        document.getElementById(
+            'disabledFooter'
+        );
+
+    if (
+        !title ||
+        !message ||
+        !footer
+    ) {
+        return;
+    }
+
+    // Jukebox has been manually disabled.
+    if (status.enabled === false) {
+        title.textContent =
+            'Jukebox Unavailable';
+
+        message.textContent =
+            'Song selection is currently unavailable.';
+
+        footer.textContent =
+            'Please check back later.';
+
+        return;
+    }
+
+    // Jukebox is enabled but outside
+    // its scheduled operating hours.
+    if (status.scheduled === false) {
+        title.textContent =
+            'Jukebox Closed';
+
+        message.textContent =
+            'Song selection is not available at the moment.';
+
+        footer.textContent =
+            'Please check back later.';
+
+        return;
+    }
+
+    // Fallback unavailable state.
+    title.textContent =
+        'Jukebox Unavailable';
+
+    message.textContent =
+        'Song selection is currently unavailable.';
+
+    footer.textContent =
+        'Please check back later.';
 }

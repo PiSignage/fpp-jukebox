@@ -190,17 +190,32 @@
         id="disabledScreen"
         class="jukebox-screen">
 
-        <div class="jukebox-title" id="disabledJukeboxTitle">
+        <div
+            class="jukebox-title"
+            id="disabledJukeboxTitle">
             Jukebox
         </div>
 
         <div class="jukebox-disabled">
 
-            <h1>Jukebox Unavailable</h1>
+            <div class="jukebox-disabled-icon">
+                ♪
+            </div>
 
-            <p>
-                The jukebox is currently unavailable.
+            <h1 id="disabledTitle">
+                Jukebox Unavailable
+            </h1>
+
+            <p id="disabledMessage">
+                Song selection isn't available
+                at the moment.
             </p>
+
+            <div
+                class="jukebox-disabled-footer"
+                id="disabledFooter">
+                Please check back later.
+            </div>
 
         </div>
 
