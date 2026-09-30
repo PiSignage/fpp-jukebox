@@ -8,6 +8,7 @@ let availabilityTimer = null;
 let queueTimer = null;
 let lockoutRemaining = 0;
 let jukeboxWasAvailable = null;
+let queueMessageTimer = null;
 
 let currentSequence = null;
 let currentPlaylist = null;
@@ -1512,28 +1513,39 @@ function showQueueAddedMessage(
     }
 
     message.innerHTML = `
-        <strong>
+        <div class="queue-message-title">
+            Added to the queue
+        </div>
+
+        <div class="queue-message-song">
             ${escapeHtml(title)}
-        </strong>
-        added to the queue
-        <span>
-            Position ${position}
-        </span>
+        </div>
+
+        <div class="queue-message-position">
+            You're number
+            <strong>${position}</strong>
+            in the queue
+        </div>
     `;
 
     message.classList.remove(
         'd-none'
     );
 
-    // Automatically hide the message.
-    setTimeout(
-        function () {
-            message.classList.add(
-                'd-none'
-            );
-        },
-        3000
+    clearInterval(
+        queueMessageTimer
     );
+
+    // Automatically hide the message.
+    queueMessageTimer =
+        setTimeout(
+            function () {
+                message.classList.add(
+                    'd-none'
+                );
+            },
+            3000
+        );
 }
 
 async function clearQueueOnUnavailable() {
