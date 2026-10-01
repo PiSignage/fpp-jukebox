@@ -34,10 +34,10 @@
             </p>
 
             <pre>/plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1</pre>
+            <pre>/jukebox.php</pre>
 
             <p class="text-muted">
-                The final touchscreen URL can be changed
-                when the plugin is deployed.
+                The above url will display jukebox interface. Just add your FPP ip address.
             </p>
 
         </div>
