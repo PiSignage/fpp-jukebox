@@ -62,7 +62,7 @@ cat > "$CONFIG" <<'JSONEOF'
     "queueEnabled": false,
     "queueLimit": 5,
     "allowDuplicateQueueSongs": false,
-    "backgroundType" => "sequence",
+    "backgroundType": "sequence",
     "backgroundSequence": "",
     "sequences": []	
 }
@@ -73,11 +73,11 @@ fi
 STATS="/home/fpp/media/config/plugin.${PLUGIN_NAME}-stats.json"
 if [[ ! -f "$STATS" ]]; then
     log "Write default stats to $STATS"
-    cp "${PLUGIN_PATH}/config/${PLUGIN_NAME}-stats.json.example" "$CONFIG" 2>/dev/null || \
+    cp "${PLUGIN_PATH}/config/${PLUGIN_NAME}-stats.json.example" "$STATS" 2>/dev/null || \
 cat > "$STATS" <<'JSONEOF'
 {
-    "totalPlays" => 0,
-    "sequences" => []
+    "totalPlays": 0,
+    "sequences": []
 }
 JSONEOF
 fi
