@@ -13,10 +13,23 @@ log() {
 
 log "=== Jukebox uninstall started ==="
 
-log "=== Remove placeholder image ==="
-rm /home/fpp/media/images/placeholder.jpg
+JUKEBOX_IMG_PLACEHOLDER="/home/fpp/media/images/placeholder.jpg"
 
-log "=== Remove Jukebox shortcut ==="
-rm "/opt/fpp/www/jukebox.php"
+if [[ -f "$JUKEBOX_IMG_PLACEHOLDER" ]]; then
+    log "Removing jukebox placeholder image..."
+    rm -f /home/fpp/media/images/placeholder.jpg
+fi
+
+log "=== Jukebox placeholder image removed ==="
+
+# ── Remove Jukebox shortcuts ──
+JUKEBOX_SHORTCUT="${FPPDIR:-/opt/fpp}/www/jukebox.php"
+
+if [[ -f "$JUKEBOX_SHORTCUT" ]]; then
+    log "Removing /jukebox.php shortcut..."
+    rm -f "$JUKEBOX_SHORTCUT"
+fi
+
+log "=== Jukebox shortcut removed ==="
 
 log "=== Jukebox uninstall complete. Config and media left in place. ==="
