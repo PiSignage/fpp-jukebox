@@ -51,7 +51,8 @@
             <img
                 id="selectionNowPlayingArtwork"
                 src=""
-                alt="">
+                alt=""
+                onerror="handleArtworkError(this)">
 
             <div class="selection-now-playing-info">
                 <div class="selection-now-playing-label">
@@ -86,7 +87,7 @@
             <div
                 id="selectionQueueFull"
                 class="selection-queue-full d-none">
-                Queue Full — Please wait for a song to finish.
+                Queue Full — please wait for a next song to start.
             </div>
 
         </div>
@@ -129,7 +130,8 @@
                 id="playingArtwork"
                 class="playing-artwork"
                 src=""
-                alt="">
+                alt=""
+                onerror="handleArtworkError(this)">
 
             <h1 id="playingTitle"></h1>
 

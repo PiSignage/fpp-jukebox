@@ -646,6 +646,7 @@ body {
     gap: 15px;
     margin-bottom: 20px;
     padding: 12px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.08);
     box-shadow:
@@ -665,7 +666,7 @@ body {
     object-fit: cover;
     border-radius: 10px;
     background: var(--jukebox-card-background);
-    animation: artworkPulse 3s ease-in-out infinite;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -792,18 +793,6 @@ body {
     }
 }
 
-@keyframes artworkPulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.03);
-    }
-}
-
 /* ==========================================================================
    Now Playing - Lockout Countdown
    ========================================================================== */
@@ -912,20 +901,36 @@ body {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .selection-queue-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.selection-queue-header>span:first-child {
+    color: var(--jukebox-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .selection-queue-count {
-    font-size: 0.9rem;
-    opacity: 0.7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--jukebox-text);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
 }
 
 .selection-queue-list {
@@ -952,6 +957,7 @@ body {
     justify-content: center;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.12);
+    color: var(--jukebox-text);
     font-size: 0.85rem;
     font-weight: 600;
 }
@@ -962,6 +968,18 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.selection-queue-full {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--jukebox-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
 }
 
 .jukebox-sequence.queue-full {

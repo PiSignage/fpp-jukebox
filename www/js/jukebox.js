@@ -166,10 +166,28 @@ function renderSequences(sequences) {
             button.className =
                 'jukebox-sequence';
 
+            const placeholderArtwork =
+                '/api/file/images/placeholder.jpg';
+
             // Artwork
             if (sequence.artwork) {
+                const artworkImage = new Image();
+
+                artworkImage.onload = function () {
+                    button.style.backgroundImage =
+                        `url("${sequence.artwork}")`;
+                };
+
+                artworkImage.onerror = function () {
+                    button.style.backgroundImage =
+                        `url("${placeholderArtwork}")`;
+                };
+
+                artworkImage.src =
+                    sequence.artwork;
+            } else {
                 button.style.backgroundImage =
-                    `url("${sequence.artwork}")`;
+                    `url("${placeholderArtwork}")`;
             }
 
             // Card content
@@ -2123,4 +2141,17 @@ function updateDisabledScreen(status) {
 
     footer.textContent =
         'Please check back later.';
+}
+
+function handleArtworkError(image) {
+    if (!image) {
+        return;
+    }
+
+    // Prevent an infinite error loop if
+    // placeholder.jpg is also unavailable.
+    image.onerror = null;
+
+    image.src =
+        '/api/file/images/placeholder.jpg';
 }
