@@ -223,6 +223,61 @@
 
     </section>
 
+    <template id="loadingSongsTemplate">
+        <div class="jukebox-loading">
+            <div class="jukebox-loading-spinner">
+            </div>
+
+            <div class="jukebox-loading-title">
+                Loading songs
+            </div>
+
+            <div class="jukebox-loading-message">
+                Please wait...
+            </div>
+        </div>
+    </template>
+
+    <template id="songsErrorTemplate">
+        <div class="jukebox-loading">
+            <div class="jukebox-loading-title">
+                Unable to load songs
+            </div>
+
+            <div class="jukebox-loading-message">
+                Please try again shortly.
+            </div>
+        </div>
+    </template>
+
+    <template id="noSequencesTemplate">
+        <div class="jukebox-no-sequences">
+            <div class="jukebox-no-sequences-icon">
+                ♪
+            </div>
+
+            <div class="jukebox-no-sequences-title">
+                No songs available
+            </div>
+
+            <div class="jukebox-no-sequences-message">
+                Please check back shortly.
+            </div>
+        </div>
+    </template>
+
+    <template id="queueItemTemplate">
+        <div class="selection-queue-item">
+            <div class="selection-queue-position">
+                1
+            </div>
+
+            <div class="selection-queue-title">
+                Song Name
+            </div>
+        </div>
+    </template>
+
     <script
         src="/plugin.php?plugin=fpp-jukebox&file=www/js/jukebox.js&nopage=1"></script>
 

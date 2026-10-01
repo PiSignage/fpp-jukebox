@@ -142,7 +142,8 @@ body {
     padding-bottom: 30px;
 }
 
-.jukebox-grid:has(.jukebox-no-sequences) {
+.jukebox-grid:has(.jukebox-no-sequences),
+.jukebox-grid:has(.jukebox-loading) {
     flex: 1;
 }
 
@@ -198,8 +199,7 @@ body {
 
     border-radius: var(--jukebox-radius);
 
-    background-color:
-        var(--jukebox-card-background);
+    background-color: var(--jukebox-card-background);
 
     background-position: center;
     background-size: cover;
@@ -211,11 +211,9 @@ body {
 
     -webkit-tap-highlight-color: transparent;
 
-    box-shadow:
-        0 5px 20px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.35);
 
-    transition:
-        transform 0.15s ease,
+    transition: transform 0.15s ease,
         box-shadow 0.15s ease,
         opacity 0.15s ease;
 }
@@ -230,8 +228,7 @@ body {
 
     inset: 0;
 
-    background:
-        linear-gradient(to bottom,
+    background: linear-gradient(to bottom,
             rgba(0, 0, 0, 0.05) 25%,
             rgba(0, 0, 0, 0.25) 50%,
             rgba(0, 0, 0, 0.9) 100%);
@@ -250,8 +247,7 @@ body {
 .jukebox-sequence:active {
     transform: scale(0.97);
 
-    box-shadow:
-        0 2px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 
@@ -289,10 +285,17 @@ body {
 
     text-align: left;
 
-    text-shadow:
-        0 2px 5px rgba(0, 0, 0, 0.8);
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
 
     overflow-wrap: anywhere;
+
+    /* Limit long titles to two lines */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 
@@ -358,8 +361,7 @@ body {
 
     border-radius: 50%;
 
-    animation:
-        jukebox-spin 0.8s linear infinite;
+    animation: jukebox-spin 0.8s linear infinite;
 }
 
 
@@ -395,8 +397,7 @@ body {
 
     background: var(--jukebox-card-background);
 
-    box-shadow:
-        0 10px 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 
@@ -428,8 +429,7 @@ body {
 
     line-height: 1;
 
-    font-variant-numeric:
-        tabular-nums;
+    font-variant-numeric: tabular-nums;
 }
 
 
@@ -442,19 +442,16 @@ body {
     top: 20px;
     left: 50%;
     z-index: 9999;
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
     width: calc(100% - 40px);
     max-width: 700px;
     padding: 15px 20px;
     border-radius: 10px;
-    background:
-        var(--jukebox-error);
+    background: var(--jukebox-error);
     color: #fff;
     font-size: 1rem;
     text-align: center;
-    box-shadow:
-        0 5px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
 }
 
 
@@ -480,8 +477,7 @@ body {
 
 
     .jukebox-grid {
-        grid-template-columns:
-            repeat(2,
+        grid-template-columns: repeat(2,
                 minmax(0, 1fr));
     }
 
@@ -593,8 +589,7 @@ body {
 
 
     .jukebox-grid {
-        grid-template-columns:
-            repeat(4,
+        grid-template-columns: repeat(4,
                 minmax(0, 1fr));
 
         gap: 12px;
@@ -649,8 +644,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.08);
-    box-shadow:
-        0 4px 15px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     animation: nowPlayingIn 0.45s ease-out;
 }
 
@@ -699,8 +693,7 @@ body {
     flex: 0 0 8px;
     border-radius: 50%;
     background: #fff;
-    animation:
-        nowPlayingPulse 1.5s ease-in-out infinite;
+    animation: nowPlayingPulse 1.5s ease-in-out infinite;
 }
 
 .selection-now-playing-title {
@@ -1002,8 +995,7 @@ body {
     font-size: 1rem;
     text-align: center;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-    animation:
-        jukeboxQueueMessageIn 0.3s ease-out;
+    animation: jukeboxQueueMessageIn 0.3s ease-out;
 }
 
 .jukebox-queue-message .queue-message-title {
@@ -1036,5 +1028,46 @@ body {
 
     to {
         opacity: 1;
+    }
+}
+
+.jukebox-loading {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 25px;
+    text-align: center;
+}
+
+.jukebox-loading-spinner {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 18px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: jukeboxLoadingSpin 0.8s linear infinite;
+}
+
+.jukebox-loading-title {
+    color: var(--jukebox-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.jukebox-loading-message {
+    margin-top: 5px;
+    color: var(--jukebox-muted);
+    font-size: 1rem;
+}
+
+@keyframes jukeboxLoadingSpin {
+    to {
+        transform: rotate(360deg);
     }
 }

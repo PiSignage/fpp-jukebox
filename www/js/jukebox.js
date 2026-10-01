@@ -98,24 +98,50 @@ async function loadConfiguration() {
 
 // Load sequences
 async function loadSequences() {
-    const response = await fetch(
-        API_BASE + '/sequences',
-        {
-            cache: 'no-store'
-        }
-    );
+    const grid =
+        document.getElementById(
+            'sequenceGrid'
+        );
 
-    const data = await response.json();
-
-    if (!data.success) {
-        throw new Error(
-            'Unable to load sequences.'
+    if (grid) {
+        renderTemplate(
+            grid,
+            'loadingSongsTemplate'
         );
     }
 
-    renderSequences(
-        data.sequences
-    );
+    try {
+        const response = await fetch(
+            API_BASE + '/sequences',
+            {
+                cache: 'no-store'
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(
+                'Unable to load sequences.'
+            );
+        }
+
+        renderSequences(
+            data.sequences
+        );
+    } catch (error) {
+        console.error(
+            'Unable to load sequences:',
+            error
+        );
+
+        if (grid) {
+            renderTemplate(
+                grid,
+                'songsErrorTemplate'
+            );
+        }
+    }
 }
 
 // Render sequences
@@ -135,21 +161,10 @@ function renderSequences(sequences) {
         !sequences ||
         sequences.length === 0
     ) {
-        container.innerHTML = `
-            <div class="jukebox-no-sequences">
-                <div class="jukebox-no-sequences-icon">
-                    ♪
-                </div>
-
-                <div class="jukebox-no-sequences-title">
-                    No songs available
-                </div>
-
-                <div class="jukebox-no-sequences-message">
-                    Please check back shortly.
-                </div>
-            </div>
-        `;
+        renderTemplate(
+            container,
+            'noSequencesTemplate'
+        );
 
         return;
     }
@@ -1439,33 +1454,34 @@ async function loadQueue() {
             'd-none'
         );
 
-        queueList.innerHTML = '';
+        queueList.replaceChildren();
 
-        queue.forEach(
-            function (
-                item,
-                index
-            ) {
-                const element =
-                    document.createElement(
-                        'div'
+        const template =
+            document.getElementById(
+                'queueItemTemplate'
+            );
+
+        data.queue.forEach(
+            function (item, index) {
+                const row =
+                    template.content.cloneNode(
+                        true
                     );
 
-                element.className = 'selection-queue-item';
+                const position =
+                    row.querySelector(
+                        '.selection-queue-position'
+                    );
 
-                element.innerHTML = `
-                    <div class="selection-queue-position">
-                        ${index + 1}
-                    </div>
+                const title =
+                    row.querySelector(
+                        '.selection-queue-title'
+                    );
 
-                    <div class="selection-queue-title">
-                        ${escapeHtml(item.title)}
-                    </div>
-                `;
+                position.textContent = index + 1;
+                title.textContent = item.title;
 
-                queueList.appendChild(
-                    element
-                );
+                queueList.appendChild(row);
             }
         );
 
@@ -2154,4 +2170,25 @@ function handleArtworkError(image) {
 
     image.src =
         '/api/file/images/placeholder.jpg';
+}
+
+function renderTemplate(
+    container,
+    templateId
+) {
+    const template =
+        document.getElementById(
+            templateId
+        );
+
+    if (
+        !container ||
+        !template
+    ) {
+        return;
+    }
+
+    container.replaceChildren(
+        template.content.cloneNode(true)
+    );
 }
