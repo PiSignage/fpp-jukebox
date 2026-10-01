@@ -16,4 +16,7 @@ log "=== Jukebox uninstall started ==="
 log "=== Remove placeholder image ==="
 rm /home/fpp/media/images/placeholder.jpg
 
+log "=== Remove Jukebox shortcut ==="
+rm "/opt/fpp/www/jukebox.php"
+
 log "=== Jukebox uninstall complete. Config and media left in place. ==="

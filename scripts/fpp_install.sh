@@ -96,9 +96,9 @@ else
 fi
 
 # ── Create simple /jukebox URL ──
-JUKEBOX_SHORTCUT="${FPPDIR}/www/jukebox"
+JUKEBOX_SHORTCUT="${FPPDIR}/www/jukebox.php"
 
-log "Creating /jukebox shortcut..."
+log "Creating /jukebox.php shortcut..."
 
 cat > "$JUKEBOX_SHORTCUT" <<'PHP'
 <?php
@@ -112,7 +112,7 @@ PHP
 
 chmod 644 "$JUKEBOX_SHORTCUT"
 
-log "Jukebox shortcut created: /jukebox"
+log "Jukebox shortcut created: /jukebox.php"
 
 log "=== Jukebox install complete ==="
 
