@@ -62,6 +62,7 @@ cat > "$CONFIG" <<'JSONEOF'
     "queueEnabled": false,
     "queueLimit": 5,
     "allowDuplicateQueueSongs": false,
+    "contentType": "sequence",
     "backgroundType": "sequence",
     "backgroundSequence": "",
     "sequences": []	

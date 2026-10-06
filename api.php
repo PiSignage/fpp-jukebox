@@ -37,6 +37,11 @@ function getEndpointsfppJukebox()
         ),
         array(
             'method' => 'GET',
+            'endpoint' => 'fpp-videos',
+            'callback' => 'jukeboxGetFppVideos'
+        ),
+        array(
+            'method' => 'GET',
             'endpoint' => 'artwork',
             'callback' => 'jukeboxGetArtwork'
         ),
@@ -300,6 +305,83 @@ function jukeboxGetFppPlaylists()
         array(
             'success' => true,
             'playlists' => $data
+        )
+    );
+}
+
+function jukeboxGetFppVideos()
+{
+    $url =
+        'http://127.0.0.1/api/files/videos';
+
+    $context =
+        stream_context_create(
+            array(
+                'http' => array(
+                    'method' => 'GET',
+                    'timeout' => 5,
+                    'ignore_errors' => true
+                )
+            )
+        );
+
+    $response =
+        @file_get_contents(
+            $url,
+            false,
+            $context
+        );
+
+    if ($response === false) {
+
+        return jukeboxError(
+            'Unable to retrieve videos from FPP.'
+        );
+    }
+
+    $data =
+        json_decode(
+            $response,
+            true
+        );
+
+    if (
+        !is_array($data) ||
+        ($data['status'] ?? '') !== 'ok' ||
+        !isset($data['files']) ||
+        !is_array($data['files'])
+    ) {
+        return jukeboxError(
+            'Invalid sequence response from FPP.'
+        );
+    }
+
+    $videos = array();
+
+    foreach ($data['files'] as $file) {
+        if (
+            empty($file['name'])
+        ) {
+            continue;
+        }
+
+        $videos[] =
+            $file['name'];
+    }
+
+    natcasesort(
+        $videos
+    );
+
+    $videos =
+        array_values(
+            $videos
+        );
+
+    return json(
+        array(
+            'success' => true,
+            'videos' => $videos
         )
     );
 }
@@ -682,19 +764,106 @@ function jukeboxPlay()
         ));
     }
 
+    $contentType =
+        $config['contentType']
+        ?? 'sequence';
+
     // Start jukebox sequence
     $backgroundType =
         $config['backgroundType']
         ?? 'sequence';
 
     /*
-     * Background is an FPP playlist.
-     *
-     * Use Insert Playlist Immediate so FPP
-     * temporarily interrupts the background
-     * playlist and resumes it afterwards.
-     */
-    if ($backgroundType === 'playlist') {
+    * Visitor-selected video.
+    *
+    * Videos are inserted directly using
+    * FPP's Insert Playlist Immediate command.
+    */
+    if ($contentType === 'video') {
+        /*
+        * If queueing is disabled and another
+        * jukebox item is currently playing,
+        * stop it before inserting the new video.
+        *
+        * Do not stop the configured background.
+        */
+        if (
+            empty($config['queueEnabled']) &&
+            jukeboxIsPlaying() &&
+            !jukeboxIsBackgroundPlaying()
+        ) {
+            $stopUrl =
+                'http://127.0.0.1/api/playlists/stop';
+
+            $stopContext =
+                stream_context_create(
+                    array(
+                        'http' => array(
+                            'method' => 'GET',
+                            'timeout' => 5,
+                            'ignore_errors' => true
+                        )
+                    )
+                );
+
+            $stopResponse =
+                @file_get_contents(
+                    $stopUrl,
+                    false,
+                    $stopContext
+                );
+
+            if ($stopResponse === false) {
+                return jukeboxError(
+                    'FPP could not stop the current video.'
+                );
+            }
+
+            usleep(100000);
+        }
+
+        $url =
+            'http://127.0.0.1/api/command/' .
+            rawurlencode(
+                'Insert Playlist Immediate'
+            ) .
+            '/' .
+            rawurlencode(
+                $requestedSequence
+            );
+
+        $context =
+            stream_context_create(
+                array(
+                    'http' => array(
+                        'method' => 'GET',
+                        'timeout' => 5,
+                        'ignore_errors' => true
+                    )
+                )
+            );
+
+        $response =
+            @file_get_contents(
+                $url,
+                false,
+                $context
+            );
+
+        if ($response === false) {
+            return jukeboxError(
+                'FPP could not insert the video.'
+            );
+        }
+    } elseif ($backgroundType === 'playlist') {
+        /*
+        * Background is an FPP playlist.
+        *
+        * Use Insert Playlist Immediate so FPP
+        * temporarily interrupts the background
+        * playlist and resumes it afterwards.
+        */
+
         /*
         * If queueing is disabled and a jukebox
         * song is currently playing, stop it before
@@ -1258,36 +1427,50 @@ function jukeboxPlayNextQueued()
     }
 
     /*
-     * Determine how the Background
-     * has been configured.
+     * Determine the type of visitor-selectable
+     * content and how the Background has been
+     * configured.
      */
+    $contentType =
+        $config['contentType']
+        ?? 'sequence';
+
     $backgroundType =
         $config['backgroundType']
         ?? 'sequence';
 
     /*
-     * --------------------------------------------------
-     * Background Playlist
-     * --------------------------------------------------
-     *
-     * FPP may have already resumed the Background
-     * Playlist after the previous jukebox song.
-     *
-     * Insert Playlist Immediate interrupts it again
-     * with the next queued song.
-     */
-    if ($backgroundType === 'playlist') {
-        $sequenceFile = $next['sequence'];
+    * --------------------------------------------------
+    * Video Content / Background Playlist
+    * --------------------------------------------------
+    *
+    * Visitor-selected videos always use
+    * Insert Playlist Immediate.
+    *
+    * Sequences also use Insert Playlist Immediate
+    * when the Background is an FPP playlist.
+    */
 
-        // Make sure the filename includes
-        // the .fseq extension.
+    if (
+        $contentType === 'video' ||
+        $backgroundType === 'playlist'
+    ) {
+        $contentFile = $next['sequence'];
+
+        /*
+        * Sequence content requires .fseq.
+        *
+        * Video content already contains its
+        * media extension, such as .mp4.
+        */
         if (
+            $contentType === 'sequence' &&
             !str_ends_with(
-                strtolower($sequenceFile),
+                strtolower($contentFile),
                 '.fseq'
             )
         ) {
-            $sequenceFile .= '.fseq';
+            $contentFile .= '.fseq';
         }
 
         $url =
@@ -1297,7 +1480,7 @@ function jukeboxPlayNextQueued()
             ) .
             '/' .
             rawurlencode(
-                $sequenceFile
+                $contentFile
             );
 
         $context =
@@ -1318,12 +1501,12 @@ function jukeboxPlayNextQueued()
                 $context
             );
     } else {
-        // Background Sequence
-        // Start the sequence in FPP.
+        // Sequence content with a Background Sequence.
         $sequenceName =
             rawurlencode(
                 $next['sequence']
-            ) . '.fseq';
+            ) .
+            '.fseq';
 
         $url =
             'http://127.0.0.1/api/playlist/' .
@@ -1349,6 +1532,90 @@ function jukeboxPlayNextQueued()
             );
     }
 
+    /*
+     * --------------------------------------------------
+     * Background Playlist
+     * --------------------------------------------------
+     *
+     * FPP may have already resumed the Background
+     * Playlist after the previous jukebox song.
+     *
+     * Insert Playlist Immediate interrupts it again
+     * with the next queued song.
+     */
+    // if ($backgroundType === 'playlist') {
+    //     $sequenceFile = $next['sequence'];
+
+    //     // Make sure the filename includes
+    //     // the .fseq extension.
+    //     if (
+    //         !str_ends_with(
+    //             strtolower($sequenceFile),
+    //             '.fseq'
+    //         )
+    //     ) {
+    //         $sequenceFile .= '.fseq';
+    //     }
+
+    //     $url =
+    //         'http://127.0.0.1/api/command/' .
+    //         rawurlencode(
+    //             'Insert Playlist Immediate'
+    //         ) .
+    //         '/' .
+    //         rawurlencode(
+    //             $sequenceFile
+    //         );
+
+    //     $context =
+    //         stream_context_create(
+    //             array(
+    //                 'http' => array(
+    //                     'method' => 'GET',
+    //                     'timeout' => 5,
+    //                     'ignore_errors' => true
+    //                 )
+    //             )
+    //         );
+
+    //     $response =
+    //         @file_get_contents(
+    //             $url,
+    //             false,
+    //             $context
+    //         );
+    // } else {
+    //     // Background Sequence
+    //     // Start the sequence in FPP.
+    //     $sequenceName =
+    //         rawurlencode(
+    //             $next['sequence']
+    //         ) . '.fseq';
+
+    //     $url =
+    //         'http://127.0.0.1/api/playlist/' .
+    //         $sequenceName .
+    //         '/start';
+
+    //     $context =
+    //         stream_context_create(
+    //             array(
+    //                 'http' => array(
+    //                     'method' => 'GET',
+    //                     'timeout' => 5,
+    //                     'ignore_errors' => true
+    //                 )
+    //             )
+    //         );
+
+    //     $response =
+    //         @file_get_contents(
+    //             $url,
+    //             false,
+    //             $context
+    //         );
+    // }
+
     // FPP failed to start the sequence
     if ($response === false) {
         // Put it back at the front of the queue.
@@ -1362,7 +1629,9 @@ function jukeboxPlayNextQueued()
         );
 
         return jukeboxError(
-            'Unable to start the queued sequence.'
+            $contentType === 'video'
+                ? 'Unable to start the queued video.'
+                : 'Unable to start the queued sequence.'
         );
     }
 
@@ -1516,6 +1785,35 @@ function jukeboxIsBackgroundPlaying()
 
     if ($currentPlaylist === '') {
         return false;
+    }
+
+    /*
+     * Background video
+     *
+     * FPP reports standalone video playback as:
+     *
+     * current_playlist.type = media
+     * current_song = filename.mp4
+     * media_playing = true
+     */
+    if ($backgroundType === 'video') {
+        $currentType =
+            $status['current_playlist']['type']
+            ?? '';
+
+        $currentVideo =
+            $status['current_song']
+            ?? '';
+
+        $mediaPlaying =
+            $status['media_playing']
+            ?? false;
+
+        return (
+            $currentType === 'media' &&
+            $mediaPlaying === true &&
+            $currentVideo === $backgroundItem
+        );
     }
 
     /*

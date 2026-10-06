@@ -639,7 +639,7 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 20px;
+    /* margin-bottom: 20px; */
     padding: 12px 15px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
@@ -716,7 +716,7 @@ body {
 @media (max-width: 600px) {
     .selection-now-playing {
         gap: 12px;
-        margin-bottom: 15px;
+        /* margin-bottom: 15px; */
         padding: 10px 12px;
     }
 
@@ -738,7 +738,7 @@ body {
 
 @media (orientation: landscape) and (max-height: 700px) {
     .selection-now-playing {
-        margin-bottom: 12px;
+        /* margin-bottom: 12px; */
         padding: 8px 12px;
     }
 
@@ -888,8 +888,8 @@ body {
    ========================================================================== */
 .selection-queue {
     width: 100%;
-    max-width: 900px;
-    margin: 20px auto 25px;
+    /* max-width: 900px; */
+    /* margin: 20px auto 25px; */
     padding: 18px 20px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 16px;

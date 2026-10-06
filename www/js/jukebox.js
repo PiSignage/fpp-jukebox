@@ -1,4 +1,5 @@
 const API_BASE = '/api/plugin/fpp-jukebox';
+const placeholderArtwork = '/api/file/images/placeholder.jpg';
 
 let lockoutSeconds = 30;
 
@@ -180,9 +181,6 @@ function renderSequences(sequences) {
 
             button.className =
                 'jukebox-sequence';
-
-            const placeholderArtwork =
-                '/api/file/images/placeholder.jpg';
 
             // Artwork
             if (sequence.artwork) {
@@ -972,14 +970,26 @@ function showPlayingScreen(sequence) {
 
     if (artwork) {
         if (sequence.artwork) {
-            artwork.src = sequence.artwork;
+            const artworkImage = new Image();
+
+            artworkImage.onload = function () {
+                artwork.src = sequence.artwork;
+            };
+
+            artworkImage.onerror = function () {
+                artwork.src = placeholderArtwork;
+            };
+
+            artworkImage.src = sequence.artwork;
             artwork.style.display = 'block';
         } else {
-            artwork.removeAttribute(
-                'src'
-            );
-            artwork.style.display =
-                'none';
+            artwork.src = placeholderArtwork;
+            artwork.style.display = 'block';
+            // artwork.removeAttribute(
+            //     'src'
+            // );
+            // artwork.style.display =
+            //     'none';
         }
     }
 }
@@ -1164,15 +1174,27 @@ function updateSelectionNowPlaying() {
     title.textContent = currentSequence.title;
 
     if (currentSequence.artwork) {
-        artwork.src = currentSequence.artwork;
+        const artworkImage = new Image();
+
+        artworkImage.onload = function () {
+            artwork.src = currentSequence.artwork;
+        };
+
+        artworkImage.onerror = function () {
+            artwork.src = placeholderArtwork;
+        }
+
+        artworkImage.src = currentSequence.artwork;
         artwork.style.display = 'block';
     } else {
-        artwork.removeAttribute(
-            'src'
-        );
+        artwork.src = placeholderArtwork;
+        artwork.style.display = 'block';
+        // artwork.removeAttribute(
+        //     'src'
+        // );
 
-        artwork.style.display =
-            'none';
+        // artwork.style.display =
+        //     'none';
     }
 
     container.style.display = 'flex';

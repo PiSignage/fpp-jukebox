@@ -463,5 +463,99 @@
                 }
             }
 
+            function isBackgroundPlaying(
+                currentItem,
+                config
+            ) {
+
+                if (
+                    !currentItem ||
+                    !config
+                ) {
+                    return false;
+                }
+
+                const backgroundType =
+                    config.backgroundType ||
+                    'sequence';
+
+                const backgroundItem =
+                    config.backgroundSequence ||
+                    '';
+
+                if (!backgroundItem) {
+                    return false;
+                }
+
+                /*
+                 * Background playlist
+                 */
+                if (
+                    backgroundType ===
+                    'playlist'
+                ) {
+                    return (
+                        currentItem ===
+                        backgroundItem
+                    );
+                }
+
+                /*
+                 * Background video
+                 *
+                 * FPP reports the video filename
+                 * directly, including the extension.
+                 */
+                if (
+                    backgroundType ===
+                    'video'
+                ) {
+                    return (
+                        currentItem ===
+                        backgroundItem
+                    );
+                }
+
+                /*
+                 * Background sequence
+                 *
+                 * FPP may report the sequence with
+                 * or without the .fseq extension.
+                 */
+                const currentSequence =
+                    currentItem.replace(
+                        /\.fseq$/i,
+                        ''
+                    );
+
+                const backgroundSequence =
+                    backgroundItem.replace(
+                        /\.fseq$/i,
+                        ''
+                    );
+
+                return (
+                    currentSequence ===
+                    backgroundSequence
+                );
+            }
+
+            function escapeHtml(value) {
+
+                if (
+                    value === null ||
+                    value === undefined
+                ) {
+                    return '';
+                }
+
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
         });
 </script>

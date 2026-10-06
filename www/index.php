@@ -16,6 +16,22 @@
         rel="stylesheet"
         href="/plugin.php?plugin=fpp-jukebox&file=www/css/jukebox.css&nopage=1">
 
+    <style>
+        .selection-status {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background:
+                var(--jukebox-background);
+            padding-top: 10px;
+            padding-bottom: 10px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    </style>
+
 </head>
 
 
@@ -43,53 +59,55 @@
             <p>Select a sequence to play</p>
         </div>
 
-        <div
-            id="selectionNowPlaying"
-            class="selection-now-playing"
-            style="display: none;">
+        <div class="selection-status">
+            <div
+                id="selectionNowPlaying"
+                class="selection-now-playing"
+                style="display: none;">
 
-            <img
-                id="selectionNowPlayingArtwork"
-                src=""
-                alt=""
-                onerror="handleArtworkError(this)">
+                <img
+                    id="selectionNowPlayingArtwork"
+                    src=""
+                    alt=""
+                    onerror="handleArtworkError(this)">
 
-            <div class="selection-now-playing-info">
-                <div class="selection-now-playing-label">
-                    NOW PLAYING
+                <div class="selection-now-playing-info">
+                    <div class="selection-now-playing-label">
+                        NOW PLAYING
+                    </div>
+
+                    <div
+                        id="selectionNowPlayingTitle"
+                        class="selection-now-playing-title">
+                    </div>
+                </div>
+            </div>
+
+            <div
+                id="selectionQueue"
+                class="selection-queue d-none">
+                <div class="selection-queue-header">
+                    <span>Queue</span>
+
+                    <span
+                        id="selectionQueueCount"
+                        class="selection-queue-count">
+                        0 / 5
+                    </span>
                 </div>
 
                 <div
-                    id="selectionNowPlayingTitle"
-                    class="selection-now-playing-title">
+                    id="selectionQueueList"
+                    class="selection-queue-list">
                 </div>
+
+                <div
+                    id="selectionQueueFull"
+                    class="selection-queue-full d-none">
+                    Queue Full — please wait for a next song to start.
+                </div>
+
             </div>
-        </div>
-
-        <div
-            id="selectionQueue"
-            class="selection-queue d-none">
-            <div class="selection-queue-header">
-                <span>Queue</span>
-
-                <span
-                    id="selectionQueueCount"
-                    class="selection-queue-count">
-                    0 / 5
-                </span>
-            </div>
-
-            <div
-                id="selectionQueueList"
-                class="selection-queue-list">
-            </div>
-
-            <div
-                id="selectionQueueFull"
-                class="selection-queue-full d-none">
-                Queue Full — please wait for a next song to start.
-            </div>
-
         </div>
 
         <div

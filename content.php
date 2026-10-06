@@ -26,6 +26,7 @@ $config = array(
     'queueEnabled' => false,
     'queueLimit' => 5,
     'allowDuplicateQueueSongs' => false,
+    'contentType' => "sequence",
     'backgroundType' => "sequence",
     'backgroundSequence' => "",
     'sequences' => array()
@@ -46,6 +47,19 @@ if (file_exists($configFile)) {
     }
 }
 
+$contentType =
+    $config['contentType']
+    ?? 'sequence';
+
+$contentLabel =
+    $contentType === 'video'
+    ? 'Videos'
+    : 'Sequences';
+
+$contentLabelSingular =
+    $contentType === 'video'
+    ? 'Video'
+    : 'Sequence';
 
 /*
  * --------------------------------------------------------------------------
@@ -137,6 +151,7 @@ if (
         ),
         'allowDuplicateQueueSongs' => isset($_POST['allowDuplicateQueueSongs']),
         'lockoutStarts' => 'play',
+        'contentType' => $_POST['contentType'] ?? 'sequence',
         'backgroundType' => $_POST['backgroundType'] ?? 'sequence',
         'backgroundSequence' => $_POST['backgroundSequence'] ?? '',
         'sequences' => array()
@@ -218,28 +233,56 @@ if (
     $savedMessage = 'Jukebox settings saved.';
 }
 
-
-/*
- * --------------------------------------------------------------------------
- * Get available FPP sequences
- * --------------------------------------------------------------------------
- */
-
-$sequenceResponse = @file_get_contents(
-    'http://127.0.0.1/api/sequence'
-);
-
+// Get available Jukebox content
 $fppSequences = array();
 
-if ($sequenceResponse !== false) {
+$contentType =
+    $config['contentType']
+    ?? 'sequence';
 
-    $decoded = json_decode(
-        $sequenceResponse,
-        true
+if ($contentType === 'video') {
+    // Load FPP videos
+    $videoResponse = @file_get_contents(
+        'http://127.0.0.1/api/files/videos'
     );
 
-    if (is_array($decoded)) {
-        $fppSequences = $decoded;
+    if ($videoResponse !== false) {
+        $decoded =
+            json_decode(
+                $videoResponse,
+                true
+            );
+
+        if (
+            is_array($decoded) &&
+            ($decoded['status'] ?? '') === 'ok' &&
+            isset($decoded['files']) &&
+            is_array($decoded['files'])
+        ) {
+            foreach ($decoded['files'] as $video) {
+                if (empty($video['name'])) {
+                    continue;
+                }
+
+                $fppSequences[] = $video['name'];
+            }
+        }
+    }
+} else {
+    // Load FPP sequences.
+    $sequenceResponse = @file_get_contents(
+        'http://127.0.0.1/api/sequence'
+    );
+
+    if ($sequenceResponse !== false) {
+        $decoded = json_decode(
+            $sequenceResponse,
+            true
+        );
+
+        if (is_array($decoded)) {
+            $fppSequences = $decoded;
+        }
     }
 }
 
@@ -258,6 +301,12 @@ if ($playlistResponse !== false) {
         $fppPlaylists = $decoded;
     }
 }
+
+/*
+ * --------------------------------------------------------------------------
+ * Get available FPP sequences
+ * --------------------------------------------------------------------------
+ */
 
 /*
  * --------------------------------------------------------------------------
@@ -585,7 +634,7 @@ usort(
                 </div>
 
                 <!-- Lockout -->
-                <div class="mb-3">
+                <div class="form-group">
 
                     <label
                         for="lockoutSeconds"
@@ -612,12 +661,46 @@ usort(
                     </div>
 
                     <div class="form-text">
-                        Guests cannot select another sequence
+                        Guests cannot select another
+                        <?= strtolower(
+                            htmlspecialchars(
+                                $contentLabelSingular
+                            )
+                        ) ?>
                         until this time has elapsed after playback.
                     </div>
 
                 </div>
 
+                <!-- Content Type -->
+                <div class="form-group">
+                    <label for="contentType">
+                        Content Type
+                    </label>
+
+                    <select
+                        name="contentType"
+                        id="contentType"
+                        class="form-control">
+
+                        <option value="sequence"
+                            <?= ($config['contentType'] ?? 'sequence') === 'sequence'
+                                ? 'selected'
+                                : '' ?>>
+                            Sequences
+                        </option>
+
+                        <option value="video"
+                            <?= ($config['contentType'] ?? 'video') === 'video'
+                                ? 'selected'
+                                : '' ?>>
+                            Videos
+                        </option>
+
+                    </select>
+                </div>
+
+                <!-- Background Type -->
                 <div class="form-group">
                     <label for="backgroundType">
                         Background Type
@@ -642,9 +725,18 @@ usort(
                                 : '' ?>>
                             Playlist
                         </option>
+
+                        <option
+                            value="video"
+                            <?= ($config['backgroundType'] ?? 'video') === 'video'
+                                ? 'selected'
+                                : '' ?>>
+                            Video
+                        </option>
                     </select>
                 </div>
 
+                <!-- Background Item -->
                 <div class="form-group">
                     <label for="backgroundSequence">
                         Background
@@ -683,8 +775,19 @@ usort(
                     </div>
 
                     <div class="form-text">
-                        Allow guests to select additional sequences
-                        while another sequence is playing.
+                        Allow guests to select additional
+                        <?= strtolower(
+                            htmlspecialchars(
+                                $contentLabel
+                            )
+                        ) ?>
+                        while another
+                        <?= strtolower(
+                            htmlspecialchars(
+                                $contentLabelSingular
+                            )
+                        ) ?>
+                        is playing.
                     </div>
                 </div>
 
@@ -782,7 +885,9 @@ usort(
         <div class="card">
             <div class="card-header d-flex justify-content-between">
                 <span>
-                    Jukebox Sequences
+                    Jukebox <?= htmlspecialchars(
+                                $contentLabel
+                            ) ?>
                 </span>
                 <span class="text-muted">
                     Drag to reorder
@@ -1924,6 +2029,50 @@ usort(
 
                                 option.textContent =
                                     playlist;
+
+                                backgroundSelect.appendChild(
+                                    option
+                                );
+                            }
+                        );
+
+                        if (selectedValue) {
+                            backgroundSelect.value = selectedValue;
+                        }
+
+                        return;
+                    }
+
+                    if (backgroundType == 'video') {
+                        const response =
+                            await fetch(
+                                API_BASE + '/fpp-videos', {
+                                    cache: 'no-store'
+                                }
+                            );
+
+                        const data =
+                            await response.json();
+
+                        if (!data.success) {
+                            throw new Error(
+                                'Unable to load videos.'
+                            );
+                        }
+
+                        data.videos.forEach(
+                            function(video) {
+
+                                const option =
+                                    document.createElement(
+                                        'option'
+                                    );
+
+                                option.value =
+                                    video;
+
+                                option.textContent =
+                                    video;
 
                                 backgroundSelect.appendChild(
                                     option
