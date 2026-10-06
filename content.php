@@ -469,9 +469,115 @@ usort(
 
 ?>
 
+<style>
+    .sled-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        padding: .35rem .8rem;
+        font-size: .875rem;
+        font-weight: 500;
+        line-height: 1.5;
+        text-align: center;
+        white-space: nowrap;
+        cursor: pointer;
+        border: 1px solid #3a7fc1;
+        border-radius: .3rem;
+        text-decoration: none !important;
+        background-color: #1a6eb5;
+        color: #fff !important;
+        transition: background-color .15s ease-in-out, border-color .15s;
+        vertical-align: middle;
+    }
+
+    .sled-btn:hover,
+    .sled-btn:focus {
+        background-color: #155a94;
+        border-color: #0e4370;
+        color: #fff !important;
+        text-decoration: none !important;
+    }
+
+    .sled-btn:disabled,
+    .sled-btn.disabled {
+        opacity: .55;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .sled-btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .sled-btn-secondary:hover,
+    .sled-btn-secondary:focus {
+        background-color: #5c636a;
+        border-color: #565e64;
+    }
+
+    .sled-btn-sm {
+        padding: .2rem .5rem;
+        font-size: .8rem;
+        border-radius: .25rem;
+    }
+
+    /* Inline add/remove row buttons — slightly muted */
+    .sled-btn-row {
+        background-color: #455a72;
+        border-color: #556880;
+    }
+
+    .sled-btn-row:hover {
+        background-color: #344657;
+        border-color: #344657;
+    }
+
+    @media (max-width: 640px) {
+
+        /* Header: wrap onto two lines — title+pill first, donate buttons second */
+        .sled-page-header {
+            flex-wrap: wrap !important;
+            row-gap: .5rem;
+        }
+
+        .sled-page-header>div:first-child {
+            flex: 1 1 100%;
+            min-width: 0;
+        }
+
+        .sled-page-header h2 {
+            font-size: 1.05rem;
+        }
+
+        .sled-donate-row {
+            flex-wrap: wrap;
+            width: 100%;
+        }
+    }
+</style>
+
 <div class="container-fluid">
 
-    <h2>Jukebox</h2>
+    <div class="d-flex justify-content-between align-items-center mb-2 sled-page-header">
+        <h2 class="mb-0">
+            Jukebox
+        </h2>
+        <div class="d-flex align-items-center gap-2 sled-donate-row">
+            <a href="https://fpp-zettle.co.uk/docs/Jukebox" target="_blank" rel="noopener noreferrer"
+                class="sled-btn">
+                <i class="fas fa-fw fa-tower-broadcast"></i> Online Docs
+            </a>
+            <a href="https://github.com/PiSignage/fpp-jukebox" target="_blank" rel="noopener noreferrer"
+                class="sled-btn">
+                <i class="fas fa-fw fa-code-branch"></i> GitHub Repo
+            </a>
+            <a href="https://github.com/PiSignage/fpp-jukebox/issues" target="_blank" rel="noopener noreferrer"
+                class="sled-btn sled-btn-secondary">
+                <i class="fas fa-fw fa-bug"></i> Report an Issue
+            </a>
+        </div>
+    </div>
 
     <?php if (!empty($savedMessage)): ?>
 
@@ -481,6 +587,17 @@ usort(
 
     <?php endif; ?>
 
+    <p class="text-muted">
+        Upload your images via <strong>Content Setup → File Manager</strong>, then select them below.
+    </p>
+
+    <p>
+        Quick Jumps: <a href="#current-queue">Current Queue</a> - <a href="#statistics">Statistics</a>
+    </p>
+
+    <p>
+        Interface Url: <a href="/jukebox.php" target="_blank">jukbox.php</a> - <a href="/plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1" target="_blank">plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1</a>
+    </p>
 
     <form method="post">
 
@@ -837,51 +954,6 @@ usort(
             </div>
         </div>
 
-        <!-- Current Queue -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <div
-                    class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>Current Queue</strong>
-                        <div class="text-muted">
-                            <span id="adminQueueCount">0</span>
-                            songs waiting
-                        </div>
-                    </div>
-
-                    <button
-                        type="button"
-                        id="clearQueueButton"
-                        class="btn btn-danger">
-                        Clear Queue
-                    </button>
-
-                </div>
-            </div>
-
-            <div class="card-body">
-                <div
-                    id="adminQueueEmpty"
-                    class="text-muted">
-                    The queue is currently empty.
-                </div>
-
-                <div
-                    id="adminQueueContainer"
-                    class="d-none">
-
-                    <div
-                        id="adminQueueList"
-                        class="list-group">
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
         <div class="card">
             <div class="card-header d-flex justify-content-between">
                 <span>
@@ -1098,7 +1170,7 @@ usort(
         </div>
 
         <!-- Jukebox Statistics -->
-        <div class="card mt-3">
+        <div id="Statistics" class="card my-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>
                     Jukebox Statistics
@@ -1163,6 +1235,51 @@ usort(
                     </table>
                 </div>
             </div>
+        </div>
+
+        <!-- Current Queue -->
+        <div id="current-queue" class="card">
+            <div class="card-header">
+                <div
+                    class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Current Queue</strong>
+                        <div class="text-muted">
+                            <span id="adminQueueCount">0</span>
+                            songs waiting
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="clearQueueButton"
+                        class="btn btn-outline-danger btn-sm">
+                        Clear Queue
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div
+                    id="adminQueueEmpty"
+                    class="text-muted">
+                    The queue is currently empty.
+                </div>
+
+                <div
+                    id="adminQueueContainer"
+                    class="d-none">
+
+                    <div
+                        id="adminQueueList"
+                        class="list-group">
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
     </form>
 </div>
