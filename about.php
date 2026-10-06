@@ -24,6 +24,8 @@
                 display order.
             </p>
 
+            <p>Full docs found here: <a href="https://fpp-zettle.co.uk/docs/Jukebox">Docs</a></p>
+
             <h5 class="mt-4">
                 Guest Interface
             </h5>
