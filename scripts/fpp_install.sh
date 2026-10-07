@@ -65,6 +65,13 @@ cat > "$CONFIG" <<'JSONEOF'
     "contentType": "sequence",
     "backgroundType": "sequence",
     "backgroundSequence": "",
+    "qrcode": [
+        "enabled": false,
+        "buttonText": "Support Our Charity",
+        "title": "Support Our Charity",
+        "url": "",
+        "message": "Scan the QR code with your phone to visit our page.",
+    ],
     "sequences": []	
 }
 JSONEOF

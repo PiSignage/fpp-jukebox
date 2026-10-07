@@ -1071,3 +1071,143 @@ body {
         transform: rotate(360deg);
     }
 }
+
+.jukebox-qr-button-container {
+    /* width: 100%;
+    padding-top: 15px; */
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto;
+    z-index: 1000;
+}
+
+.jukebox-qr-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    min-width: 90px;
+    min-height: 90px;
+
+    padding: 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+
+    background: rgba(20, 20, 20, 0.9);
+    color: var(--jukebox-text);
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.35);
+
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    text-align: center;
+    cursor: pointer;
+
+    transition:
+        transform 0.12s ease,
+        background 0.12s ease;
+}
+
+.jukebox-qr-button:active {
+    transform: scale(0.95);
+}
+
+.jukebox-qr-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.jukebox-qr-modal {
+    position: fixed;
+    inset: 0;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 10000;
+}
+
+.jukebox-qr-modal.is-open {
+    display: flex;
+}
+
+.jukebox-qr-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.jukebox-qr-modal-dialog {
+    position: relative;
+    width: calc(100% - 50px);
+    max-width: 550px;
+    z-index: 1;
+}
+
+.jukebox-qr-modal-content {
+    width: 100%;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    background: #1b1b1b;
+    color: var(--jukebox-text);
+    text-align: center;
+    box-shadow:
+        0 15px 50px rgba(0, 0, 0, 0.6);
+}
+
+.jukebox-qr-modal-title {
+    margin: 0 0 20px;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.jukebox-qr-code {
+    width: 280px;
+    height: 280px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.jukebox-qr-code img,
+.jukebox-qr-code canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.jukebox-qr-modal-message {
+    margin: 0 0 25px;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    opacity: 0.8;
+}
+
+.jukebox-qr-modal-close {
+    width: 100%;
+    padding: 14px 20px;
+    border: 0;
+    border-radius: 12px;
+    background: #fff;
+    color: #000;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.jukebox-qr-modal-close:active {
+    transform: scale(0.98);
+}

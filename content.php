@@ -29,6 +29,13 @@ $config = array(
     'contentType' => "sequence",
     'backgroundType' => "sequence",
     'backgroundSequence' => "",
+    'qrcode' => [
+        'enabled' => false,
+        'buttonText' => 'Support Our Charity',
+        'title' => 'Support Our Charity',
+        'url' => '',
+        'message' => 'Scan the QR code with your phone to visit our page.',
+    ],
     'sequences' => array()
 );
 
@@ -154,6 +161,29 @@ if (
         'contentType' => $_POST['contentType'] ?? 'sequence',
         'backgroundType' => $_POST['backgroundType'] ?? 'sequence',
         'backgroundSequence' => $_POST['backgroundSequence'] ?? '',
+        'qrcode' => [
+            'enabled' => isset($_POST['qrEnabled']),
+            'buttonText' =>
+            trim(
+                $_POST['qrButtonText']
+                    ?? 'Support Our Charity'
+            ),
+            'title' =>
+            trim(
+                $_POST['qrTitle']
+                    ?? 'Support Our Charity'
+            ),
+            'url' =>
+            trim(
+                $_POST['qrUrl']
+                    ?? ''
+            ),
+            'message' =>
+            trim(
+                $_POST['qrMessage']
+                    ?? 'Scan the QR code with your phone to visit our page.'
+            ),
+        ],
         'sequences' => array()
     );
 
@@ -950,6 +980,104 @@ usort(
 
                 <div class="form-text">
                     Allow the same sequence to be added to the queue more than once.
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                QR Code
+            </div>
+
+            <div class="card-body">
+                <div class="form-check mb-3">
+                    <input
+                        class="form-check-input mr-2"
+                        type="checkbox"
+                        name="qrEnabled"
+                        id="qrEnabled"
+                        <?= !empty($config['qrcode']['enabled'])
+                            ? 'checked'
+                            : '' ?>>
+
+                    <label
+                        class="form-check-label"
+                        for="qrEnabled">
+                        Enable QR Code
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label
+                        for="qrButtonText"
+                        class="form-label">
+                        Button Text
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="qrButtonText"
+                        name="qrButtonText"
+                        value="<?= htmlspecialchars(
+                                    $config['qrcode']['buttonText']
+                                        ?? 'Support Our Charity'
+                                ) ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label
+                        for="qrTitle"
+                        class="form-label">
+                        Modal Title
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="qrTitle"
+                        name="qrTitle"
+                        value="<?= htmlspecialchars(
+                                    $config['qrcode']['title']
+                                        ?? 'Support Our Charity'
+                                ) ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label
+                        for="qrUrl"
+                        class="form-label">
+                        QR Code URL
+                    </label>
+
+                    <input
+                        type="url"
+                        class="form-control"
+                        id="qrUrl"
+                        name="qrUrl"
+                        placeholder="https://www.justgiving.com/..."
+                        value="<?= htmlspecialchars(
+                                    $config['qrcode']['url']
+                                        ?? ''
+                                ) ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label
+                        for="qrMessage"
+                        class="form-label">
+                        Message
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="qrMessage"
+                        name="qrMessage"
+                        value="<?= htmlspecialchars(
+                                    $config['qrcode']['message']
+                                        ?? 'Scan the QR code with your phone to visit our page.'
+                                ) ?>">
                 </div>
             </div>
         </div>

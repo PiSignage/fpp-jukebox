@@ -25,6 +25,8 @@ let statusFailureCount = 0;
 const MAX_STATUS_FAILURES = 3;
 let queueEnabled = false;
 
+let qrUrl = '';
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -84,6 +86,9 @@ async function loadConfiguration() {
     queueEnabled =
         data.config.queueEnabled === true;
 
+    qrUrl =
+        data.config.qrcode.url || '';
+
     const title = document.getElementById(
         'jukeboxTitle'
     );
@@ -93,6 +98,8 @@ async function loadConfiguration() {
             data.config.title ||
             'Jukebox';
     }
+
+    qrcode(data);
 
     return data.config.enabled !== false;
 }
@@ -2212,5 +2219,157 @@ function renderTemplate(
 
     container.replaceChildren(
         template.content.cloneNode(true)
+    );
+}
+
+function qrcode(data) {
+    const qrButtonContainer =
+        document.getElementById(
+            'qrButtonContainer'
+        );
+
+    const qrButtonText =
+        document.getElementById(
+            'qrButtonText'
+        );
+
+    const qrModalTitle =
+        document.getElementById(
+            'qrModalTitle'
+        );
+
+    const qrModalMessage =
+        document.getElementById(
+            'qrModalMessage'
+        );
+
+    if (
+        data.config.qrcode.enabled === true &&
+        data.config.qrcode.url
+    ) {
+        qrButtonText.textContent =
+            data.config.qrcode.buttonText ||
+            'Support Our Charity';
+
+        qrButtonContainer.classList.remove(
+            'd-none'
+        );
+
+        if (qrModalTitle) {
+            qrModalTitle.textContent =
+                data.config.qrcode.title ||
+                'Support Our Charity';
+        }
+
+        if (qrModalMessage) {
+            qrModalMessage.textContent =
+                data.config.qrcode.message ||
+                'Scan the QR code with your phone to visit our page.'
+        }
+    } else {
+        qrButtonContainer.classList.add(
+            'd-none'
+        );
+    }
+
+    const qrButton =
+        document.getElementById(
+            'qrButton'
+        );
+
+    const qrModalClose =
+        document.getElementById(
+            'qrModalClose'
+        );
+
+    const qrModalBackdrop =
+        document.querySelector(
+            '.jukebox-qr-modal-backdrop'
+        );
+
+    if (qrButton) {
+        qrButton.addEventListener(
+            'click',
+            openQrModal
+        );
+    }
+
+    if (qrModalClose) {
+        qrModalClose.addEventListener(
+            'click',
+            closeQrModal
+        );
+    }
+
+    if (qrModalBackdrop) {
+        qrModalBackdrop.addEventListener(
+            'click',
+            closeQrModal
+        );
+    }
+}
+
+function openQrModal() {
+    const modal =
+        document.getElementById(
+            'qrModal'
+        );
+
+    const qrCode =
+        document.getElementById(
+            'qrCode'
+        );
+
+    if (
+        !modal ||
+        !qrCode ||
+        !qrUrl
+    ) {
+        return;
+    }
+
+    // Clear any previously generated QR code.
+    qrCode.replaceChildren();
+
+    // Generate QR code.
+    new QRCode(
+        qrCode,
+        {
+            text: qrUrl,
+            width: 250,
+            height: 250,
+            correctLevel:
+                QRCode.CorrectLevel.H
+        }
+    );
+
+    // Show modal
+    modal.classList.add(
+        'is-open'
+    );
+
+    modal.setAttribute(
+        'aria-hidden',
+        'false'
+    );
+}
+
+function closeQrModal() {
+    const modal =
+        document.getElementById(
+            'qrModal'
+        );
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove(
+        'is-open'
+    );
+
+    modal.setAttribute(
+        'aria-hidden',
+        'true'
     );
 }

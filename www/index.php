@@ -114,6 +114,27 @@
             id="sequenceGrid"
             class="jukebox-grid"></div>
 
+        <div
+            id="qrButtonContainer"
+            class="jukebox-qr-button-container d-none">
+
+            <button
+                type="button"
+                id="qrButton"
+                class="jukebox-qr-button">
+
+                <span class="jukebox-qr-icon">
+                    ▦
+                </span>
+
+                <span id="qrButtonText">
+                    Support Our Charity
+                </span>
+
+            </button>
+
+        </div>
+
     </section>
 
 
@@ -296,6 +317,49 @@
         </div>
     </template>
 
+    <!-- QR Code Modal -->
+    <div
+        id="qrModal"
+        class="jukebox-qr-modal"
+        aria-hidden="true">
+
+        <div class="jukebox-qr-modal-backdrop"></div>
+
+        <div
+            class="jukebox-qr-modal-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="qrModalTitle">
+            <div class="jukebox-qr-modal-content">
+                <h2
+                    id="qrModalTitle"
+                    class="jukebox-qr-modal-title">
+                    Support Our Charity
+                </h2>
+
+                <div
+                    id="qrCode"
+                    class="jukebox-qr-code">
+                </div>
+
+                <p
+                    id="qrModalMessage"
+                    class="jukebox-qr-modal-message">
+                    Scan the QR code with your phone
+                    to visit our page.
+                </p>
+
+                <button
+                    type="button"
+                    id="qrModalClose"
+                    class="jukebox-qr-modal-close">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/plugin.php?plugin=fpp-jukebox&file=www/js/qrcode.min.js&nopage=1"></script>
     <script
         src="/plugin.php?plugin=fpp-jukebox&file=www/js/jukebox.js&nopage=1"></script>
 
