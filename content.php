@@ -626,7 +626,7 @@ usort(
     </p>
 
     <p>
-        Interface Url: <a href="/jukebox.php" target="_blank">jukbox.php</a> - <a href="/plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1" target="_blank">plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1</a>
+        Interface Url: <a href="/plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1" target="_blank">plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1</a>
     </p>
 
     <form method="post">

@@ -36,7 +36,6 @@
             </p>
 
             <pre>/plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1</pre>
-            <pre>/jukebox.php</pre>
 
             <p class="text-muted">
                 The above url will display jukebox interface. Just add your FPP ip address.

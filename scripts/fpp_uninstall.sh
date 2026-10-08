@@ -22,14 +22,4 @@ fi
 
 log "=== Jukebox placeholder image removed ==="
 
-# ── Remove Jukebox shortcuts ──
-JUKEBOX_SHORTCUT="${FPPDIR:-/opt/fpp}/www/jukebox.php"
-
-if [[ -f "$JUKEBOX_SHORTCUT" ]]; then
-    log "Removing /jukebox.php shortcut..."
-    rm -f "$JUKEBOX_SHORTCUT"
-fi
-
-log "=== Jukebox shortcut removed ==="
-
 log "=== Jukebox uninstall complete. Config and media left in place. ==="

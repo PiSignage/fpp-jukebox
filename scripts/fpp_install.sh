@@ -103,25 +103,6 @@ else
     log "=== Jukebox Place holder image found ==="
 fi
 
-# ── Create simple /jukebox URL ──
-JUKEBOX_SHORTCUT="${FPPDIR}/www/jukebox.php"
-
-log "Creating /jukebox.php shortcut..."
-
-cat > "$JUKEBOX_SHORTCUT" <<'PHP'
-<?php
-
-header(
-    'Location: /plugin.php?plugin=fpp-jukebox&page=www/index.php&nopage=1'
-);
-
-exit;
-PHP
-
-chmod 644 "$JUKEBOX_SHORTCUT"
-
-log "Jukebox shortcut created: /jukebox.php"
-
 log "=== Jukebox install complete ==="
 
 exit 0
