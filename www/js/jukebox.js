@@ -31,6 +31,10 @@ let qrUrl = '';
 let qrModalTimeout = 60; // Seconds
 let qrModalInactivityTimer = null;
 
+// Selection screen inactivity
+const SELECTION_SCROLL_TIMEOUT = 60 * 1000;
+let selectionScrollTimer = null;
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -950,6 +954,8 @@ function showSelectionScreen() {
     } else {
         hideQueue();
     }
+
+    resetSelectionInactivityTimer();
 }
 
 function showLoadingScreen() {
@@ -1003,6 +1009,8 @@ function showPlayingScreen(sequence) {
             //     'none';
         }
     }
+
+    clearTimeout(selectionScrollTimer);
 }
 
 
@@ -1224,6 +1232,8 @@ function showDisabledScreen() {
             )?.textContent ||
             'Jukebox';
     }
+
+    clearTimeout(selectionScrollTimer);
 
     showScreen(
         'disabledScreen'
@@ -2428,4 +2438,65 @@ function resetQrModalInactivityTimer() {
     }
 
     startQrModalInactivityTimer();
+}
+
+function resetSelectionInactivityTimer() {
+    clearTimeout(selectionScrollTimer);
+
+    const selectionScreen =
+        document.getElementById(
+            'selectionScreen'
+        );
+
+    const qrModal =
+        document.getElementById(
+            'qrModal'
+        );
+
+    /*
+     * Only run while the selection screen
+     * is visible and the QR modal is closed.
+     */
+    if (
+        !selectionScreen ||
+        !selectionScreen.classList.contains('active') ||
+        qrModal?.classList.contains('is-open')
+    ) {
+        return;
+    }
+
+    selectionScrollTimer = setTimeout(
+        function () {
+
+            selectionScreen.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+        },
+        SELECTION_SCROLL_TIMEOUT
+    );
+}
+
+const selectionScreen =
+    document.getElementById(
+        'selectionScreen'
+    );
+
+if (selectionScreen) {
+    selectionScreen.addEventListener(
+        'pointerdown',
+        resetSelectionInactivityTimer
+    );
+
+    selectionScreen.addEventListener(
+        'scroll',
+        resetSelectionInactivityTimer,
+        { passive: true }
+    );
+
+    selectionScreen.addEventListener(
+        'keydown',
+        resetSelectionInactivityTimer
+    );
 }
