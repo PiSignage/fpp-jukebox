@@ -27,6 +27,10 @@ let queueEnabled = false;
 
 let qrUrl = '';
 
+// QR Modal inactivity settings
+let qrModalTimeout = 60; // Seconds
+let qrModalInactivityTimer = null;
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -2307,6 +2311,23 @@ function qrcode(data) {
             closeQrModal
         );
     }
+
+    const qrModalDialog =
+        document.querySelector(
+            '.jukebox-qr-modal-dialog'
+        );
+
+    if (qrModalDialog) {
+        qrModalDialog.addEventListener(
+            'pointerdown',
+            resetQrModalInactivityTimer
+        );
+
+        qrModalDialog.addEventListener(
+            'keydown',
+            resetQrModalInactivityTimer
+        );
+    }
 }
 
 function openQrModal() {
@@ -2352,9 +2373,16 @@ function openQrModal() {
         'aria-hidden',
         'false'
     );
+
+    // Start inactivity countdown.
+    startQrModalInactivityTimer();
 }
 
 function closeQrModal() {
+    // Stop inactivity countdown.
+    clearTimeout(qrModalInactivityTimer);
+    qrModalInactivityTimer = null;
+
     const modal =
         document.getElementById(
             'qrModal'
@@ -2372,4 +2400,32 @@ function closeQrModal() {
         'aria-hidden',
         'true'
     );
+}
+
+function startQrModalInactivityTimer() {
+    clearTimeout(qrModalInactivityTimer);
+
+    qrModalInactivityTimer = setTimeout(
+        function () {
+
+            closeQrModal();
+
+        },
+        qrModalTimeout * 1000
+    );
+}
+
+
+function resetQrModalInactivityTimer() {
+    const modal =
+        document.getElementById('qrModal');
+
+    if (
+        !modal ||
+        !modal.classList.contains('is-open')
+    ) {
+        return;
+    }
+
+    startQrModalInactivityTimer();
 }
