@@ -1095,6 +1095,10 @@ usort(
             </div>
 
             <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Please note</strong>: There is known problem. If your <?php echo $contentLabel; ?> file name have spaces the system does not work. I would recommend removing all spaces and replace them with - or _
+                </div>
+
                 <div id="jukeboxSequenceList">
 
                     <?php foreach (
