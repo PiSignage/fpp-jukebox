@@ -137,6 +137,37 @@
 
     </section>
 
+    <!-- Jukebox Attract Screen -->
+    <div
+        id="attractScreen"
+        class="jukebox-attract-screen"
+        aria-hidden="true">
+
+        <div class="jukebox-attract-content">
+
+            <div class="jukebox-attract-icon">
+                ♪
+            </div>
+
+            <h1
+                id="attractJukeboxTitle"
+                class="jukebox-attract-title">
+                Jukebox
+            </h1>
+
+            <p
+                id="attractMessage"
+                class="jukebox-attract-message">
+                Touch Anywhere to Choose a Song
+            </p>
+
+            <div class="jukebox-attract-touch">
+                Touch Screen to Start
+            </div>
+
+        </div>
+
+    </div>
 
     <!-- Loading -->
 

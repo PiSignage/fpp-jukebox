@@ -35,6 +35,10 @@ let qrModalInactivityTimer = null;
 const SELECTION_SCROLL_TIMEOUT = 60 * 1000;
 let selectionScrollTimer = null;
 
+const SELECTION_ATTRACT_TIMEOUT = 120 * 1000;
+let selectionAttractTimer = null;
+let selectionAutoScrolling = false;
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -108,6 +112,7 @@ async function loadConfiguration() {
     }
 
     qrcode(data);
+    attractScreenData(data);
 
     return data.config.enabled !== false;
 }
@@ -965,6 +970,24 @@ function showLoadingScreen() {
 }
 
 function showPlayingScreen(sequence) {
+    // Hide attract screen if visible.
+    const attractScreen =
+        document.getElementById(
+            'attractScreen'
+        );
+
+    if (attractScreen) {
+        attractScreen.classList.remove(
+            'is-open'
+        );
+
+        attractScreen.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+    }
+
+    // Show playing screen.
     showScreen(
         'playingScreen'
     );
@@ -1011,6 +1034,9 @@ function showPlayingScreen(sequence) {
     }
 
     clearTimeout(selectionScrollTimer);
+    clearTimeout(selectionAttractTimer);
+
+    selectionAutoScrolling = false;
 }
 
 
@@ -1233,7 +1259,28 @@ function showDisabledScreen() {
             'Jukebox';
     }
 
+    // Stop selection inactivity timers.
     clearTimeout(selectionScrollTimer);
+    clearTimeout(selectionAttractTimer);
+
+    selectionAutoScrolling = false;
+
+    // Hide attract screen if visible.
+    const attractScreen =
+        document.getElementById(
+            'attractScreen'
+        );
+
+    if (attractScreen) {
+        attractScreen.classList.remove(
+            'is-open'
+        );
+
+        attractScreen.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+    }
 
     showScreen(
         'disabledScreen'
@@ -2442,6 +2489,7 @@ function resetQrModalInactivityTimer() {
 
 function resetSelectionInactivityTimer() {
     clearTimeout(selectionScrollTimer);
+    clearTimeout(selectionAttractTimer);
 
     const selectionScreen =
         document.getElementById(
@@ -2453,10 +2501,6 @@ function resetSelectionInactivityTimer() {
             'qrModal'
         );
 
-    /*
-     * Only run while the selection screen
-     * is visible and the QR modal is closed.
-     */
     if (
         !selectionScreen ||
         !selectionScreen.classList.contains('active') ||
@@ -2465,16 +2509,28 @@ function resetSelectionInactivityTimer() {
         return;
     }
 
+    // Scroll back to top after 60 seconds.
     selectionScrollTimer = setTimeout(
         function () {
+            selectionAutoScrolling = true;
 
             selectionScreen.scrollTo({
                 top: 0,
                 behavior: 'smooth'
             });
-
         },
         SELECTION_SCROLL_TIMEOUT
+    );
+
+    /*
+     * Attract screen after 120 seconds.
+     * We'll add showAttractScreen() next.
+     */
+    selectionAttractTimer = setTimeout(
+        function () {
+            showAttractScreen();
+        },
+        SELECTION_ATTRACT_TIMEOUT
     );
 }
 
@@ -2486,12 +2542,21 @@ const selectionScreen =
 if (selectionScreen) {
     selectionScreen.addEventListener(
         'pointerdown',
-        resetSelectionInactivityTimer
+        function () {
+            selectionAutoScrolling = false;
+            resetSelectionInactivityTimer();
+        }
     );
 
     selectionScreen.addEventListener(
         'scroll',
-        resetSelectionInactivityTimer,
+        function () {
+            if (selectionAutoScrolling) {
+                return;
+            }
+
+            resetSelectionInactivityTimer();
+        },
         { passive: true }
     );
 
@@ -2499,4 +2564,101 @@ if (selectionScreen) {
         'keydown',
         resetSelectionInactivityTimer
     );
+}
+
+function showAttractScreen() {
+    const attractScreen =
+        document.getElementById(
+            'attractScreen'
+        );
+
+    const selectionScreen =
+        document.getElementById(
+            'selectionScreen'
+        );
+
+    const qrModal =
+        document.getElementById(
+            'qrModal'
+        );
+
+    if (
+        !attractScreen ||
+        !selectionScreen?.classList.contains('active') ||
+        qrModal?.classList.contains('is-open')
+    ) {
+        return;
+    }
+
+    clearTimeout(selectionScrollTimer);
+    clearTimeout(selectionAttractTimer);
+
+    attractScreen.classList.add(
+        'is-open'
+    );
+
+    attractScreen.setAttribute(
+        'aria-hidden',
+        'false'
+    );
+}
+
+function hideAttractScreen() {
+    const attractScreen =
+        document.getElementById(
+            'attractScreen'
+        );
+
+    if (!attractScreen) {
+        return;
+    }
+
+    attractScreen.classList.remove(
+        'is-open'
+    );
+
+    attractScreen.setAttribute(
+        'aria-hidden',
+        'true'
+    );
+
+    selectionAutoScrolling = false;
+
+    resetSelectionInactivityTimer();
+}
+
+const attractScreen =
+    document.getElementById(
+        'attractScreen'
+    );
+
+if (attractScreen) {
+    attractScreen.addEventListener(
+        'pointerdown',
+        hideAttractScreen
+    );
+}
+
+function attractScreenData(data) {
+    const attractJukeboxTitle =
+        document.getElementById(
+            'attractJukeboxTitle'
+        );
+
+    const attractMessage =
+        document.getElementById(
+            'attractMessage'
+        );
+
+    if (attractJukeboxTitle) {
+        attractJukeboxTitle.textContent =
+            data.config.title || 'Jukebox';
+    }
+
+    if (attractMessage) {
+        attractMessage.textContent =
+            data.config.contentType === 'video'
+                ? 'Touch Anywhere to Choose a Video'
+                : 'Touch Anywhere to Choose a Song';
+    }
 }
