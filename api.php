@@ -150,8 +150,12 @@ function jukeboxLoadConfig()
 function jukeboxGetSequences()
 {
     $config = jukeboxLoadConfig();
+    $stats = jukeboxLoadStats();
 
     $sequences = array();
+
+    // Minimum plays required for Most Popular badge
+    $minimumPlays = 5;
 
     // Background sequence is controlled by FPP
     // It should not appear in the guest jukebox
@@ -181,20 +185,50 @@ function jukeboxGetSequences()
             $artwork = jukeboxMediaUrl($sequence['artwork']);
         }
 
+        // Get play count from existing statistics
+        $playCount = (int)(
+            $stats['sequences'][$sequence['sequence']] ?? 0
+        );
+
         $sequences[] = array(
             'id' => $sequence['sequence'],
             'title' => $sequence['title'],
             'artwork' => $artwork,
-            'order' => (int)$sequence['order']
+            'order' => (int)$sequence['order'],
+            'mostPopular' => false,
+            'playCount' => $playCount
         );
     }
 
+    // Preserve existing display ordering
     usort(
         $sequences,
         function ($a, $b) {
             return $a['order'] <=> $b['order'];
         }
     );
+
+    /*
+     * Find the most popular eligible song.
+     *
+     * Only one song can receive the badge.
+     * If play counts are tied, the first song
+     * in display order wins.
+     */
+    $mostPopularIndex = null;
+    $highestPlays = $minimumPlays - 1;
+
+    foreach ($sequences as $index => $sequence) {
+        if ($sequence['playCount'] > $highestPlays) {
+            $highestPlays = $sequence['playCount'];
+            $mostPopularIndex = $index;
+        }
+    }
+
+    // Mark the most popular song
+    if ($mostPopularIndex !== null) {
+        $sequences[$mostPopularIndex]['mostPopular'] = true;
+    }
 
     return json(array(
         'success' => true,

@@ -41,6 +41,9 @@ let selectionAutoScrolling = false;
 
 let clockFormat = '24';
 
+let popularBadgeTimer = null;
+const POPULAR_BADGE_REFRESH_INTERVAL = 30000;
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -62,6 +65,8 @@ async function initialise() {
         await checkAvailability();
         // Start monitoring the schedule
         startAvailabilityMonitor();
+        // Start monitoring the Most Popular badge
+        startPopularBadgeMonitor();
     } catch (error) {
         console.error(
             'Jukebox initialisation failed:',
@@ -216,6 +221,8 @@ function renderSequences(sequences) {
             button.className =
                 'jukebox-sequence';
 
+            button.dataset.sequenceId = sequence.id;
+
             // Artwork
             if (sequence.artwork) {
                 const artworkImage = new Image();
@@ -239,6 +246,13 @@ function renderSequences(sequences) {
 
             // Card content
             button.innerHTML = `
+                ${sequence.mostPopular ? `
+                    <div class="jukebox-popular-badge">
+                        <span class="jukebox-popular-icon">★</span>
+                        <span>Most Popular</span>
+                    </div>
+                ` : ``}
+
                 <div class="jukebox-sequence-overlay">
                     <div class="jukebox-sequence-title">
                         ${escapeHtml(sequence.title)}
@@ -367,6 +381,9 @@ async function playSequence(sequence) {
                 'Unable to start sequence.'
             );
         }
+
+        // Update the Most Popular badge immediately
+        refreshMostPopularBadge();
 
         // Sequence was added to the queue.
         if (data.queued) {
@@ -765,6 +782,9 @@ async function handlePlaybackFinished() {
                     'Started queued sequence:',
                     data.title
                 );
+
+                // Update Most Popular badge
+                refreshMostPopularBadge();
 
                 // Keep the current sequence object
                 // representing the newly started item.
@@ -2784,4 +2804,96 @@ function applyJukeboxTheme(theme) {
             root.style.setProperty(variable, value);
         }
     });
+}
+
+// Refresh Most Popular badge without rebuilding song tiles
+async function refreshMostPopularBadge() {
+    const container = document.getElementById(
+        'sequenceGrid'
+    );
+
+    if (!container) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            API_BASE + '/sequences',
+            {
+                cache: 'no-store'
+            }
+        );
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !Array.isArray(data.sequences)) {
+            return;
+        }
+
+        // Find the current most popular sequence
+        const mostPopular = data.sequences.find(
+            sequence => sequence.mostPopular === true
+        );
+
+        // Find the existing song buttons
+        const buttons = container.querySelectorAll(
+            '.jukebox-sequence'
+        );
+
+        buttons.forEach(function (button) {
+
+            const badge = button.querySelector(
+                '.jukebox-popular-badge'
+            );
+
+            const isMostPopular =
+                mostPopular &&
+                button.dataset.sequenceId === mostPopular.id;
+
+            // Remove badge if no longer most popular
+            if (!isMostPopular) {
+                if (badge) {
+                    badge.remove();
+                }
+
+                return;
+            }
+
+            // Already has the correct badge
+            if (badge) {
+                return;
+            }
+
+            // Add the new badge
+            const newBadge = document.createElement('div');
+
+            newBadge.className = 'jukebox-popular-badge';
+
+            newBadge.innerHTML = `
+                <span class="jukebox-popular-icon">★</span>
+                <span>Most Popular</span>
+            `;
+
+            button.prepend(newBadge);
+        });
+
+    } catch (error) {
+        console.warn(
+            'Unable to refresh Most Popular badge:',
+            error
+        );
+    }
+}
+
+function startPopularBadgeMonitor() {
+    clearInterval(popularBadgeTimer);
+
+    popularBadgeTimer = setInterval(
+        refreshMostPopularBadge,
+        POPULAR_BADGE_REFRESH_INTERVAL
+    );
 }

@@ -258,6 +258,37 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+.jukebox-popular-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 7px 12px;
+    border-radius: 20px;
+
+    background: var(--jukebox-accent);
+    color: var(--jukebox-accent-text);
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+
+    pointer-events: none;
+}
+
+.jukebox-popular-icon {
+    font-size: 15px;
+    line-height: 1;
+    color: inherit;
+}
 
 /* ==========================================================================
    Sequence card content
