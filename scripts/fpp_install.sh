@@ -65,6 +65,7 @@ cat > "$CONFIG" <<'JSONEOF'
     "contentType": "sequence",
     "backgroundType": "sequence",
     "backgroundSequence": "",
+    "clockFormat": "24",
     "qrcode": [
         "enabled": false,
         "buttonText": "Support Our Charity",

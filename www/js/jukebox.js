@@ -39,6 +39,8 @@ const SELECTION_ATTRACT_TIMEOUT = 120 * 1000;
 let selectionAttractTimer = null;
 let selectionAutoScrolling = false;
 
+let clockFormat = '24';
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -113,6 +115,16 @@ async function loadConfiguration() {
 
     qrcode(data);
     attractScreenData(data);
+
+    clockFormat =
+        data.config.clockFormat === '12'
+            ? '12'
+            : '24';
+    updateJukeboxClock();
+    setInterval(
+        updateJukeboxClock,
+        1000
+    );
 
     return data.config.enabled !== false;
 }
@@ -2661,4 +2673,34 @@ function attractScreenData(data) {
                 ? 'Touch Anywhere to Choose a Video'
                 : 'Touch Anywhere to Choose a Song';
     }
+}
+
+/* Jukebox Clock */
+function updateJukeboxClock() {
+    const clock =
+        document.getElementById(
+            'jukeboxClock'
+        );
+
+    if (!clock) {
+        return;
+    }
+
+    const now = new Date();
+
+    clock.textContent =
+        now.toLocaleTimeString(
+            'en-GB',
+            {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: clockFormat === '12',
+                hourCycle: clockFormat === '12'
+                    ? 'h12'
+                    : 'h23'
+            }
+        ).replace(
+            /\b(am|pm)\b/gi,
+            match => match.toUpperCase()
+        );
 }

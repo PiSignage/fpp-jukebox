@@ -36,6 +36,10 @@
 
 
 <body>
+    <!-- Jukebox Clock -->
+    <div id="jukeboxClock" class="jukebox-clock">
+        --:--
+    </div>
 
     <div
         id="jukeboxError"

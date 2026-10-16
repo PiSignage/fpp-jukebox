@@ -29,6 +29,7 @@ $config = array(
     'contentType' => "sequence",
     'backgroundType' => "sequence",
     'backgroundSequence' => "",
+    'clockFormat' => "24",
     'qrcode' => [
         'enabled' => false,
         'buttonText' => 'Support Our Charity',
@@ -161,6 +162,14 @@ if (
         'contentType' => $_POST['contentType'] ?? 'sequence',
         'backgroundType' => $_POST['backgroundType'] ?? 'sequence',
         'backgroundSequence' => $_POST['backgroundSequence'] ?? '',
+        'clockFormat' =>
+        in_array(
+            $_POST['clockFormat'] ?? '24',
+            array('12', '24'),
+            true
+        )
+            ? $_POST['clockFormat']
+            : '24',
         'qrcode' => [
             'enabled' => isset($_POST['qrEnabled']),
             'buttonText' =>
@@ -962,24 +971,55 @@ usort(
                 </div>
 
                 <!-- allowDuplicateQueueSongs -->
-                <div class="form-check">
-                    <input
-                        class="form-check-input mr-2"
-                        type="checkbox"
-                        name="allowDuplicateQueueSongs"
-                        id="allowDuplicateQueueSongs"
-                        value="1"
-                        <?= !empty($config['allowDuplicateQueueSongs']) ? 'checked' : '' ?>>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input
+                            class="form-check-input mr-2"
+                            type="checkbox"
+                            name="allowDuplicateQueueSongs"
+                            id="allowDuplicateQueueSongs"
+                            value="1"
+                            <?= !empty($config['allowDuplicateQueueSongs']) ? 'checked' : '' ?>>
 
-                    <label
-                        class="form-check-label"
-                        for="allowDuplicateQueueSongs">
-                        Allow duplicate songs in queue
-                    </label>
+                        <label
+                            class="form-check-label"
+                            for="allowDuplicateQueueSongs">
+                            Allow duplicate songs in queue
+                        </label>
+                    </div>
+
+                    <div class="form-text">
+                        Allow the same sequence to be added to the queue more than once.
+                    </div>
                 </div>
 
-                <div class="form-text">
-                    Allow the same sequence to be added to the queue more than once.
+                <div class="form-group">
+                    <label for="clockFormat">
+                        Clock Format
+                    </label>
+
+                    <select
+                        name="clockFormat"
+                        id="clockFormat"
+                        class="form-control">
+
+                        <option
+                            value="24"
+                            <?= ($config['clockFormat'] ?? '24') === '24'
+                                ? 'selected'
+                                : '' ?>>
+                            24-hour (14:35)
+                        </option>
+
+                        <option
+                            value="12"
+                            <?= ($config['clockFormat'] ?? '24') === '12'
+                                ? 'selected'
+                                : '' ?>>
+                            12-hour (2:35 PM)
+                        </option>
+
+                    </select>
                 </div>
             </div>
         </div>

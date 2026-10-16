@@ -1298,3 +1298,33 @@ body {
         transform: scale(1.05);
     }
 }
+
+/*
+ * --------------------------------------------------------------------------
+ * Jukebox Clock
+ * --------------------------------------------------------------------------
+ */
+
+.jukebox-clock {
+    position: fixed;
+    top: 15px;
+    left: 20px;
+    z-index: 8000;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(20, 20, 20, 0.8);
+    color: var(--jukebox-text);
+    font-size: 1.2rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+/*
+ * Hide clock when an overlay is open.
+ */
+body:has(#qrModal.is-open) .jukebox-clock,
+body:has(#attractScreen.is-open) .jukebox-clock {
+    display: none;
+}
