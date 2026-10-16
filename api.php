@@ -1167,7 +1167,8 @@ function jukeboxLoadStats()
     // Default statistics structure.
     $defaultStats = array(
         'totalPlays' => 0,
-        'sequences' => array()
+        'sequences' => array(),
+        'daily' => array()
     );
 
     // Statistics file doesn't exist yet.
@@ -1199,23 +1200,23 @@ function jukeboxLoadStats()
     }
 
     // Make sure the expected fields exist.
-    if (
-        !isset(
-            $stats['totalPlays']
-        )
-    ) {
+    if (!isset($stats['totalPlays'])) {
         $stats['totalPlays'] = 0;
     }
 
     if (
-        !isset(
-            $stats['sequences']
-        ) ||
-        !is_array(
-            $stats['sequences']
-        )
+        !isset($stats['sequences']) ||
+        !is_array($stats['sequences'])
     ) {
         $stats['sequences'] = array();
+    }
+
+    // Daily statistics.
+    if (
+        !isset($stats['daily']) ||
+        !is_array($stats['daily'])
+    ) {
+        $stats['daily'] = array();
     }
 
     return $stats;
@@ -1264,21 +1265,45 @@ function jukeboxRecordPlay($sequence)
     $stats['totalPlays']++;
 
     // Individual sequence count.
-    if (
-        !isset(
-            $stats['sequences'][$sequence]
-        )
-    ) {
-        $stats['sequences'][$sequence] =
-            0;
+    if (!isset($stats['sequences'][$sequence])) {
+        $stats['sequences'][$sequence] = 0;
     }
 
     $stats['sequences'][$sequence]++;
 
+    /*
+     * Daily statistics.
+     *
+     * Uses the configured PHP timezone.
+     * Format: YYYY-MM-DD
+     */
+    $today = date('Y-m-d');
+
+    // Create today's statistics if they don't exist.
+    if (!isset($stats['daily'][$today])) {
+        $stats['daily'][$today] = array(
+            'totalPlays' => 0,
+            'sequences' => array()
+        );
+    }
+
+    // Increment today's total plays.
+    $stats['daily'][$today]['totalPlays']++;
+
+    // Initialise today's sequence counter.
+    if (
+        !isset(
+            $stats['daily'][$today]['sequences'][$sequence]
+        )
+    ) {
+        $stats['daily'][$today]['sequences'][$sequence] = 0;
+    }
+
+    // Increment today's sequence count.
+    $stats['daily'][$today]['sequences'][$sequence]++;
+
     // Save statistics.
-    return jukeboxSaveStats(
-        $stats
-    );
+    return jukeboxSaveStats($stats);
 }
 
 /*
@@ -1291,10 +1316,119 @@ function jukeboxGetStatistics()
 {
     $stats = jukeboxLoadStats();
 
+    // Use the configured PHP timezone.
+    $today = new DateTimeImmutable('today');
+
+    $todayDate = $today->format('Y-m-d');
+
+    $yesterdayDate = $today
+        ->modify('-1 day')
+        ->format('Y-m-d');
+
+    // Daily statistics.
+    $daily = $stats['daily'] ?? array();
+
+    // Played today.
+    $playedToday = (int)(
+        $daily[$todayDate]['totalPlays'] ?? 0
+    );
+
+    // Played yesterday.
+    $playedYesterday = (int)(
+        $daily[$yesterdayDate]['totalPlays'] ?? 0
+    );
+
+    // Reporting totals.
+    $last7Days = 0;
+    $last30Days = 0;
+
+    // Daily chart data.
+    $dailyHistory = array();
+
+    /*
+     * Calculate the last 30 calendar days,
+     * including today.
+     */
+    for ($i = 29; $i >= 0; $i--) {
+        $date = $today
+            ->modify("-{$i} days")
+            ->format('Y-m-d');
+
+        $plays = (int)(
+            $daily[$date]['totalPlays'] ?? 0
+        );
+
+        // Last 30 days.
+        $last30Days += $plays;
+
+        // Last 7 days.
+        if ($i < 7) {
+            $last7Days += $plays;
+        }
+
+        // Include dates with zero plays.
+        $dailyHistory[] = array(
+            'date' => $date,
+            'plays' => $plays
+        );
+    }
+
+    // Most Played Songs reporting periods.
+    $songPeriods = array(
+        'today' => array(),
+        'yesterday' => array(),
+        'last7Days' => array(),
+        'last30Days' => array(),
+        'all' => $stats['sequences']
+    );
+
+    // Today's songs.
+    $songPeriods['today'] =
+        $daily[$todayDate]['sequences'] ?? array();
+
+    // Yesterday's songs.
+    $songPeriods['yesterday'] =
+        $daily[$yesterdayDate]['sequences'] ?? array();
+
+    // Calculate song totals for the last
+    // 7 and 30 calendar days.
+    for ($i = 29; $i >= 0; $i--) {
+        $date = $today
+            ->modify("-{$i} days")
+            ->format('Y-m-d');
+
+        $songs = $daily[$date]['sequences'] ?? array();
+
+        foreach ($songs as $sequence => $plays) {
+            // Last 30 days.
+            if (!isset($songPeriods['last30Days'][$sequence])) {
+                $songPeriods['last30Days'][$sequence] = 0;
+            }
+
+            $songPeriods['last30Days'][$sequence] += (int)$plays;
+
+            // Last 7 days, including today.
+            if ($i < 7) {
+
+                if (!isset($songPeriods['last7Days'][$sequence])) {
+                    $songPeriods['last7Days'][$sequence] = 0;
+                }
+
+                $songPeriods['last7Days'][$sequence] += (int)$plays;
+            }
+        }
+    }
+
     return json(array(
         'success' => true,
         'totalPlays' => (int)$stats['totalPlays'],
-        'sequences' => $stats['sequences']
+        'sequences' => $stats['sequences'],
+        'playedToday' => $playedToday,
+        'playedYesterday' => $playedYesterday,
+        'last7Days' => $last7Days,
+        'last30Days' => $last30Days,
+        'dailyHistory' => $dailyHistory,
+        'songPeriods' => $songPeriods
     ));
 }
 
@@ -1308,7 +1442,8 @@ function jukeboxResetStatistics()
 {
     $stats = array(
         'totalPlays' => 0,
-        'sequences' => array()
+        'sequences' => array(),
+        'daily' => array()
     );
 
     if (!jukeboxSaveStats($stats)) {
