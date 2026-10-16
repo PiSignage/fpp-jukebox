@@ -97,6 +97,7 @@
         </div>
 
         <div class="card-body">
+            <!-- Stat cards -->
             <div class="row g-3 mb-4">
 
                 <!-- Played Today -->
@@ -174,6 +175,73 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Most Popular Today/Yesterday -->
+            <div class="row g-3 mb-4">
+                <!-- Most Popular Today -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-muted mb-0">
+                                    Most Popular Today
+                                </h6>
+
+                                <span
+                                    id="jukeboxPopularTodayTie"
+                                    class="badge bg-secondary d-none">
+                                    Joint 1st
+                                </span>
+                            </div>
+
+                            <h5
+                                id="jukeboxPopularToday"
+                                class="mb-2">
+                                No plays yet
+                            </h5>
+
+                            <div
+                                id="jukeboxPopularTodayCount"
+                                class="text-muted small">
+                                0 plays
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Most Popular Yesterday -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-muted mb-0">
+                                    Most Popular Yesterday
+                                </h6>
+
+                                <span
+                                    id="jukeboxPopularYesterdayTie"
+                                    class="badge bg-secondary d-none">
+                                    Joint 1st
+                                </span>
+                            </div>
+
+                            <h5
+                                id="jukeboxPopularYesterday"
+                                class="mb-2">
+                                No plays recorded
+                            </h5>
+
+                            <div
+                                id="jukeboxPopularYesterdayCount"
+                                class="text-muted small">
+                                0 plays
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="card mb-4">
@@ -825,6 +893,9 @@
 
                     // Render the selected period.
                     renderJukeboxSongsTable();
+
+                    // Update today's and yesterday's popular songs.
+                    renderJukeboxPopularSongs();
                 } catch (error) {
                     console.error(
                         'Unable to load jukebox statistics:',
@@ -902,6 +973,121 @@
                     row.appendChild(playsCell);
 
                     table.appendChild(row);
+                });
+            }
+
+            function renderJukeboxPopularSongs() {
+                const periods = [{
+                        key: 'today',
+                        titleId: 'jukeboxPopularToday',
+                        countId: 'jukeboxPopularTodayCount',
+                        tieId: 'jukeboxPopularTodayTie'
+                    },
+                    {
+                        key: 'yesterday',
+                        titleId: 'jukeboxPopularYesterday',
+                        countId: 'jukeboxPopularYesterdayCount',
+                        tieId: 'jukeboxPopularYesterdayTie'
+                    }
+                ];
+
+                periods.forEach(function(period) {
+                    const titleElement = document.getElementById(
+                        period.titleId
+                    );
+
+                    const countElement = document.getElementById(
+                        period.countId
+                    );
+
+                    const tieElement = document.getElementById(
+                        period.tieId
+                    );
+
+                    if (!titleElement || !countElement || !tieElement) {
+                        return;
+                    }
+
+                    // Get the song statistics for this period.
+                    const sequences =
+                        jukeboxSongPeriods[period.key] || {};
+
+                    // Sort songs by number of plays.
+                    const entries = Object.entries(sequences)
+                        .map(function([name, plays]) {
+                            return {
+                                name: name,
+                                plays: Number(plays) || 0
+                            };
+                        })
+                        .filter(function(song) {
+                            return song.plays > 0;
+                        });
+
+                    // Reset the badge.
+                    tieElement.classList.add('d-none');
+
+                    // No songs played during this period.
+                    if (entries.length === 0) {
+                        titleElement.textContent = 'No plays recorded';
+                        countElement.textContent = '0 plays';
+                        return;
+                    }
+
+                    // Find the highest play count.
+                    const highestPlays = Math.max(
+                        ...entries.map(function(song) {
+                            return song.plays;
+                        })
+                    );
+
+                    // Find all songs sharing first place.
+                    const winners = entries.filter(function(song) {
+                        return song.plays === highestPlays;
+                    });
+
+                    // Resolve configured titles.
+                    const titles = winners.map(function(song) {
+                        return jukeboxSequenceTitles[song.name] ||
+                            song.name;
+                    }).sort(function(a, b) {
+                        return a.localeCompare(b);
+                    });
+
+                    // Display all winning songs on separate lines.
+                    titleElement.replaceChildren();
+
+                    titles.forEach(function(title, index) {
+                        if (index > 0) {
+                            titleElement.appendChild(
+                                document.createElement('br')
+                            );
+                        }
+
+                        titleElement.appendChild(
+                            document.createTextNode(title)
+                        );
+                    });
+
+                    const formattedPlays =
+                        highestPlays.toLocaleString('en-GB');
+
+                    if (winners.length > 1) {
+                        // Show joint first badge.
+                        tieElement.classList.remove('d-none');
+
+                        countElement.textContent =
+                            formattedPlays +
+                            (highestPlays === 1 ? ' play' : ' plays') +
+                            ' each · ' +
+                            winners.length +
+                            ' songs tied';
+                    } else {
+                        // Single winner.
+                        countElement.textContent =
+                            formattedPlays +
+                            (highestPlays === 1 ? ' play' : ' plays');
+                    }
                 });
             }
 
