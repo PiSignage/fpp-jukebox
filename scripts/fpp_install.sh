@@ -73,6 +73,15 @@ cat > "$CONFIG" <<'JSONEOF'
         "url": "",
         "message": "Scan the QR code with your phone to visit our page.",
     ],
+    "theme": [
+        "preset": "default",
+        "background": "#111111",
+        "cardBackground": "#222222",
+        "panelBackground": "#252525",
+        "text": "#ffffff",
+        "accent": "#ffffff",
+        "accentText": "#000000",
+    ],
     "sequences": []	
 }
 JSONEOF

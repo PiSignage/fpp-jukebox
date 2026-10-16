@@ -121,6 +121,8 @@ async function loadConfiguration() {
             ? '12'
             : '24';
     updateJukeboxClock();
+    applyJukeboxTheme(data.config.theme);
+
     setInterval(
         updateJukeboxClock,
         1000
@@ -2703,4 +2705,83 @@ function updateJukeboxClock() {
             /\b(am|pm)\b/gi,
             match => match.toUpperCase()
         );
+}
+
+function applyJukeboxTheme(theme) {
+    const presets = {
+        default: {
+            background: '#111111',
+            cardBackground: '#222222',
+            text: '#ffffff',
+            accent: '#ffffff',
+            accentText: '#000000'
+        },
+
+        christmas: {
+            background: '#10251a',
+            cardBackground: '#214331',
+            text: '#ffffff',
+            accent: '#e53935',
+            accentText: '#ffffff'
+        },
+
+        halloween: {
+            background: '#160d20',
+            cardBackground: '#2d193d',
+            text: '#ffffff',
+            accent: '#ff7518',
+            accentText: '#000000'
+        },
+
+        ocean: {
+            background: '#0b192c',
+            cardBackground: '#193653',
+            text: '#ffffff',
+            accent: '#38bdf8',
+            accentText: '#000000'
+        },
+
+        purple: {
+            background: '#1e1429',
+            cardBackground: '#39264a',
+            text: '#ffffff',
+            accent: '#c084fc',
+            accentText: '#000000'
+        }
+    };
+
+    const defaultTheme = presets.default;
+
+    const selectedPreset = theme?.preset || 'default';
+
+    let colours;
+
+    if (selectedPreset === 'custom') {
+        colours = {
+            ...defaultTheme,
+            ...theme
+        };
+    } else {
+        colours = presets[selectedPreset] || defaultTheme;
+    }
+
+    const cssVariables = {
+        background: '--jukebox-background',
+        cardBackground: '--jukebox-card-background',
+        text: '--jukebox-text',
+        accent: '--jukebox-accent',
+        accentText: '--jukebox-accent-text'
+    };
+
+    const root = document.documentElement;
+
+    Object.entries(cssVariables).forEach(([key, variable]) => {
+        const value = colours[key];
+        if (
+            typeof value === 'string' &&
+            /^#[0-9a-fA-F]{6}$/.test(value)
+        ) {
+            root.style.setProperty(variable, value);
+        }
+    });
 }

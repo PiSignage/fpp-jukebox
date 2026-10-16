@@ -1,6 +1,6 @@
 # FPP Jukebox
 
-FPP Jukebox is a Falcon Player (FPP) plugin that provides a touchscreen-friendly jukebox interface, allowing guests to select individual FPP sequences while FPP continues to manage the main display.
+FPP Jukebox is a Falcon Player (FPP) plugin that provides a touchscreen-friendly jukebox interface, allowing guests to select FPP sequences or configured video content while FPP continues to manage the main display.
 
 The plugin is designed for interactive displays such as Christmas light shows, events, and other FPP installations where visitors can choose sequences without needing access to the FPP administration interface.
 
@@ -8,11 +8,17 @@ The plugin is designed for interactive displays such as Christmas light shows, e
 
 - Touchscreen guest interface
 - Individual FPP sequence selection
+- Video content selection (configurable content type)
 - Enable/disable individual sequences
 - Custom sequence titles
 - Custom sequence ordering
 - Artwork support using the FPP media images directory
 - Configurable jukebox title
+- Optional QR code button and pop-up for donations or external links
+- Configurable 12-hour or 24-hour touchscreen clock
+- Inactivity handling, automatic song-grid scrolling, and an attract screen
+- Preset themes and custom colours, with live preview and reset controls
+- Semi-transparent panels that adapt to the selected theme
 - Manual jukebox enable/disable control
 - Optional scheduled availability with multiple time windows
 - Configurable selection lockout with refresh persistence
@@ -37,6 +43,7 @@ The plugin is designed for interactive displays such as Christmas light shows, e
 - One or more FPP sequences
 - A touchscreen, tablet, browser, or other device for the guest interface
 - Artwork files are optional
+- A modern browser for the theme preview and touchscreen display (including CSS `color-mix()` support)
 
 ## Installation
 
@@ -62,14 +69,34 @@ Guests can:
 - See queued songs when the queue is enabled
 - See when the queue is full
 - See when the jukebox is unavailable
+- See the on-screen clock (12-hour or 24-hour format)
+- Open an optional QR code pop-up to scan a configured link
+- Wake the interface from its inactivity attract screen by interacting with it
 
 The interface continuously monitors FPP playback so it can react when a selected sequence starts and finishes.
 
+## Touchscreen Inactivity Behaviour
+
+The touchscreen includes inactivity features intended for unattended kiosks:
+
+- After approximately **60 seconds** without interaction, the song selection grid can begin scrolling automatically.
+- After approximately **120 seconds** without interaction, an attract screen is displayed.
+- Touching or otherwise interacting with the interface returns guests to the selection screen.
+- The QR code pop-up closes automatically after approximately **60 seconds** of inactivity.
+
+These durations describe the current touchscreen behaviour; they are not documented here as administrator-configurable settings.
+
 ## Configuration
 
-Sequences are configured from the plugin administration page.
+Sequences and other jukebox settings are configured from the plugin administration page.
 
-Each jukebox entry can have:
+### Content Type
+
+The content type can be set to **Sequence** or **Video**. The touchscreen then presents the configured content for guest selection. Video files are managed through FPP; use the appropriate FPP media management tools rather than treating the jukebox as a video upload service.
+
+### Song Entries
+
+Each configured jukebox entry can have:
 
 - FPP sequence
 - Display title
@@ -77,9 +104,60 @@ Each jukebox entry can have:
 - Enabled/disabled state
 - Display order
 
-Only enabled sequences are available to guests.
+Only enabled entries are available to guests.
 
 Sequence files are provided by FPP and are not uploaded through the jukebox plugin.
+
+## QR Code Button
+
+An optional QR code button can be enabled on the touchscreen. This can be used to direct guests to a donation page, charity website, or another external link.
+
+The administrator can configure:
+
+- Whether the button is enabled
+- Button text
+- Pop-up title
+- Target URL encoded in the QR code
+- Supporting message shown with the code
+
+The pop-up includes a close control and closes automatically after a period of inactivity. A white QR code background is retained for readability and scanning reliability, regardless of the selected theme.
+
+## Clock
+
+The touchscreen can display a clock in its top-left corner. Choose the format in the administration settings:
+
+- **24-hour** (default), such as `09:05` or `18:30`
+- **12-hour**, such as `09:05 AM` or `06:30 PM`
+
+The clock is hidden while the QR code pop-up or inactivity attract screen is displayed.
+
+## Themes and Appearance
+
+The jukebox supports these built-in themes:
+
+- **Default Dark**
+- **Christmas**
+- **Halloween**
+- **Ocean Blue**
+- **Purple**
+
+Select a preset from the theme dropdown in the administration interface. Alternatively, select **Custom Colours** to configure:
+
+| Setting | Purpose |
+| --- | --- |
+| Background | Main touchscreen background |
+| Card Background | Song tiles and other card surfaces |
+| Text | General interface text |
+| Accent | Highlights, indicators, and accent controls |
+| Accent Text | Text displayed on accent-coloured controls |
+
+The **Theme Preview** updates immediately when a preset or custom colour changes. It shows a sample jukebox layout without changing the live touchscreen.
+
+**Reset Custom Colours** restores the custom colour inputs to the Default Dark values and updates the preview. Neither preview changes nor resets affect the live jukebox until **Save Settings** is clicked.
+
+Panels such as Now Playing and Queue use semi-transparent backgrounds generated with CSS `color-mix()` from the card background colour. This keeps the panels coordinated with each theme without requiring a separate panel colour setting.
+
+Themes are applied to the touchscreen when its configuration loads. Refresh the touchscreen after saving a different theme to see the updated appearance.
 
 ## Artwork
 
@@ -332,7 +410,58 @@ GET /fpp-playlists
 
 Returns playlists available from FPP.
 
-### Artwork
+### QR Code Button
+
+An optional QR code button can be enabled on the touchscreen. This can be used to direct guests to a donation page, charity website, or another external link.
+
+The administrator can configure:
+
+- Whether the button is enabled
+- Button text
+- Pop-up title
+- Target URL encoded in the QR code
+- Supporting message shown with the code
+
+The pop-up includes a close control and closes automatically after a period of inactivity. A white QR code background is retained for readability and scanning reliability, regardless of the selected theme.
+
+## Clock
+
+The touchscreen can display a clock in its top-left corner. Choose the format in the administration settings:
+
+- **24-hour** (default), such as `09:05` or `18:30`
+- **12-hour**, such as `09:05 AM` or `06:30 PM`
+
+The clock is hidden while the QR code pop-up or inactivity attract screen is displayed.
+
+## Themes and Appearance
+
+The jukebox supports these built-in themes:
+
+- **Default Dark**
+- **Christmas**
+- **Halloween**
+- **Ocean Blue**
+- **Purple**
+
+Select a preset from the theme dropdown in the administration interface. Alternatively, select **Custom Colours** to configure:
+
+| Setting | Purpose |
+| --- | --- |
+| Background | Main touchscreen background |
+| Card Background | Song tiles and other card surfaces |
+| Text | General interface text |
+| Accent | Highlights, indicators, and accent controls |
+| Accent Text | Text displayed on accent-coloured controls |
+
+The **Theme Preview** updates immediately when a preset or custom colour changes. It shows a sample jukebox layout without changing the live touchscreen.
+
+**Reset Custom Colours** restores the custom colour inputs to the Default Dark values and updates the preview. Neither preview changes nor resets affect the live jukebox until **Save Settings** is clicked.
+
+Panels such as Now Playing and Queue use semi-transparent backgrounds generated with CSS `color-mix()` from the card background colour. This keeps the panels coordinated with each theme without requiring a separate panel colour setting.
+
+Themes are applied to the touchscreen when its configuration loads. Refresh the touchscreen after saving a different theme to see the updated appearance.
+
+## Artwork
 
 ```text
 GET /artwork
@@ -356,7 +485,18 @@ POST /play
 
 Starts a selected jukebox sequence or adds it to the queue when appropriate.
 
-### Configuration
+### Touchscreen Inactivity Behaviour
+
+The touchscreen includes inactivity features intended for unattended kiosks:
+
+- After approximately **60 seconds** without interaction, the song selection grid can begin scrolling automatically.
+- After approximately **120 seconds** without interaction, an attract screen is displayed.
+- Touching or otherwise interacting with the interface returns guests to the selection screen.
+- The QR code pop-up closes automatically after approximately **60 seconds** of inactivity.
+
+These durations describe the current touchscreen behaviour; they are not documented here as administrator-configurable settings.
+
+## Configuration
 
 ```text
 GET /config
@@ -484,6 +624,18 @@ The next queue item is started only after the plugin detects that current jukebo
 Check that FPP is running and that the local FPP API is responding.
 
 The touchscreen tolerates temporary status failures, but repeated failures cause the current playback state to be treated as unknown.
+
+### Theme does not update on the touchscreen
+
+Save the settings in the admin page, then refresh the touchscreen. Changes in the live admin preview alone are not applied to the guest interface.
+
+### QR code is not displayed
+
+Check that the QR code feature is enabled and that a target URL has been entered. If the button appears but the code cannot be scanned, check the URL and ensure the code is unobstructed.
+
+### Video selection is not available
+
+Confirm that **Video** is selected as the content type and that the intended video files are available to FPP.
 
 ### Artwork is missing
 

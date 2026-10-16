@@ -37,8 +37,75 @@ $config = array(
         'url' => '',
         'message' => 'Scan the QR code with your phone to visit our page.',
     ],
-    'sequences' => array()
+    'theme' => [
+        'preset' => 'default',
+        'background' => '#111111',
+        'cardBackground' => '#222222',
+        'panelBackground' => '#252525',
+        'text' => '#ffffff',
+        'accent' => '#ffffff',
+        'accentText' => '#000000',
+    ],
+    'sequences' => array(),
 );
+
+$themePresets = [
+    'default' => [
+        'name' => 'Default Dark',
+        'background' => '#111111',
+        'cardBackground' => '#222222',
+        'text' => '#ffffff',
+        'accent' => '#ffffff',
+        'accentText' => '#000000'
+    ],
+
+    'christmas' => [
+        'name' => 'Christmas',
+        'background' => '#10251a',
+        'cardBackground' => '#214331',
+        'text' => '#ffffff',
+        'accent' => '#e53935',
+        'accentText' => '#ffffff'
+    ],
+
+    'ocean' => [
+        'name' => 'Ocean Blue',
+        'background' => '#0b192c',
+        'cardBackground' => '#193653',
+        'text' => '#ffffff',
+        'accent' => '#38bdf8',
+        'accentText' => '#000000'
+    ],
+
+    'purple' => [
+        'name' => 'Purple',
+        'background' => '#1e1429',
+        'cardBackground' => '#39264a',
+        'text' => '#ffffff',
+        'accent' => '#c084fc',
+        'accentText' => '#000000'
+    ],
+    'halloween' => [
+        'name' => 'Halloween',
+        'background' => '#160D20',
+        'cardBackground' => '#2D193D',
+        'text' => '#FFFFFF',
+        'accent' => '#FF7518',
+        'accentText' => '#000000'
+    ],
+];
+
+function validateThemeColour($value, $default)
+{
+    if (
+        is_string($value) &&
+        preg_match('/^#[0-9a-fA-F]{6}$/', $value)
+    ) {
+        return strtolower($value);
+    }
+
+    return $default;
+}
 
 if (file_exists($configFile)) {
 
@@ -141,6 +208,95 @@ if (
         );
     }
 
+    // Theme configuration //
+    // Selected theme preset
+    $selectedPreset = $_POST['themePreset'] ?? 'default';
+
+    // Available presets
+    $allowedPresets = array(
+        'default',
+        'christmas',
+        'halloween',
+        'ocean',
+        'purple',
+        'custom'
+    );
+
+    if (
+        !is_string($selectedPreset) ||
+        !in_array($selectedPreset, $allowedPresets, true)
+    ) {
+        $selectedPreset = 'default';
+    }
+
+    // Default custom colours
+    $defaultThemeColours = array(
+        'background' => '#111111',
+        'cardBackground' => '#222222',
+        'text' => '#ffffff',
+        'accent' => '#ffffff',
+        'accentText' => '#000000'
+    );
+
+    // Preserve existing custom colours.
+    $existingTheme = $config['theme'] ?? array();
+
+    if (!is_array($existingTheme)) {
+        $existingTheme = array();
+    }
+
+    // Read submitted custom colours.
+    $submittedTheme = $_POST['theme'] ?? array();
+
+    if (!is_array($submittedTheme)) {
+        $submittedTheme = array();
+    }
+
+    $themeColours = array();
+
+    foreach ($defaultThemeColours as $key => $defaultColour) {
+        // Previous saved colour, or default
+        $previousColour = $existingTheme[$key] ?? $defaultColour;
+
+        if (
+            !is_string($previousColour) ||
+            !preg_match('/^#[0-9a-fA-F]{6}$/', $previousColour)
+        ) {
+            $previousColour = $defaultColour;
+        }
+
+        // New submitted colour
+        $colour = $submittedTheme[$key] ?? $previousColour;
+
+        if (
+            !is_string($colour) ||
+            !preg_match('/^#[0-9a-fA-F]{6}$/', $colour)
+        ) {
+            $colour = $previousColour;
+        }
+
+        $themeColours[$key] = strtolower($colour);
+    }
+
+    // Build nested theme configuration.
+    $themeConfig = array_merge(
+        array(
+            'preset' => $selectedPreset
+        ),
+        $themeColours
+    );
+
+    $qrcodeConfig = array(
+        'enabled' => isset($_POST['qrEnabled']),
+        'buttonText' => trim($_POST['qrButtonText'] ?? 'Support Our Charity'),
+        'title' => trim($_POST['qrTitle'] ?? 'Support Our Charity'),
+        'url' => trim($_POST['qrUrl'] ?? ''),
+        'message' => trim(
+            $_POST['qrMessage']
+                ?? 'Scan the QR code with your phone to visit our page.'
+        )
+    );
+
     $newConfig = array(
         'enabled' => isset($_POST['enabled']),
         'title' => trim(
@@ -170,29 +326,8 @@ if (
         )
             ? $_POST['clockFormat']
             : '24',
-        'qrcode' => [
-            'enabled' => isset($_POST['qrEnabled']),
-            'buttonText' =>
-            trim(
-                $_POST['qrButtonText']
-                    ?? 'Support Our Charity'
-            ),
-            'title' =>
-            trim(
-                $_POST['qrTitle']
-                    ?? 'Support Our Charity'
-            ),
-            'url' =>
-            trim(
-                $_POST['qrUrl']
-                    ?? ''
-            ),
-            'message' =>
-            trim(
-                $_POST['qrMessage']
-                    ?? 'Scan the QR code with your phone to visit our page.'
-            ),
-        ],
+        'qrcode' => $qrcodeConfig,
+        'theme' => $themeConfig,
         'sequences' => array()
     );
 
@@ -594,6 +729,82 @@ usort(
             width: 100%;
         }
     }
+
+    .theme-preview {
+        --preview-background: #111111;
+        --preview-card: #222222;
+        --preview-text: #ffffff;
+        --preview-accent: #ffffff;
+        --preview-accent-text: #000000;
+
+        background: var(--preview-background);
+        color: var(--preview-text);
+
+        padding: 25px;
+        border-radius: 15px;
+        max-width: 600px;
+
+        transition: background 0.2s ease;
+    }
+
+    .theme-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+    }
+
+    .theme-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .theme-preview-card {
+        min-height: 85px;
+        padding: 15px;
+        display: flex;
+        align-items: flex-end;
+
+        background: var(--preview-card);
+        color: var(--preview-text);
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .theme-preview-panel {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+
+        background: color-mix(in srgb,
+                var(--preview-card) 35%,
+                transparent);
+    }
+
+    .theme-preview-indicator {
+        width: 10px;
+        height: 10px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: var(--preview-accent);
+    }
+
+    .theme-preview-button {
+        padding: 12px 20px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 700;
+
+        background: var(--preview-accent);
+        color: var(--preview-accent-text);
+    }
 </style>
 
 <div class="container-fluid">
@@ -631,7 +842,7 @@ usort(
     </p>
 
     <p>
-        Quick Jumps: <a href="#current-queue">Current Queue</a> - <a href="#statistics">Statistics</a>
+        Quick Jumps: <a href="#theme">Theme</a> - <a href="#current-queue">Current Queue</a> - <a href="#statistics">Statistics</a>
     </p>
 
     <p>
@@ -993,6 +1204,7 @@ usort(
                     </div>
                 </div>
 
+                <!-- Clock format -->
                 <div class="form-group">
                     <label for="clockFormat">
                         Clock Format
@@ -1118,6 +1330,139 @@ usort(
                                     $config['qrcode']['message']
                                         ?? 'Scan the QR code with your phone to visit our page.'
                                 ) ?>">
+                </div>
+            </div>
+        </div>
+
+        <div id="theme" class="card mb-3">
+            <div class="card-header">
+                Theme
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="themePreset">Jukebox Theme</label>
+
+                            <select
+                                name="themePreset"
+                                id="themePreset"
+                                class="form-control">
+                                <?php foreach ($themePresets as $key => $theme): ?>
+                                    <option
+                                        value="<?= htmlspecialchars($key) ?>"
+                                        <?= ($config['theme']['preset'] ?? 'default') === $key
+                                            ? 'selected'
+                                            : '' ?>>
+                                        <?= htmlspecialchars($theme['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+
+                                <option
+                                    value="custom"
+                                    <?= ($config['theme']['preset'] ?? 'default') === 'custom'
+                                        ? 'selected'
+                                        : '' ?>>
+                                    Custom Colours
+                                </option>
+                            </select>
+
+                            <small class="form-text text-muted">
+                                Choose a preset theme or customise the jukebox colours.
+                            </small>
+                        </div>
+
+                        <div
+                            id="customThemeColours"
+                            style="<?= ($config['theme']['preset'] ?? 'default') === 'custom'
+                                        ? ''
+                                        : 'display: none;' ?>">
+                            <h4>Custom Theme Colours</h4>
+
+                            <?php
+                            $themeColourFields = [
+                                'background' => 'Background Colour',
+                                'cardBackground' => 'Card Background',
+                                'text' => 'Text Colour',
+                                'accent' => 'Accent Colour',
+                                'accentText' => 'Accent Text Colour',
+                            ];
+                            ?>
+
+                            <?php foreach ($themeColourFields as $key => $label): ?>
+
+                                <div class="form-group">
+                                    <label for="theme_<?= $key ?>">
+                                        <?= htmlspecialchars($label) ?>
+                                    </label>
+
+                                    <input
+                                        type="color"
+                                        class="form-control"
+                                        id="theme_<?= $key ?>"
+                                        name="theme[<?= $key ?>]"
+                                        value="<?= htmlspecialchars(
+                                                    $config['theme'][$key] ?? '#ffffff',
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>"
+                                        style="width: 100px; height: 45px; padding: 5px; border: 1px solid black;">
+                                </div>
+
+                            <?php endforeach; ?>
+
+                            <div class="form-group mt-3">
+                                <button
+                                    type="button"
+                                    id="resetCustomThemeColours"
+                                    class="btn btn-secondary">
+                                    Reset Custom Colours
+                                </button>
+
+                                <small class="form-text text-muted">
+                                    Restore the default colours.
+                                    Changes are only saved when you click Save Settings.
+                                </small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Theme Preview</label>
+
+                            <div id="themePreview" class="theme-preview">
+
+                                <div class="theme-preview-header">
+                                    <strong>Jukebox</strong>
+                                    <span>14:35</span>
+                                </div>
+
+                                <div class="theme-preview-grid">
+                                    <div class="theme-preview-card">Song One</div>
+                                    <div class="theme-preview-card">Song Two</div>
+                                    <div class="theme-preview-card">Song Three</div>
+                                    <div class="theme-preview-card">Song Four</div>
+                                </div>
+
+                                <div class="theme-preview-panel">
+                                    <span class="theme-preview-indicator"></span>
+                                    <span>Now Playing: Song One</span>
+                                </div>
+
+                                <div class="theme-preview-button">
+                                    Select Song
+                                </div>
+
+                            </div>
+
+                            <small class="form-text text-muted">
+                                Preview updates automatically. Save settings to apply
+                                the theme to the jukebox.
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2453,4 +2798,172 @@ usort(
                 );
         }
     );
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const themePreset = document.getElementById('themePreset');
+        const customThemeColours = document.getElementById('customThemeColours');
+
+        if (!themePreset || !customThemeColours) {
+            return;
+        }
+
+        function updateThemeColourVisibility() {
+
+            customThemeColours.style.display =
+                themePreset.value === 'custom' ?
+                'block' :
+                'none';
+        }
+
+        themePreset.addEventListener('change', updateThemeColourVisibility);
+
+        updateThemeColourVisibility();
+
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const themePreset = document.getElementById('themePreset');
+        const themePreview = document.getElementById('themePreview');
+
+        if (!themePreset || !themePreview) {
+            return;
+        }
+
+        const themePresets = <?= json_encode(
+                                    $themePresets,
+                                    JSON_HEX_TAG |
+                                        JSON_HEX_AMP |
+                                        JSON_HEX_APOS |
+                                        JSON_HEX_QUOT
+                                ) ?>;
+
+        const colourFields = [
+            'background',
+            'cardBackground',
+            'text',
+            'accent',
+            'accentText'
+        ];
+
+        const cssVariables = {
+            background: '--preview-background',
+            cardBackground: '--preview-card',
+            text: '--preview-text',
+            accent: '--preview-accent',
+            accentText: '--preview-accent-text'
+        };
+
+        function getCustomThemeColours() {
+
+            const colours = {};
+
+            colourFields.forEach(function(field) {
+
+                const input = document.getElementById(
+                    'theme_' + field
+                );
+
+                if (input) {
+                    colours[field] = input.value;
+                }
+
+            });
+
+            return colours;
+        }
+
+        function updateThemePreview() {
+
+            const selectedPreset = themePreset.value;
+
+            let colours;
+
+            if (selectedPreset === 'custom') {
+                colours = getCustomThemeColours();
+            } else {
+                colours = themePresets[selectedPreset] ||
+                    themePresets.default;
+            }
+
+            Object.entries(cssVariables).forEach(function([key, variable]) {
+
+                if (colours[key]) {
+                    themePreview.style.setProperty(
+                        variable,
+                        colours[key]
+                    );
+                }
+
+            });
+        }
+
+        // Update when the preset changes
+        themePreset.addEventListener(
+            'change',
+            updateThemePreview
+        );
+
+        // Update when a custom colour changes
+        colourFields.forEach(function(field) {
+
+            const input = document.getElementById(
+                'theme_' + field
+            );
+
+            if (input) {
+                input.addEventListener(
+                    'input',
+                    updateThemePreview
+                );
+            }
+
+        });
+
+        // Apply the current saved theme on page load
+        updateThemePreview();
+
+        const resetCustomThemeColours = document.getElementById(
+            'resetCustomThemeColours'
+        );
+
+        function resetThemeColours() {
+            const defaultColours = themePresets.default;
+
+            colourFields.forEach(function(field) {
+
+                const input = document.getElementById(
+                    'theme_' + field
+                );
+
+                if (input && defaultColours[field]) {
+                    input.value = defaultColours[field];
+                }
+
+            });
+
+            // Switch to custom colours if needed
+            themePreset.value = 'custom';
+
+            // Trigger the existing preset change handler
+            // to show the custom colour pickers
+            themePreset.dispatchEvent(
+                new Event('change')
+            );
+
+            // Refresh the live preview
+            updateThemePreview();
+        }
+
+        if (resetCustomThemeColours) {
+            resetCustomThemeColours.addEventListener(
+                'click',
+                resetThemeColours
+            );
+        }
+
+    });
 </script>

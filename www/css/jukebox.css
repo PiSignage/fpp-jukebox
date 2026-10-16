@@ -3,10 +3,18 @@
    ========================================================================== */
 
 :root {
-    --jukebox-background: #111;
-    --jukebox-card-background: #222;
-    --jukebox-text: #fff;
+    --jukebox-background: #111111;
+    --jukebox-card-background: #222222;
+    --jukebox-panel-background: color-mix(in srgb,
+            var(--jukebox-card-background) 35%,
+            transparent);
+
+    --jukebox-text: #ffffff;
     --jukebox-muted: rgba(255, 255, 255, 0.7);
+
+    --jukebox-accent: #ffffff;
+    --jukebox-accent-text: #000000;
+
     --jukebox-overlay: rgba(0, 0, 0, 0.65);
     --jukebox-error: #dc3545;
 
@@ -354,13 +362,9 @@ body {
 .jukebox-spinner {
     width: 70px;
     height: 70px;
-
     border: 6px solid rgba(255, 255, 255, 0.2);
-
-    border-top-color: #fff;
-
+    border-top-color: var(--jukebox-accent);
     border-radius: 50%;
-
     animation: jukebox-spin 0.8s linear infinite;
 }
 
@@ -643,7 +647,7 @@ body {
     padding: 12px 15px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--jukebox-panel-background);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     animation: nowPlayingIn 0.45s ease-out;
 }
@@ -692,7 +696,7 @@ body {
     height: 8px;
     flex: 0 0 8px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--jukebox-accent);
     animation: nowPlayingPulse 1.5s ease-in-out infinite;
 }
 
@@ -891,7 +895,7 @@ body {
     /* max-width: 900px; */
     /* margin: 20px auto 25px; */
     padding: 18px 20px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--jukebox-panel-background);
     border-radius: 16px;
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -968,7 +972,7 @@ body {
     padding: 10px 14px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--jukebox-panel-background);
     color: var(--jukebox-text);
     font-size: 0.9rem;
     font-weight: 600;
@@ -990,8 +994,8 @@ body {
     max-width: 700px;
     padding: 15px 20px;
     border-radius: 10px;
-    background: #ffffff;
-    color: #000000;
+    background: var(--jukebox-accent);
+    color: var(--jukebox-accent-text);
     font-size: 1rem;
     text-align: center;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
@@ -1049,7 +1053,7 @@ body {
     height: 42px;
     margin-bottom: 18px;
     border: 4px solid rgba(255, 255, 255, 0.2);
-    border-top-color: #fff;
+    border-top-color: var(--jukebox-accent);
     border-radius: 50%;
     animation: jukeboxLoadingSpin 0.8s linear infinite;
 }
@@ -1098,7 +1102,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 16px;
 
-    background: rgba(20, 20, 20, 0.9);
+    background: var(--jukebox-card-background);
     color: var(--jukebox-text);
 
     box-shadow:
@@ -1157,7 +1161,7 @@ body {
     padding: 30px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
-    background: #1b1b1b;
+    background: var(--jukebox-card-background);
     color: var(--jukebox-text);
     text-align: center;
     box-shadow:
@@ -1201,8 +1205,8 @@ body {
     padding: 14px 20px;
     border: 0;
     border-radius: 12px;
-    background: #fff;
-    color: #000;
+    background: var(--jukebox-accent);
+    color: var(--jukebox-accent-text);
     font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
@@ -1224,7 +1228,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 9000;
-    background: #111;
+    background: var(--jukebox-background);
     color: var(--jukebox-text);
     cursor: pointer;
 }
@@ -1266,7 +1270,7 @@ body {
 .jukebox-attract-touch {
     margin-top: 25px;
     padding: 16px 35px;
-    border: 2px solid rgba(255, 255, 255, 0.35);
+    border: 2px solid var(--jukebox-accent);
     border-radius: 50px;
     font-size: 1.2rem;
     font-weight: 600;
@@ -1313,7 +1317,7 @@ body {
     padding: 8px 14px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
-    background: rgba(20, 20, 20, 0.8);
+    background: var(--jukebox-card-background);
     color: var(--jukebox-text);
     font-size: 1.2rem;
     font-weight: 600;
