@@ -30,6 +30,7 @@ $config = array(
     'backgroundType' => "sequence",
     'backgroundSequence' => "",
     'clockFormat' => "24",
+    'showSongProgress' => true,
     'qrcode' => [
         'enabled' => false,
         'buttonText' => 'Support Our Charity',
@@ -326,6 +327,7 @@ if (
         )
             ? $_POST['clockFormat']
             : '24',
+        'showSongProgress' => isset($_POST['showSongProgress']),
         'qrcode' => $qrcodeConfig,
         'theme' => $themeConfig,
         'sequences' => array()
@@ -1232,6 +1234,27 @@ usort(
                         </option>
 
                     </select>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input
+                            class="form-check-input mr-2"
+                            type="checkbox"
+                            name="showSongProgress"
+                            id="showSongProgress"
+                            <?= !empty($config['showSongProgress']) ? 'checked' : '' ?>>
+
+                        <label
+                            class="form-check-label"
+                            for="showSongProgress">
+                            Show Song Progress
+                        </label>
+                    </div>
+
+                    <div class="form-text">
+                        Show progress bar and elapsed/total time.
+                    </div>
                 </div>
             </div>
         </div>

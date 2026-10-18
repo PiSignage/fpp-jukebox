@@ -1477,3 +1477,36 @@ body:has(#attractScreen.is-open) .jukebox-clock {
         font-size: 1.4rem;
     }
 }
+
+/* Song Progress */
+.jukebox-song-progress {
+    width: 100%;
+    margin-top: 13px;
+}
+
+.jukebox-song-progress-times {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--jukebox-text);
+    opacity: 0.85;
+    font-variant-numeric: tabular-nums;
+}
+
+.jukebox-song-progress-track {
+    width: 100%;
+    height: 7px;
+    background: rgba(128, 128, 128, 0.25);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.jukebox-song-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: var(--jukebox-accent);
+    border-radius: inherit;
+    transition: width 0.3s linear;
+}

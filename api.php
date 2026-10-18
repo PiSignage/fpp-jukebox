@@ -117,6 +117,27 @@ function jukeboxDefaultConfig()
         'queueLimit' => 5,
         'allowDuplicateQueueSongs' => false,
         'backgroundSequence' => '',
+        "contentType" => "sequence",
+        "backgroundType" => "sequence",
+        "backgroundSequence" => "",
+        "clockFormat" => "24",
+        "showSongProgress" => true,
+        "qrcode" => [
+            "enabled" => false,
+            "buttonText" => "Support Our Charity",
+            "title" => "Support Our Charity",
+            "url" => "",
+            "message" => "Scan the QR code with your phone to visit our page.",
+        ],
+        "theme" => [
+            "preset" => "default",
+            "background" => "#111111",
+            "cardBackground" => "#222222",
+            "panelBackground" => "#252525",
+            "text" => "#ffffff",
+            "accent" => "#ffffff",
+            "accentText" => "#000000",
+        ],
         'sequences' => array()
     );
 }
@@ -635,6 +656,9 @@ function jukeboxGetStatus()
     $statusName = 'idle';
     $playlist = null;
 
+    $millisecondsElapsed = null;
+    $secondsRemaining = null;
+
     if ($response !== false) {
 
         $status = json_decode(
@@ -643,11 +667,23 @@ function jukeboxGetStatus()
         );
 
         if (is_array($status)) {
-
             if (isset($status['status_name'])) {
                 $statusName = $status['status_name'];
                 $playing = $statusName !== 'idle';
                 $playlist = $status['current_playlist']['playlist'];
+            }
+
+            // Playback timing
+            if ($statusName === 'playing') {
+                if (isset($status['milliseconds_elapsed'])) {
+                    $millisecondsElapsed =
+                        (int) $status['milliseconds_elapsed'];
+                }
+
+                if (isset($status['seconds_remaining'])) {
+                    $secondsRemaining =
+                        (int) $status['seconds_remaining'];
+                }
             }
         }
     }
@@ -661,7 +697,9 @@ function jukeboxGetStatus()
         'statusName' => $statusName,
         'playlist' => $playlist,
         // 'fppStatus' => $status,
-        'lockoutSeconds' => (int)$config['lockoutSeconds']
+        'milliseconds_elapsed' => $millisecondsElapsed,
+        'seconds_remaining' => $secondsRemaining,
+        'lockoutSeconds' => (int)$config['lockoutSeconds'],
     ));
 }
 

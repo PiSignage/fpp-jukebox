@@ -40,6 +40,7 @@ let selectionAttractTimer = null;
 let selectionAutoScrolling = false;
 
 let clockFormat = '24';
+let showSongProgress = false;
 
 let popularBadgeTimer = null;
 const POPULAR_BADGE_REFRESH_INTERVAL = 30000;
@@ -129,6 +130,8 @@ async function loadConfiguration() {
         data.config.clockFormat === '12'
             ? '12'
             : '24';
+    showSongProgress =
+        data.config.showSongProgress === true;
     updateJukeboxClock();
     applyJukeboxTheme(data.config.theme);
 
@@ -586,6 +589,7 @@ async function checkPlaybackStatus() {
                 playbackStartTime = null;
 
                 updateSelectionNowPlaying();
+                updateSongProgress(data);
 
                 return;
             }
@@ -691,6 +695,7 @@ async function checkPlaybackStatus() {
 
         // Our jukebox song is still playing.
         updateSelectionNowPlaying();
+        updateSongProgress(data);
     } catch (error) {
         statusFailureCount++;
 
@@ -748,6 +753,7 @@ async function handlePlaybackFinished() {
 
     playbackStarted = false;
     playbackStartTime = null;
+    updateSongProgress(null);
 
     // If queueing is enabled, try to start
     // the next queued sequence.
@@ -2958,4 +2964,57 @@ function initialiseQueueModal() {
     closeButton.addEventListener('click', closeQueueModal);
 
     backdrop.addEventListener('click', closeQueueModal);
+}
+
+function updateSongProgress(status) {
+    const container = document.getElementById('selectionSongProgress');
+    const elapsedElement = document.getElementById('selectionSongElapsed');
+    const durationElement = document.getElementById('selectionSongDuration');
+    const progressBar = document.getElementById('selectionSongProgressBar');
+
+    if (!container || !elapsedElement || !durationElement || !progressBar) {
+        return;
+    }
+
+    const enabled = showSongProgress;
+
+    if (
+        !enabled ||
+        !playbackStarted ||
+        !currentSequence ||
+        !status ||
+        !status.playing ||
+        status.statusName !== 'playing' ||
+        status.playlist !== currentPlaylist
+    ) {
+        container.classList.add('d-none');
+        return;
+    }
+
+    const elapsed = Number(status.milliseconds_elapsed) / 1000;
+    const remaining = Number(status.seconds_remaining);
+    const duration = elapsed + remaining;
+
+    if (!Number.isFinite(elapsed) ||
+        !Number.isFinite(remaining) ||
+        duration <= 0) {
+        container.classList.add('d-none');
+        return;
+    }
+
+    const formatTime = (seconds) => {
+        const total = Math.max(0, Math.floor(seconds));
+        const minutes = Math.floor(total / 60);
+        const secs = total % 60;
+
+        return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    };
+
+    elapsedElement.textContent = formatTime(elapsed);
+    durationElement.textContent = formatTime(duration);
+
+    const percentage = Math.min(100, Math.max(0, (elapsed / duration) * 100));
+
+    progressBar.style.width = `${percentage}%`;
+    container.classList.remove('d-none');
 }

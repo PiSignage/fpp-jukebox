@@ -88,6 +88,20 @@
                         id="selectionNowPlayingTitle"
                         class="selection-now-playing-title">
                     </div>
+
+                    <div id="selectionSongProgress" class="jukebox-song-progress d-none">
+                        <div class="jukebox-song-progress-times">
+                            <span id="selectionSongElapsed">00:00</span>
+                            <span id="selectionSongDuration">00:00</span>
+                        </div>
+
+                        <div class="jukebox-song-progress-track">
+                            <div
+                                id="selectionSongProgressBar"
+                                class="jukebox-song-progress-bar">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
