@@ -14,21 +14,25 @@
 
     <link
         rel="stylesheet"
-        href="/plugin.php?plugin=fpp-jukebox&file=www/css/jukebox.css&nopage=1">
+        href="/plugin.php?plugin=fpp-jukebox&file=www/css/jukebox.css&nopage=1&v=<?= filemtime(__DIR__ . '/js/jukebox.js') ?>">
 
     <style>
         .selection-status {
             position: sticky;
-            top: 0;
+            top: -15px;
             z-index: 100;
-            background:
-                var(--jukebox-background);
-            padding-top: 10px;
-            padding-bottom: 10px;
-
+            background: var(--jukebox-background);
+            /* padding-top: 10px;
+            padding-bottom: 10px; */
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin: 0px -20px;
+            padding: 10px 20px;
+        }
+
+        .selection-status:not( :has(#selectionNowPlaying:not([style*="display: none"]))):not( :has(#selectionQueue:not(.d-none))) {
+            display: none;
         }
     </style>
 
@@ -36,11 +40,6 @@
 
 
 <body>
-    <!-- Jukebox Clock -->
-    <div id="jukeboxClock" class="jukebox-clock">
-        --:--
-    </div>
-
     <div
         id="jukeboxError"
         class="jukebox-error d-none"></div>
@@ -53,6 +52,11 @@
     <section
         id="selectionScreen"
         class="jukebox-screen active">
+
+        <!-- Jukebox Clock -->
+        <div id="jukeboxClock" class="jukebox-clock">
+            --:--
+        </div>
 
         <div class="jukebox-title" id="jukeboxTitle">
             Jukebox
@@ -87,29 +91,25 @@
                 </div>
             </div>
 
-            <div
-                id="selectionQueue"
-                class="selection-queue d-none">
-                <div class="selection-queue-header">
-                    <span>Queue</span>
+            <!-- Queue Button -->
+            <div id="selectionQueue" class="d-none">
+
+                <button
+                    type="button"
+                    id="queueViewButton"
+                    class="jukebox-queue-view-button">
+
+                    <span class="jukebox-queue-view-label">
+                        ♪ View Song Queue
+                    </span>
 
                     <span
                         id="selectionQueueCount"
                         class="selection-queue-count">
                         0 / 5
                     </span>
-                </div>
 
-                <div
-                    id="selectionQueueList"
-                    class="selection-queue-list">
-                </div>
-
-                <div
-                    id="selectionQueueFull"
-                    class="selection-queue-full d-none">
-                    Queue Full — please wait for a next song to start.
-                </div>
+                </button>
 
             </div>
         </div>
@@ -352,6 +352,47 @@
         </div>
     </template>
 
+    <!-- Queue Modal -->
+    <div
+        id="queueModal"
+        class="jukebox-queue-modal"
+        aria-hidden="true">
+
+        <div class="jukebox-queue-modal-backdrop"></div>
+
+        <div
+            class="jukebox-queue-modal-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="queueModalTitle">
+            <div class="jukebox-queue-modal-content">
+                <h2
+                    id="queueModalTitle"
+                    class="jukebox-queue-modal-title">
+                    Upcoming Songs
+                </h2>
+
+                <div
+                    id="selectionQueueList"
+                    class="selection-queue-list">
+                </div>
+
+                <div
+                    id="selectionQueueFull"
+                    class="selection-queue-full d-none">
+                    Queue Full — please wait for the next song to start.
+                </div>
+
+                <button
+                    type="button"
+                    id="queueModalClose"
+                    class="jukebox-queue-modal-close">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- QR Code Modal -->
     <div
         id="qrModal"
@@ -396,7 +437,7 @@
 
     <script src="/plugin.php?plugin=fpp-jukebox&file=www/js/qrcode.min.js&nopage=1"></script>
     <script
-        src="/plugin.php?plugin=fpp-jukebox&file=www/js/jukebox.js&nopage=1"></script>
+        src="/plugin.php?plugin=fpp-jukebox&file=www/js/jukebox.js&nopage=1&v=<?= filemtime(__DIR__ . '/js/jukebox.js') ?>"></script>
 
 </body>
 

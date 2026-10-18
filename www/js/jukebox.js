@@ -67,6 +67,8 @@ async function initialise() {
         startAvailabilityMonitor();
         // Start monitoring the Most Popular badge
         startPopularBadgeMonitor();
+
+        initialiseQueueModal();
     } catch (error) {
         console.error(
             'Jukebox initialisation failed:',
@@ -1097,12 +1099,9 @@ function showScreen(id) {
             }
         );
 
-    if (
-        id !== 'selectionScreen'
-    ) {
-        clearInterval(
-            queueTimer
-        );
+    if (id !== 'selectionScreen') {
+        clearInterval(queueTimer);
+        closeQueueModal();
     }
 
     const screen =
@@ -1114,6 +1113,9 @@ function showScreen(id) {
         screen.classList.add(
             'active'
         );
+
+        // Move the clock into the active screen
+        moveJukeboxClock(screen);
     }
 }
 
@@ -2896,4 +2898,56 @@ function startPopularBadgeMonitor() {
         refreshMostPopularBadge,
         POPULAR_BADGE_REFRESH_INTERVAL
     );
+}
+
+function moveJukeboxClock(screen) {
+    const clock = document.getElementById("jukeboxClock");
+
+    if (!clock || !screen) {
+        return;
+    }
+
+    // Move the existing clock into the active screen
+    if (clock.parentElement !== screen) {
+        screen.prepend(clock);
+    }
+}
+
+function openQueueModal() {
+    const modal = document.getElementById('queueModal');
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeQueueModal() {
+    const modal = document.getElementById('queueModal');
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function initialiseQueueModal() {
+    const modal = document.getElementById('queueModal');
+    const openButton = document.getElementById('queueViewButton');
+    const closeButton = document.getElementById('queueModalClose');
+    const backdrop = modal?.querySelector('.jukebox-queue-modal-backdrop');
+
+    if (!modal || !openButton || !closeButton || !backdrop) {
+        return;
+    }
+
+    openButton.addEventListener('click', openQueueModal);
+
+    closeButton.addEventListener('click', closeQueueModal);
+
+    backdrop.addEventListener('click', closeQueueModal);
 }

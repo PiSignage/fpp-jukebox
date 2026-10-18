@@ -510,6 +510,10 @@ body {
         padding: 20px;
     }
 
+    .selection-status {
+        margin: 0px -20px;
+    }
+
 
     .jukebox-grid {
         grid-template-columns: repeat(2,
@@ -532,6 +536,10 @@ body {
 
     #selectionScreen {
         padding: 15px;
+    }
+
+    .selection-status {
+        margin: 0px -15px;
     }
 
 
@@ -578,6 +586,10 @@ body {
         padding: 10px;
     }
 
+    .selection-status {
+        margin: 0px -10px;
+    }
+
 
     .jukebox-grid {
         gap: 10px;
@@ -605,6 +617,10 @@ body {
     #selectionScreen,
     #disabledScreen {
         padding: 15px 20px;
+    }
+
+    .selection-status {
+        margin: 0px -20px;
     }
 
 
@@ -999,7 +1015,6 @@ body {
 }
 
 .selection-queue-full {
-    margin-top: 10px;
     padding: 10px 14px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
@@ -1159,22 +1174,23 @@ body {
     line-height: 1;
 }
 
-.jukebox-qr-modal {
+.jukebox-qr-modal,
+.jukebox-queue-modal {
     position: fixed;
     inset: 0;
-
     display: none;
     align-items: center;
     justify-content: center;
-
     z-index: 10000;
 }
 
-.jukebox-qr-modal.is-open {
+.jukebox-qr-modal.is-open,
+.jukebox-queue-modal.is-open {
     display: flex;
 }
 
-.jukebox-qr-modal-backdrop {
+.jukebox-qr-modal-backdrop,
+.jukebox-queue-modal-backdrop {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.75);
@@ -1199,10 +1215,16 @@ body {
         0 15px 50px rgba(0, 0, 0, 0.6);
 }
 
-.jukebox-qr-modal-title {
+.jukebox-qr-modal-title,
+.jukebox-queue-modal-title {
     margin: 0 0 20px;
     font-size: 2rem;
     font-weight: 700;
+}
+
+.jukebox-queue-modal-title {
+    margin-bottom: 0px;
+    text-align: center;
 }
 
 .jukebox-qr-code {
@@ -1231,7 +1253,8 @@ body {
     opacity: 0.8;
 }
 
-.jukebox-qr-modal-close {
+.jukebox-qr-modal-close,
+.jukebox-queue-modal-close {
     width: 100%;
     padding: 14px 20px;
     border: 0;
@@ -1243,7 +1266,8 @@ body {
     cursor: pointer;
 }
 
-.jukebox-qr-modal-close:active {
+.jukebox-qr-modal-close:active,
+.jukebox-queue-modal-close:active {
     transform: scale(0.98);
 }
 
@@ -1341,7 +1365,7 @@ body {
  */
 
 .jukebox-clock {
-    position: fixed;
+    position: absolute;
     top: 15px;
     left: 20px;
     z-index: 8000;
@@ -1362,4 +1386,94 @@ body {
 body:has(#qrModal.is-open) .jukebox-clock,
 body:has(#attractScreen.is-open) .jukebox-clock {
     display: none;
+}
+
+/* ==========================================================================
+   Queue View Button
+   ========================================================================== */
+
+#selectionQueue {
+    width: 100%;
+}
+
+.jukebox-queue-view-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 16px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    background: var(--jukebox-panel-background);
+    color: var(--jukebox-text);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease;
+}
+
+.jukebox-queue-view-button:active {
+    background: var(--jukebox-card-background);
+}
+
+.jukebox-queue-view-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.jukebox-queue-view-button .selection-queue-count {
+    flex-shrink: 0;
+    background: var(--jukebox-accent);
+    color: var(--jukebox-accent-text);
+}
+
+/* ==========================================================================
+   Queue Modal
+   ========================================================================== */
+.jukebox-queue-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 550px;
+    max-height: 90vh;
+}
+
+.jukebox-queue-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 90vh;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    background: var(--jukebox-card-background);
+    color: var(--jukebox-text);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+}
+
+.jukebox-queue-modal .selection-queue-list {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+@media (max-width: 600px) {
+    .jukebox-queue-view-button {
+        padding: 12px 15px;
+        font-size: 0.9rem;
+    }
+
+    .jukebox-queue-modal-content {
+        padding: 20px 15px;
+        gap: 15px;
+    }
+
+    .jukebox-qr-modal-title,
+    .jukebox-queue-modal-title {
+        font-size: 1.4rem;
+    }
 }
