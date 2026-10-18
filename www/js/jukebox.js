@@ -44,6 +44,8 @@ let clockFormat = '24';
 let popularBadgeTimer = null;
 const POPULAR_BADGE_REFRESH_INTERVAL = 30000;
 
+let attractSelectionLockedUntil = 0;
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -266,6 +268,10 @@ function renderSequences(sequences) {
             button.addEventListener(
                 'click',
                 function () {
+                    if (Date.now() < attractSelectionLockedUntil) {
+                        return;
+                    }
+
                     playSequence(
                         sequence
                     );
@@ -2648,6 +2654,8 @@ function hideAttractScreen() {
     if (!attractScreen) {
         return;
     }
+
+    attractSelectionLockedUntil = Date.now() + 500;
 
     attractScreen.classList.remove(
         'is-open'
