@@ -2,7 +2,7 @@
     "repoName": "fpp-jukebox",
     "name": "Jukebox",
     "author": "Michael Jones",
-    "description": "A touchscreen jukebox for FPP allowing guests to select individual sequences.",
+    "description": "Interactive touchscreen jukebox for FPP, featuring guest song selection, optional queueing, custom themes, scheduled availability, background playback integration, QR codes, and play statistics.",
     "homeURL": "https://github.com/PiSignage/fpp-jukebox",
     "srcURL": "https://github.com/PiSignage/fpp-jukebox.git",
     "bugURL": "https://github.com/PiSignage/fpp-jukebox/issues",
@@ -30,7 +30,7 @@
         }
     ],
     "privacy": {
-        "summary": "Nothing leaves the device. No registration, no license server.",
+        "summary": "The plugin operates locally without registration or a license server. Optional QR codes may direct guests to external websites.",
         "sends": [],
         "collects": [],
         "sensors": [],

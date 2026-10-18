@@ -29,10 +29,12 @@ The plugin is designed for interactive displays such as Christmas light shows, e
 - Automatic return to background playback
 - Optional song queue with configurable limit
 - Optional duplicate songs in the queue
-- Queue position and status shown on the touchscreen
+- Compact queue button showing the queue count, with a modal for upcoming songs
 - Admin queue management
 - Automatic queue clearing when the jukebox becomes unavailable
-- Per-sequence play statistics
+- Per-sequence and daily play statistics
+- Statistics dashboard with today, yesterday, last 7 days, last 30 days and lifetime totals
+- Daily plays chart and most-played songs by period
 - Statistics reset
 - Live admin status page
 - Handling of temporary FPP/API communication failures
@@ -66,7 +68,7 @@ Guests can:
 - Select a sequence
 - See the currently playing jukebox song
 - See lockout information
-- See queued songs when the queue is enabled
+- Open the upcoming songs modal using the queue count button when songs are waiting
 - See when the queue is full
 - See when the jukebox is unavailable
 - See the on-screen clock (12-hour or 24-hour format)
@@ -81,10 +83,13 @@ The touchscreen includes inactivity features intended for unattended kiosks:
 
 - After approximately **60 seconds** without interaction, the song selection grid can begin scrolling automatically.
 - After approximately **120 seconds** without interaction, an attract screen is displayed.
-- Touching or otherwise interacting with the interface returns guests to the selection screen.
+- Touching or otherwise interacting with the attract screen returns guests to the selection screen.
+- A short selection lock prevents the touch used to dismiss the attract screen from accidentally selecting a song.
 - The QR code pop-up closes automatically after approximately **60 seconds** of inactivity.
 
 These durations describe the current touchscreen behaviour; they are not documented here as administrator-configurable settings.
+
+A brief (500 ms) song-selection lock is applied when the attract screen closes, preventing the dismissing touch from triggering a song beneath the overlay.
 
 ## Configuration
 
@@ -129,7 +134,7 @@ The touchscreen can display a clock in its top-left corner. Choose the format in
 - **24-hour** (default), such as `09:05` or `18:30`
 - **12-hour**, such as `09:05 AM` or `06:30 PM`
 
-The clock is hidden while the QR code pop-up or inactivity attract screen is displayed.
+The interface uses a single clock element that moves to the active jukebox screen. On the song selection screen, the clock scrolls away with the song list rather than covering song tiles. The clock is hidden while the QR code pop-up or inactivity attract screen is displayed.
 
 ## Themes and Appearance
 
@@ -155,7 +160,7 @@ The **Theme Preview** updates immediately when a preset or custom colour changes
 
 **Reset Custom Colours** restores the custom colour inputs to the Default Dark values and updates the preview. Neither preview changes nor resets affect the live jukebox until **Save Settings** is clicked.
 
-Panels such as Now Playing and Queue use semi-transparent backgrounds generated with CSS `color-mix()` from the card background colour. This keeps the panels coordinated with each theme without requiring a separate panel colour setting.
+Panels such as Now Playing and the Queue button use semi-transparent backgrounds generated with CSS `color-mix()` from the card background colour. This keeps the panels coordinated with each theme without requiring a separate panel colour setting.
 
 Themes are applied to the touchscreen when its configuration loads. Refresh the touchscreen after saving a different theme to see the updated appearance.
 
@@ -303,6 +308,12 @@ Song C
 Background Playlist resumes
 ```
 
+### Queue Button and Modal
+
+When songs are waiting, the selection screen shows a compact **View Song Queue** button with the current queue count and configured limit. Tapping it opens a modal listing upcoming songs in queue order. Guests can close the modal using the Close button or by tapping outside it.
+
+The button is hidden when there are no waiting songs. The queue list is read-only for guests; queue management remains available to administrators. The touchscreen continues refreshing the queue using its existing polling behaviour.
+
 ### Queue Limit
 
 A maximum queue length can be configured.
@@ -363,7 +374,16 @@ The plugin records play statistics for configured jukebox sequences.
 
 Plays are recorded when a song actually starts, including songs started from the queue.
 
-The administration interface can display these statistics and provides an option to reset them.
+The administration status page includes:
+
+- Plays today and yesterday
+- Plays over the last 7 and 30 days
+- Lifetime play count
+- Daily plays bar chart, switchable between 7 and 30 days
+- Most-played songs filtered by period
+- Most popular song today and yesterday, including tied first places
+
+Statistics refresh automatically while the admin status page is open. Daily history is recorded from the point at which daily tracking was introduced; older lifetime totals cannot be retroactively assigned to individual days. Administrators can reset the statistics.
 
 ## Admin Status
 
@@ -377,7 +397,7 @@ The plugin includes a live administration status page showing information such a
 - Jukebox playback
 - Queue information
 - Current/Now Playing information
-- Play statistics
+- Play statistics and daily history
 
 The status page understands both configured background types and distinguishes background playback from guest jukebox playback.
 
@@ -410,58 +430,7 @@ GET /fpp-playlists
 
 Returns playlists available from FPP.
 
-### QR Code Button
-
-An optional QR code button can be enabled on the touchscreen. This can be used to direct guests to a donation page, charity website, or another external link.
-
-The administrator can configure:
-
-- Whether the button is enabled
-- Button text
-- Pop-up title
-- Target URL encoded in the QR code
-- Supporting message shown with the code
-
-The pop-up includes a close control and closes automatically after a period of inactivity. A white QR code background is retained for readability and scanning reliability, regardless of the selected theme.
-
-## Clock
-
-The touchscreen can display a clock in its top-left corner. Choose the format in the administration settings:
-
-- **24-hour** (default), such as `09:05` or `18:30`
-- **12-hour**, such as `09:05 AM` or `06:30 PM`
-
-The clock is hidden while the QR code pop-up or inactivity attract screen is displayed.
-
-## Themes and Appearance
-
-The jukebox supports these built-in themes:
-
-- **Default Dark**
-- **Christmas**
-- **Halloween**
-- **Ocean Blue**
-- **Purple**
-
-Select a preset from the theme dropdown in the administration interface. Alternatively, select **Custom Colours** to configure:
-
-| Setting | Purpose |
-| --- | --- |
-| Background | Main touchscreen background |
-| Card Background | Song tiles and other card surfaces |
-| Text | General interface text |
-| Accent | Highlights, indicators, and accent controls |
-| Accent Text | Text displayed on accent-coloured controls |
-
-The **Theme Preview** updates immediately when a preset or custom colour changes. It shows a sample jukebox layout without changing the live touchscreen.
-
-**Reset Custom Colours** restores the custom colour inputs to the Default Dark values and updates the preview. Neither preview changes nor resets affect the live jukebox until **Save Settings** is clicked.
-
-Panels such as Now Playing and Queue use semi-transparent backgrounds generated with CSS `color-mix()` from the card background colour. This keeps the panels coordinated with each theme without requiring a separate panel colour setting.
-
-Themes are applied to the touchscreen when its configuration loads. Refresh the touchscreen after saving a different theme to see the updated appearance.
-
-## Artwork
+### Artwork
 
 ```text
 GET /artwork
@@ -485,18 +454,7 @@ POST /play
 
 Starts a selected jukebox sequence or adds it to the queue when appropriate.
 
-### Touchscreen Inactivity Behaviour
-
-The touchscreen includes inactivity features intended for unattended kiosks:
-
-- After approximately **60 seconds** without interaction, the song selection grid can begin scrolling automatically.
-- After approximately **120 seconds** without interaction, an attract screen is displayed.
-- Touching or otherwise interacting with the interface returns guests to the selection screen.
-- The QR code pop-up closes automatically after approximately **60 seconds** of inactivity.
-
-These durations describe the current touchscreen behaviour; they are not documented here as administrator-configurable settings.
-
-## Configuration
+### Configuration
 
 ```text
 GET /config
@@ -522,7 +480,7 @@ GET /statistics
 POST /statistics/reset
 ```
 
-Returns or resets jukebox play statistics.
+Returns or resets jukebox play statistics, including daily history, period totals, and per-song period counts.
 
 ## FPP Integration
 
@@ -613,6 +571,10 @@ Confirm that Background Type is set to `Playlist` and that the correct FPP playl
 
 Background playlist playback relies on FPP's `Insert Playlist Immediate` behaviour.
 
+### Queue button is not visible
+
+The queue button appears only when there are songs waiting. It is normal for the button to be hidden when the queue is empty.
+
 ### Queue does not advance
 
 Check the plugin status page and confirm that the current jukebox song has actually finished.
@@ -624,6 +586,10 @@ The next queue item is started only after the plugin detects that current jukebo
 Check that FPP is running and that the local FPP API is responding.
 
 The touchscreen tolerates temporary status failures, but repeated failures cause the current playback state to be treated as unknown.
+
+### Touchscreen still shows old CSS or JavaScript
+
+The touchscreen page uses each CSS and JavaScript file's modification time (`filemtime()`) as a URL version parameter. Refresh the page after deploying a change. The new assets are requested when their file modification times change.
 
 ### Theme does not update on the touchscreen
 
