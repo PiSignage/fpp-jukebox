@@ -24,6 +24,9 @@ let playingFromQueue = false;
 let statusFailureCount = 0;
 const MAX_STATUS_FAILURES = 3;
 let queueEnabled = false;
+let isQueueFull = false;
+let attractDefaultTitle = 'Jukebox';
+let attractDefaultMessage = 'Touch Anywhere to Choose a Song';
 
 let qrUrl = '';
 
@@ -1562,6 +1565,12 @@ async function loadQueue() {
         const queueFull =
             queueLength >= queueLimit;
 
+        isQueueFull =
+            queueLimit > 0 &&
+            queueFull;
+
+        updateAttractScreenMessage();
+
         if (queueFullMessage) {
             queueFullMessage.classList.toggle(
                 'd-none',
@@ -2201,6 +2210,9 @@ function restoreLockout() {
 }
 
 function hideQueue() {
+    isQueueFull = false;
+    updateAttractScreenMessage();
+
     const queueContainer =
         document.getElementById(
             'selectionQueue'
@@ -2641,6 +2653,8 @@ function showAttractScreen() {
     clearTimeout(selectionScrollTimer);
     clearTimeout(selectionAttractTimer);
 
+    updateAttractScreenMessage();
+
     attractScreen.classList.add(
         'is-open'
     );
@@ -2703,6 +2717,8 @@ function attractScreenData(data) {
     if (attractJukeboxTitle) {
         attractJukeboxTitle.textContent =
             data.config.title || 'Jukebox';
+        attractDefaultTitle =
+            data.config.title || 'Jukebox';
     }
 
     if (attractMessage) {
@@ -2710,6 +2726,29 @@ function attractScreenData(data) {
             data.config.contentType === 'video'
                 ? 'Touch Anywhere to Choose a Video'
                 : 'Touch Anywhere to Choose a Song';
+    }
+
+    updateAttractScreenMessage();
+}
+
+function updateAttractScreenMessage() {
+
+    const title =
+        document.getElementById('attractJukeboxTitle');
+
+    const message =
+        document.getElementById('attractMessage');
+
+    if (title) {
+        title.textContent = isQueueFull
+            ? 'The Jukebox Is Playing!'
+            : attractDefaultTitle;
+    }
+
+    if (message) {
+        message.textContent = isQueueFull
+            ? 'The song queue is currently full. Please check back shortly.'
+            : attractDefaultMessage;
     }
 }
 

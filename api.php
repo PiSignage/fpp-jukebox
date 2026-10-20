@@ -997,7 +997,7 @@ function jukeboxPlay()
                 'Insert Playlist Immediate'
             ) .
             '/' .
-            rawurlencode(
+            urlencode(
                 $sequenceFile
             );
 
@@ -1027,14 +1027,20 @@ function jukeboxPlay()
     } else {
         // Background is a sequence.
 
-        // Start sequence using FPP's API.
-        $sequenceName = rawurlencode(
-            $requestedSequence
-        );
+        // Ensure the sequence has the .fseq extension.
+        $sequenceFile = $requestedSequence;
 
+        if (!str_ends_with(
+            strtolower($sequenceFile),
+            '.fseq'
+        )) {
+            $sequenceFile .= '.fseq';
+        }
+
+        // Encode the complete filename for the URL.
         $url =
             'http://127.0.0.1/api/playlist/' .
-            $sequenceName . '.fseq' .
+            urlencode($sequenceFile) .
             '/start';
 
         $context = stream_context_create(array(
@@ -1686,7 +1692,7 @@ function jukeboxPlayNextQueued()
                 'Insert Playlist Immediate'
             ) .
             '/' .
-            rawurlencode(
+            urlencode(
                 $contentFile
             );
 
@@ -1710,7 +1716,7 @@ function jukeboxPlayNextQueued()
     } else {
         // Sequence content with a Background Sequence.
         $sequenceName =
-            rawurlencode(
+            urlencode(
                 $next['sequence']
             ) .
             '.fseq';
@@ -1738,90 +1744,6 @@ function jukeboxPlayNextQueued()
                 $context
             );
     }
-
-    /*
-     * --------------------------------------------------
-     * Background Playlist
-     * --------------------------------------------------
-     *
-     * FPP may have already resumed the Background
-     * Playlist after the previous jukebox song.
-     *
-     * Insert Playlist Immediate interrupts it again
-     * with the next queued song.
-     */
-    // if ($backgroundType === 'playlist') {
-    //     $sequenceFile = $next['sequence'];
-
-    //     // Make sure the filename includes
-    //     // the .fseq extension.
-    //     if (
-    //         !str_ends_with(
-    //             strtolower($sequenceFile),
-    //             '.fseq'
-    //         )
-    //     ) {
-    //         $sequenceFile .= '.fseq';
-    //     }
-
-    //     $url =
-    //         'http://127.0.0.1/api/command/' .
-    //         rawurlencode(
-    //             'Insert Playlist Immediate'
-    //         ) .
-    //         '/' .
-    //         rawurlencode(
-    //             $sequenceFile
-    //         );
-
-    //     $context =
-    //         stream_context_create(
-    //             array(
-    //                 'http' => array(
-    //                     'method' => 'GET',
-    //                     'timeout' => 5,
-    //                     'ignore_errors' => true
-    //                 )
-    //             )
-    //         );
-
-    //     $response =
-    //         @file_get_contents(
-    //             $url,
-    //             false,
-    //             $context
-    //         );
-    // } else {
-    //     // Background Sequence
-    //     // Start the sequence in FPP.
-    //     $sequenceName =
-    //         rawurlencode(
-    //             $next['sequence']
-    //         ) . '.fseq';
-
-    //     $url =
-    //         'http://127.0.0.1/api/playlist/' .
-    //         $sequenceName .
-    //         '/start';
-
-    //     $context =
-    //         stream_context_create(
-    //             array(
-    //                 'http' => array(
-    //                     'method' => 'GET',
-    //                     'timeout' => 5,
-    //                     'ignore_errors' => true
-    //                 )
-    //             )
-    //         );
-
-    //     $response =
-    //         @file_get_contents(
-    //             $url,
-    //             false,
-    //             $context
-    //         );
-    // }
 
     // FPP failed to start the sequence
     if ($response === false) {
