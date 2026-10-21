@@ -867,25 +867,9 @@ function jukeboxPlay()
             $stopUrl =
                 'http://127.0.0.1/api/playlists/stop';
 
-            $stopContext =
-                stream_context_create(
-                    array(
-                        'http' => array(
-                            'method' => 'GET',
-                            'timeout' => 5,
-                            'ignore_errors' => true
-                        )
-                    )
-                );
+            $result = jukeboxFppRequest($stopUrl);
 
-            $stopResponse =
-                @file_get_contents(
-                    $stopUrl,
-                    false,
-                    $stopContext
-                );
-
-            if ($stopResponse === false) {
+            if (!$result['success']) {
                 return jukeboxError(
                     'FPP could not stop the current video.'
                 );
@@ -900,31 +884,15 @@ function jukeboxPlay()
                 'Insert Playlist Immediate'
             ) .
             '/' .
-            rawurlencode(
+            urlencode(
                 $requestedSequence
             );
 
-        $context =
-            stream_context_create(
-                array(
-                    'http' => array(
-                        'method' => 'GET',
-                        'timeout' => 5,
-                        'ignore_errors' => true
-                    )
-                )
-            );
+        $result = jukeboxFppRequest($url);
 
-        $response =
-            @file_get_contents(
-                $url,
-                false,
-                $context
-            );
-
-        if ($response === false) {
+        if (!$result['success']) {
             return jukeboxError(
-                'FPP could not insert the video.'
+                'Fpp could not insert the video.'
             );
         }
     } elseif ($backgroundType === 'playlist') {
@@ -952,26 +920,9 @@ function jukeboxPlay()
             // Stop current inserted jukebox song
             $stopUrl = 'http://127.0.0.1/api/playlists/stop';
 
-            $stopContext =
-                stream_context_create(
-                    array(
-                        'http' => array(
-                            'method' => 'GET',
-                            'timeout' => 5,
-                            'ignore_errors' => true
-                        )
-                    )
-                );
+            $result = jukeboxFppRequest($stopUrl);
 
-            $stopResponse =
-                @file_get_contents(
-                    $stopUrl,
-                    false,
-                    $stopContext
-                );
-
-
-            if ($stopResponse === false) {
+            if (!$result['success']) {
                 return jukeboxError(
                     'FPP could not stop the current sequence.'
                 );
@@ -1001,25 +952,9 @@ function jukeboxPlay()
                 $sequenceFile
             );
 
-        $context =
-            stream_context_create(
-                array(
-                    'http' => array(
-                        'method' => 'GET',
-                        'timeout' => 5,
-                        'ignore_errors' => true
-                    )
-                )
-            );
+        $result = jukeboxFppRequest($url);
 
-        $response =
-            @file_get_contents(
-                $url,
-                false,
-                $context
-            );
-
-        if ($response === false) {
+        if (!$result['success']) {
             return jukeboxError(
                 'FPP could not insert the sequence.'
             );
@@ -1043,25 +978,24 @@ function jukeboxPlay()
             urlencode($sequenceFile) .
             '/start';
 
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET',
-                'timeout' => 5,
-                'ignore_errors' => true
-            )
-        ));
+        $result = jukeboxFppRequest($url);
 
-        $response = @file_get_contents(
-            $url,
-            false,
-            $context
-        );
-
-        if ($response === false) {
+        if (!$result['success']) {
             return jukeboxError(
-                'FPP could not start the sequence.'
+                'FPP could not insert the sequence.'
             );
         }
+    }
+
+    // Verify that FPP started the requested content.
+    if (!jukeboxVerifyPlayback(
+        $selected['sequence'],
+        3000,
+        $contentType
+    )) {
+        return jukeboxError(
+            'FPP accepted the command but playback could not be verified.'
+        );
     }
 
     // Record the jukebox play
@@ -1101,6 +1035,151 @@ function jukeboxError($message)
         'success' => false,
         'message' => $message
     ));
+}
+
+/**
+ * Send a GET request to the FPP API.
+ *
+ * @param string $url FPP API URL.
+ *
+ * @return array
+ */
+function jukeboxFppRequest($url)
+{
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 5,
+            'ignore_errors' => true
+        ]
+    ]);
+
+    $response = @file_get_contents(
+        $url,
+        false,
+        $context
+    );
+
+    // PHP automatically populates this after the HTTP request.
+    $statusLine = $http_response_header[0] ?? '';
+
+    $httpCode = 0;
+
+    if (preg_match(
+        '/^HTTP\/\S+\s+(\d{3})/',
+        $statusLine,
+        $matches
+    )) {
+        $httpCode = (int) $matches[1];
+    }
+
+    $success =
+        $response !== false &&
+        $httpCode >= 200 &&
+        $httpCode < 300;
+
+    if (!$success) {
+        error_log(
+            'FPP Jukebox API error: ' .
+                $url .
+                ' | HTTP: ' . $httpCode .
+                ' | Response: ' .
+                ($response === false ? 'FALSE' : $response)
+        );
+    }
+
+    return [
+        'success' => $success,
+        'httpCode' => $httpCode,
+        'response' => $response
+    ];
+}
+
+/**
+ * Verify that FPP has started playback.
+ *
+ * Checks FPP status repeatedly to allow
+ * a short delay for playback to begin.
+ *
+ * @param string $expectedSequence Expected filename.
+ * @param int $timeoutMs Maximum wait in milliseconds.
+ *
+ * @return bool
+ */
+function jukeboxVerifyPlayback(
+    $expectedSequence,
+    $timeoutMs = 3000,
+    $contentType = 'sequence'
+) {
+    $expectedSequence = basename($expectedSequence);
+
+    // Remove .fseq for consistent comparison.
+    $expectedName = preg_replace(
+        '/\.fseq$/i',
+        '',
+        $expectedSequence
+    );
+
+    $statusUrl = 'http://127.0.0.1/api/fppd/status';
+
+    $intervalMs = 250;
+    $startTime = microtime(true);
+
+    do {
+        $result = jukeboxFppRequest($statusUrl);
+
+        if ($result['success']) {
+            $status = json_decode(
+                $result['response'],
+                true
+            );
+
+            if (is_array($status)) {
+                $statusName = strtolower(
+                    trim($status['status_name'] ?? '')
+                );
+
+                if ($contentType === 'video') {
+                    // Videos are reported in current_song.
+                    $currentName = basename(
+                        $status['current_song'] ?? ''
+                    );
+
+                    $expectedName = basename($expectedSequence);
+                } else {
+                    // Sequences are reported in current_playlist.
+                    $currentPlaylist = basename(
+                        $status['current_playlist']['playlist'] ?? ''
+                    );
+
+                    $currentName = preg_replace(
+                        '/\.fseq$/i',
+                        '',
+                        $currentPlaylist
+                    );
+                }
+
+                if (
+                    $statusName === 'playing' &&
+                    $currentName === $expectedName
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        usleep($intervalMs * 1000);
+    } while (
+        (microtime(true) - $startTime) * 1000 < $timeoutMs
+    );
+
+    error_log(
+        'FPP Jukebox: Playback verification failed. ' .
+            'Expected sequence: ' . $expectedSequence .
+            ' | Timeout: ' . $timeoutMs . 'ms'
+    );
+
+    return false;
 }
 
 /**
@@ -1696,23 +1775,7 @@ function jukeboxPlayNextQueued()
                 $contentFile
             );
 
-        $context =
-            stream_context_create(
-                array(
-                    'http' => array(
-                        'method' => 'GET',
-                        'timeout' => 5,
-                        'ignore_errors' => true
-                    )
-                )
-            );
-
-        $response =
-            @file_get_contents(
-                $url,
-                false,
-                $context
-            );
+        $result = jukeboxFppRequest($url);
     } else {
         // Sequence content with a Background Sequence.
         $sequenceName =
@@ -1726,27 +1789,18 @@ function jukeboxPlayNextQueued()
             $sequenceName .
             '/start';
 
-        $context =
-            stream_context_create(
-                array(
-                    'http' => array(
-                        'method' => 'GET',
-                        'timeout' => 5,
-                        'ignore_errors' => true
-                    )
-                )
-            );
-
-        $response =
-            @file_get_contents(
-                $url,
-                false,
-                $context
-            );
+        $result = jukeboxFppRequest($url);
     }
 
-    // FPP failed to start the sequence
-    if ($response === false) {
+    // FPP rejected the playback request.
+    if (
+        !$result['success'] ||
+        !jukeboxVerifyPlayback(
+            $next['sequence'],
+            3000,
+            $contentType
+        )
+    ) {
         // Put it back at the front of the queue.
         array_unshift(
             $queue,
