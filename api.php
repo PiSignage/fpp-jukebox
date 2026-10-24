@@ -997,7 +997,7 @@ function jukeboxPlay()
                 'Insert Playlist Immediate'
             ) .
             '/' .
-            urlencode(
+            rawurlencode(
                 $sequenceFile
             );
 
@@ -1040,7 +1040,7 @@ function jukeboxPlay()
         // Encode the complete filename for the URL.
         $url =
             'http://127.0.0.1/api/playlist/' .
-            urlencode($sequenceFile) .
+            rawurlencode($sequenceFile) .
             '/start';
 
         $context = stream_context_create(array(
@@ -1692,7 +1692,7 @@ function jukeboxPlayNextQueued()
                 'Insert Playlist Immediate'
             ) .
             '/' .
-            urlencode(
+            rawurlencode(
                 $contentFile
             );
 
@@ -1716,7 +1716,7 @@ function jukeboxPlayNextQueued()
     } else {
         // Sequence content with a Background Sequence.
         $sequenceName =
-            urlencode(
+            rawurlencode(
                 $next['sequence']
             ) .
             '.fseq';
