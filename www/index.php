@@ -449,6 +449,28 @@
         </div>
     </div>
 
+    <!-- Jukebox Connection Lost Overlay -->
+    <div id="connectionLostOverlay"
+        class="jukebox-connection-overlay d-none"
+        role="alert"
+        aria-live="assertive">
+
+        <div class="jukebox-connection-content">
+            <div class="jukebox-connection-spinner"></div>
+
+            <h2>Connection Lost</h2>
+
+            <p>
+                Unable to connect to the jukebox.
+                Please wait while we reconnect.
+            </p>
+
+            <div class="jukebox-connection-status">
+                Attempting to reconnect...
+            </div>
+        </div>
+    </div>
+
     <script src="/plugin.php?plugin=fpp-jukebox&file=www/js/qrcode.min.js&nopage=1"></script>
     <script
         src="/plugin.php?plugin=fpp-jukebox&file=www/js/jukebox.js&nopage=1&v=<?= filemtime(__DIR__ . '/js/jukebox.js') ?>"></script>

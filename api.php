@@ -1003,6 +1003,41 @@ function jukeboxPlay()
             3000,
             $contentType
         )) {
+<<<<<<< HEAD
+=======
+            $sequenceFile .= '.fseq';
+        }
+
+        $url =
+            'http://127.0.0.1/api/command/' .
+            rawurlencode(
+                'Insert Playlist Immediate'
+            ) .
+            '/' .
+            rawurlencode(
+                $sequenceFile
+            );
+
+        $context =
+            stream_context_create(
+                array(
+                    'http' => array(
+                        'method' => 'GET',
+                        'timeout' => 5,
+                        'ignore_errors' => true
+                    )
+                )
+            );
+
+        $response =
+            @file_get_contents(
+                $url,
+                false,
+                $context
+            );
+
+        if ($response === false) {
+>>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
             return jukeboxError(
                 'FPP accepted the command but playback could not be verified.'
             );
@@ -1011,10 +1046,32 @@ function jukeboxPlay()
         // Record the jukebox play
         jukeboxRecordPlay($selected['sequence']);
 
+<<<<<<< HEAD
         return json(array(
             'success' => true,
             'sequence' => $selected['sequence'],
             'title' => $selected['title']
+=======
+        if (!str_ends_with(
+            strtolower($sequenceFile),
+            '.fseq'
+        )) {
+            $sequenceFile .= '.fseq';
+        }
+
+        // Encode the complete filename for the URL.
+        $url =
+            'http://127.0.0.1/api/playlist/' .
+            rawurlencode($sequenceFile) .
+            '/start';
+
+        $context = stream_context_create(array(
+            'http' => array(
+                'method' => 'GET',
+                'timeout' => 5,
+                'ignore_errors' => true
+            )
+>>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
         ));
     } finally {
         // Always release the playback lock.
@@ -1854,6 +1911,7 @@ function jukeboxPlayNextQueued()
             $result = jukeboxFppRequest($url);
         }
 
+<<<<<<< HEAD
         // FPP rejected the playback request.
         if (
             !$result['success'] ||
@@ -1867,6 +1925,16 @@ function jukeboxPlayNextQueued()
             array_unshift(
                 $queue,
                 $next
+=======
+        $url =
+            'http://127.0.0.1/api/command/' .
+            rawurlencode(
+                'Insert Playlist Immediate'
+            ) .
+            '/' .
+            rawurlencode(
+                $contentFile
+>>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
             );
 
             jukeboxSaveQueue(
@@ -1878,7 +1946,17 @@ function jukeboxPlayNextQueued()
                     ? 'Unable to start the queued video.'
                     : 'Unable to start the queued sequence.'
             );
+<<<<<<< HEAD
         }
+=======
+    } else {
+        // Sequence content with a Background Sequence.
+        $sequenceName =
+            rawurlencode(
+                $next['sequence']
+            ) .
+            '.fseq';
+>>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
 
         // Record the queued song as played
         jukeboxRecordPlay(

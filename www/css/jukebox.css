@@ -1510,3 +1510,58 @@ body:has(#attractScreen.is-open) .jukebox-clock {
     border-radius: inherit;
     transition: width 0.3s linear;
 }
+
+/* Connection Lost Overlay */
+.jukebox-connection-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.92);
+    color: #fff;
+    text-align: center;
+}
+
+.jukebox-connection-overlay.d-none {
+    display: none;
+}
+
+.jukebox-connection-content {
+    max-width: 480px;
+}
+
+.jukebox-connection-content h2 {
+    font-size: 2rem;
+    margin-bottom: 16px;
+}
+
+.jukebox-connection-content p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+.jukebox-connection-spinner {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 30px;
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: jukeboxConnectionSpin 1s linear infinite;
+}
+
+.jukebox-connection-status {
+    margin-top: 24px;
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
+
+@keyframes jukeboxConnectionSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}

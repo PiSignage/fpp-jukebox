@@ -34,5 +34,6 @@
         "accent": "#ffffff",
         "accentText": "#000000",
     ],
+    "inactivity": false,
     "sequences": []
 }

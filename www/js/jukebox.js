@@ -6,6 +6,10 @@ let lockoutSeconds = 30;
 let statusTimer = null;
 let countdownTimer = null;
 let availabilityTimer = null;
+const AVAILABILITY_INTERVAL = 30000;
+const RECONNECT_INTERVAL = 5000;
+
+let availabilityCheckRunning = false;
 let queueTimer = null;
 let lockoutRemaining = 0;
 let jukeboxWasAvailable = null;
@@ -23,6 +27,10 @@ let playingFromQueue = false;
 
 let statusFailureCount = 0;
 const MAX_STATUS_FAILURES = 3;
+// Backend connection monitoring
+let connectionFailureCount = 0;
+const MAX_CONNECTION_FAILURES = 3;
+let jukeboxConnected = true;
 let queueEnabled = false;
 let isQueueFull = false;
 let attractDefaultTitle = 'Jukebox';
@@ -67,9 +75,7 @@ async function initialise() {
             showSelectionScreen();
         }
 
-        // Check whether the jukebox is currently available
-        await checkAvailability();
-        // Start monitoring the schedule
+        // Start availability and connection monitoring.
         startAvailabilityMonitor();
         // Start monitoring the Most Popular badge
         startPopularBadgeMonitor();
@@ -293,6 +299,15 @@ function renderSequences(sequences) {
 
 // Play sequence
 async function playSequence(sequence) {
+    // Prevent selections while disconnected.
+    if (!jukeboxConnected) {
+        showError(
+            'The jukebox connection has been lost. Please wait.'
+        );
+
+        return;
+    }
+
     /*
      * If there is no current sequence, the lockout
      * prevents a new selection.
@@ -518,29 +533,20 @@ async function checkPlaybackStatus() {
             await fetch(
                 API_BASE + '/status',
                 {
-                    cache: 'no-store'
+                    cache: 'no-store',
+                    signal: AbortSignal.timeout(5000)
                 }
             );
 
         if (!response.ok) {
-            // console.warn(
-            //     'FPP status request failed:',
-            //     response.status
-            // );
-            // return;
             throw new Error(
                 `Status API returned HTTP ${response.status}`
             );
         }
 
-        const data =
-            await response.json();
+        const data = await response.json();
 
         if (!data.success) {
-            // console.warn(
-            //     'Invalid FPP status response.'
-            // );
-            // return;
             throw new Error(
                 data.message ||
                 'Status API returned ar error.'
@@ -563,7 +569,7 @@ async function checkPlaybackStatus() {
                 clearInterval(
                     statusTimer
                 );
-                handlePlaybackFinished();
+                await handlePlaybackFinished();
                 return;
             }
         }
@@ -691,7 +697,7 @@ async function checkPlaybackStatus() {
                 statusTimer
             );
 
-            handlePlaybackFinished();
+            await handlePlaybackFinished();
 
             return;
         }
@@ -718,33 +724,30 @@ async function checkPlaybackStatus() {
             return;
         }
 
-        console.error(
-            'Unable to monitor jukebox playback after repeated failures.'
+        /*
+        * Playback status is temporarily unavailable.
+        *
+        * Do not clear the current sequence or
+        * playback state because FPP may still
+        * be playing normally.
+        *
+        * Keep monitoring so playback can recover
+        * automatically when the connection returns.
+        */
+        console.warn(
+            'Playback monitoring temporarily unavailable. Retrying...'
         );
 
-        /*
-        * Stop this monitoring interval.
-        */
-        clearInterval(statusTimer);
-
-        statusTimer = null;
-
+        // Reset the failure counter.
         statusFailureCount = 0;
 
-        playbackStartTime = null;
-
-        /*
-        * Do not try to stop anything in FPP.
-        *
-        * We don't actually know whether the
-        * sequence is still playing because the
-        * status API is unavailable.
-        */
-        playbackStarted = false;
-        currentSequence = null;
-        playingFromQueue = false;
-
-        showPlaybackError();
+        // IMPORTANT:
+        // Keep statusTimer running.
+        // Keep currentSequence unchanged.
+        // Keep playbackStarted unchanged.
+        // Keep currentPlaylist unchanged.
+        //
+        // FPP may still be playing normally.
     }
 }
 
@@ -1338,21 +1341,97 @@ function showDisabledScreen() {
     );
 }
 
-// Availability Monitor
-function startAvailabilityMonitor() {
-    clearInterval(
-        availabilityTimer
+function showConnectionLostOverlay() {
+    const overlay = document.getElementById(
+        'connectionLostOverlay'
     );
 
-    // Check immediately.
-    checkAvailability();
+    if (overlay) {
+        overlay.classList.remove('d-none');
+    }
+}
 
-    // Then check every 30 seconds.
-    availabilityTimer =
-        setInterval(
-            checkAvailability,
-            30000
+function hideConnectionLostOverlay() {
+    const overlay = document.getElementById(
+        'connectionLostOverlay'
+    );
+
+    if (overlay) {
+        overlay.classList.add('d-none');
+    }
+}
+
+function jukeboxConnectionSuccess() {
+    connectionFailureCount = 0;
+
+    if (!jukeboxConnected) {
+        jukeboxConnected = true;
+
+        updateQueueAvailability(isQueueFull);
+        hideConnectionLostOverlay();
+
+        console.log(
+            'Jukebox connection restored.'
         );
+    }
+}
+
+function jukeboxConnectionFailure() {
+    connectionFailureCount++;
+
+    if (
+        connectionFailureCount >= MAX_CONNECTION_FAILURES &&
+        jukeboxConnected
+    ) {
+        jukeboxConnected = false;
+
+        updateQueueAvailability(isQueueFull);
+        showConnectionLostOverlay();
+
+        console.warn(
+            'Jukebox connection lost.'
+        );
+    }
+}
+
+// Availability Monitor
+function startAvailabilityMonitor() {
+    clearInterval(availabilityTimer);
+    clearTimeout(availabilityTimer);
+
+    availabilityTimer = null;
+
+    // Start monitoring immediately.
+    scheduleAvailabilityCheck(0);
+}
+
+function scheduleAvailabilityCheck(delay) {
+    clearTimeout(availabilityTimer);
+
+    availabilityTimer = setTimeout(
+        async function () {
+            if (availabilityCheckRunning) {
+                scheduleAvailabilityCheck(1000);
+                return;
+            }
+
+            availabilityCheckRunning = true;
+
+            try {
+                await checkAvailability();
+            } finally {
+                availabilityCheckRunning = false;
+
+                // Check more frequently when disconnected.
+                const nextInterval = jukeboxConnected
+                    ? AVAILABILITY_INTERVAL
+                    : RECONNECT_INTERVAL;
+
+                scheduleAvailabilityCheck(nextInterval);
+            }
+        },
+        delay
+    );
 }
 
 async function checkAvailability() {
@@ -1361,11 +1440,14 @@ async function checkAvailability() {
             await fetch(
                 API_BASE + '/status',
                 {
-                    cache: 'no-store'
+                    cache: 'no-store',
+                    signal: AbortSignal.timeout(5000)
                 }
             );
 
         if (!response.ok) {
+            jukeboxConnectionFailure();
+
             console.warn(
                 'Availability check failed:',
                 response.status
@@ -1378,11 +1460,16 @@ async function checkAvailability() {
             await response.json();
 
         if (!data.success) {
+            jukeboxConnectionFailure();
+
             console.warn(
                 'Invalid jukebox status response.'
             );
             return;
         }
+
+        // Valid response received.
+        jukeboxConnectionSuccess();
 
         console.log(
             'Jukebox availability:',
@@ -1418,6 +1505,8 @@ async function checkAvailability() {
         // Jukebox is available.
         handleJukeboxAvailable();
     } catch (error) {
+        jukeboxConnectionFailure();
+
         console.error(
             'Availability check error:',
             error
@@ -1648,6 +1737,16 @@ function updateQueueAvailability(queueFull) {
         document.querySelectorAll(
             '.jukebox-sequence'
         );
+
+    // Connection lost: disable all song selections.
+    if (!jukeboxConnected) {
+        buttons.forEach(function (button) {
+            button.disabled = true;
+            button.classList.add('queue-full');
+        });
+
+        return;
+    }
 
     // If the queue isn't full, selections
     // are always allowed.
@@ -2586,12 +2685,12 @@ function resetSelectionInactivityTimer() {
      * Attract screen after 120 seconds.
      * We'll add showAttractScreen() next.
      */
-    selectionAttractTimer = setTimeout(
-        function () {
-            showAttractScreen();
-        },
-        SELECTION_ATTRACT_TIMEOUT
-    );
+    // selectionAttractTimer = setTimeout(
+    //     function () {
+    //         showAttractScreen();
+    //     },
+    //     SELECTION_ATTRACT_TIMEOUT
+    // );
 }
 
 const selectionScreen =
