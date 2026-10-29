@@ -707,301 +707,237 @@ function jukeboxGetStatus()
 // Start sequence
 function jukeboxPlay()
 {
-    // Prevent simultaneous playback requests.
-    $playbackLock = jukeboxAcquirePlaybackLock();
+    $config = jukeboxLoadConfig();
+    $queue = jukeboxLoadQueue();
 
-    if ($playbackLock === false) {
+    if (!$config['enabled']) {
         return jukeboxError(
-            'The jukebox is busy. Please try again.'
+            'The jukebox is currently disabled.'
         );
     }
 
-    try {
-        $config = jukeboxLoadConfig();
-        $queue = jukeboxLoadQueue();
-
-        if (!$config['enabled']) {
-            return jukeboxError(
-                'The jukebox is currently disabled.'
-            );
-        }
-
-        if (!jukeboxIsWithinSchedule($config)) {
-            return jukeboxError(
-                'The jukebox is currently outside its scheduled hours.'
-            );
-        }
-
-        $raw = file_get_contents(
-            'php://input'
+    if (!jukeboxIsWithinSchedule($config)) {
+        return jukeboxError(
+            'The jukebox is currently outside its scheduled hours.'
         );
+    }
 
-        $data = json_decode(
-            $raw,
-            true
+    $raw = file_get_contents(
+        'php://input'
+    );
+
+    $data = json_decode(
+        $raw,
+        true
+    );
+
+    if (!is_array($data)) {
+        return jukeboxError(
+            'Invalid request.'
         );
+    }
 
-        if (!is_array($data)) {
+    if (empty($data['sequence'])) {
+        return jukeboxError(
+            'No sequence specified.'
+        );
+    }
+
+    $requestedSequence = basename(
+        $data['sequence']
+    );
+
+    $selected = null;
+
+    foreach ($config['sequences'] as $sequence) {
+
+        if (
+            $sequence['sequence'] === $requestedSequence &&
+            !empty($sequence['enabled'])
+        ) {
+            $selected = $sequence;
+            break;
+        }
+    }
+
+    if ($selected === null) {
+        return jukeboxError(
+            'Sequence is not available.'
+        );
+    }
+
+    // Queue selected sequence if something is already playing.
+    if (
+        !empty($config['queueEnabled']) &&
+        jukeboxIsPlaying() &&
+        !jukeboxIsBackgroundPlaying()
+    ) {
+        $queueLimit =
+            max(
+                1,
+                (int)(
+                    $config['queueLimit']
+                    ?? 5
+                )
+            );
+
+        // Queue is full.
+        if (
+            count($queue) >= $queueLimit
+        ) {
             return jukeboxError(
-                'Invalid request.'
+                'The jukebox queue is full.'
             );
         }
 
-        if (empty($data['sequence'])) {
-            return jukeboxError(
-                'No sequence specified.'
-            );
-        }
-
-        $requestedSequence = basename(
-            $data['sequence']
-        );
-
-        $selected = null;
-
-        foreach ($config['sequences'] as $sequence) {
-
-            if (
-                $sequence['sequence'] === $requestedSequence &&
-                !empty($sequence['enabled'])
-            ) {
-                $selected = $sequence;
-                break;
+        // Check whether duplicate queue entries are allowed.
+        if (
+            empty($config['allowDuplicateQueueSongs']) &&
+            !empty($queue)
+        ) {
+            foreach ($queue as $queuedItem) {
+                if (
+                    isset($queuedItem['sequence']) &&
+                    $queuedItem['sequence'] === $selected['sequence']
+                ) {
+                    return jukeboxError(
+                        $selected['title'] . ' is already in the queue.'
+                    );
+                }
             }
         }
 
-        if ($selected === null) {
+        // Add the selected sequence.
+        $queue[] = array(
+            'sequence' => $selected['sequence'],
+            'title' => $selected['title'],
+            'artwork' => $selected['artwork'],
+        );
+
+        // Save the queue.
+        if (!jukeboxSaveQueue($queue)) {
             return jukeboxError(
-                'Sequence is not available.'
+                'Unable to add sequence to the queue.'
             );
         }
 
-        // Queue selected sequence if something is already playing.
+        /*
+        * Tell the touchscreen that the
+        * sequence has been queued.
+        */
+        return json(array(
+            'success' => true,
+            'queued' => true,
+            'position' => count($queue),
+            'queueLength' => count($queue),
+            'queueLimit' => $queueLimit,
+            'sequence' => $selected['sequence'],
+            'title' => $selected['title']
+        ));
+    }
+
+    $contentType =
+        $config['contentType']
+        ?? 'sequence';
+
+    // Start jukebox sequence
+    $backgroundType =
+        $config['backgroundType']
+        ?? 'sequence';
+
+    /*
+    * Visitor-selected video.
+    *
+    * Videos are inserted directly using
+    * FPP's Insert Playlist Immediate command.
+    */
+    if ($contentType === 'video') {
+        /*
+        * If queueing is disabled and another
+        * jukebox item is currently playing,
+        * stop it before inserting the new video.
+        *
+        * Do not stop the configured background.
+        */
         if (
-            !empty($config['queueEnabled']) &&
+            empty($config['queueEnabled']) &&
             jukeboxIsPlaying() &&
             !jukeboxIsBackgroundPlaying()
         ) {
-            $queueLimit =
-                max(
-                    1,
-                    (int)(
-                        $config['queueLimit']
-                        ?? 5
-                    )
-                );
+            $stopUrl =
+                'http://127.0.0.1/api/playlists/stop';
 
-            // Queue is full.
-            if (
-                count($queue) >= $queueLimit
-            ) {
+            $result = jukeboxFppRequest($stopUrl);
+
+            if (!$result['success']) {
                 return jukeboxError(
-                    'The jukebox queue is full.'
+                    'FPP could not stop the current video.'
                 );
             }
 
-            // Check whether duplicate queue entries are allowed.
-            if (
-                empty($config['allowDuplicateQueueSongs']) &&
-                !empty($queue)
-            ) {
-                foreach ($queue as $queuedItem) {
-                    if (
-                        isset($queuedItem['sequence']) &&
-                        $queuedItem['sequence'] === $selected['sequence']
-                    ) {
-                        return jukeboxError(
-                            $selected['title'] . ' is already in the queue.'
-                        );
-                    }
-                }
-            }
+            usleep(100000);
+        }
 
-            // Add the selected sequence.
-            $queue[] = array(
-                'sequence' => $selected['sequence'],
-                'title' => $selected['title'],
-                'artwork' => $selected['artwork'],
+        $url =
+            'http://127.0.0.1/api/command/' .
+            rawurlencode(
+                'Insert Playlist Immediate'
+            ) .
+            '/' .
+            rawurlencode(
+                $requestedSequence
             );
 
-            // Save the queue.
-            if (!jukeboxSaveQueue($queue)) {
-                return jukeboxError(
-                    'Unable to add sequence to the queue.'
-                );
-            }
+        $result = jukeboxFppRequest($url);
 
-            /*
-            * Tell the touchscreen that the
-            * sequence has been queued.
-            */
-            return json(array(
-                'success' => true,
-                'queued' => true,
-                'position' => count($queue),
-                'queueLength' => count($queue),
-                'queueLimit' => $queueLimit,
-                'sequence' => $selected['sequence'],
-                'title' => $selected['title']
-            ));
+        if (!$result['success']) {
+            return jukeboxError(
+                'Fpp could not insert the video.'
+            );
         }
-
-        $contentType =
-            $config['contentType']
-            ?? 'sequence';
-
-        // Start jukebox sequence
-        $backgroundType =
-            $config['backgroundType']
-            ?? 'sequence';
+    } elseif ($backgroundType === 'playlist') {
+        /*
+        * Background is an FPP playlist.
+        *
+        * Use Insert Playlist Immediate so FPP
+        * temporarily interrupts the background
+        * playlist and resumes it afterwards.
+        */
 
         /*
-        * Visitor-selected video.
+        * If queueing is disabled and a jukebox
+        * song is currently playing, stop it before
+        * inserting the newly selected song.
         *
-        * Videos are inserted directly using
-        * FPP's Insert Playlist Immediate command.
+        * Do not stop anything if the background
+        * playlist itself is currently playing.
         */
-        if ($contentType === 'video') {
-            /*
-            * If queueing is disabled and another
-            * jukebox item is currently playing,
-            * stop it before inserting the new video.
-            *
-            * Do not stop the configured background.
-            */
-            if (
-                empty($config['queueEnabled']) &&
-                jukeboxIsPlaying() &&
-                !jukeboxIsBackgroundPlaying()
-            ) {
-                $stopUrl =
-                    'http://127.0.0.1/api/playlists/stop';
+        if (
+            empty($config['queueEnabled']) &&
+            jukeboxIsPlaying() &&
+            !jukeboxIsBackgroundPlaying()
+        ) {
+            // Stop current inserted jukebox song
+            $stopUrl = 'http://127.0.0.1/api/playlists/stop';
 
-                $result = jukeboxFppRequest($stopUrl);
-
-                if (!$result['success']) {
-                    return jukeboxError(
-                        'FPP could not stop the current video.'
-                    );
-                }
-
-                usleep(100000);
-            }
-
-            $url =
-                'http://127.0.0.1/api/command/' .
-                rawurlencode(
-                    'Insert Playlist Immediate'
-                ) .
-                '/' .
-                rawurlencode(
-                    $requestedSequence
-                );
-
-            $result = jukeboxFppRequest($url);
+            $result = jukeboxFppRequest($stopUrl);
 
             if (!$result['success']) {
                 return jukeboxError(
-                    'Fpp could not insert the video.'
+                    'FPP could not stop the current sequence.'
                 );
             }
-        } elseif ($backgroundType === 'playlist') {
-            /*
-            * Background is an FPP playlist.
-            *
-            * Use Insert Playlist Immediate so FPP
-            * temporarily interrupts the background
-            * playlist and resumes it afterwards.
-            */
 
-            /*
-            * If queueing is disabled and a jukebox
-            * song is currently playing, stop it before
-            * inserting the newly selected song.
-            *
-            * Do not stop anything if the background
-            * playlist itself is currently playing.
-            */
-            if (
-                empty($config['queueEnabled']) &&
-                jukeboxIsPlaying() &&
-                !jukeboxIsBackgroundPlaying()
-            ) {
-                // Stop current inserted jukebox song
-                $stopUrl = 'http://127.0.0.1/api/playlists/stop';
-
-                $result = jukeboxFppRequest($stopUrl);
-
-                if (!$result['success']) {
-                    return jukeboxError(
-                        'FPP could not stop the current sequence.'
-                    );
-                }
-
-                // Give FPP a short moment to return
-                usleep(100000);
-            }
-
-
-            $sequenceFile = $requestedSequence;
-
-            if (!str_ends_with(
-                strtolower($sequenceFile),
-                '.fseq'
-            )) {
-                $sequenceFile .= '.fseq';
-            }
-
-            $url =
-                'http://127.0.0.1/api/command/' .
-                rawurlencode(
-                    'Insert Playlist Immediate'
-                ) .
-                '/' .
-                rawurlencode(
-                    $sequenceFile
-                );
-
-            $result = jukeboxFppRequest($url);
-
-            if (!$result['success']) {
-                return jukeboxError(
-                    'FPP could not insert the sequence.'
-                );
-            }
-        } else {
-            // Background is a sequence.
-
-            // Ensure the sequence has the .fseq extension.
-            $sequenceFile = $requestedSequence;
-
-            if (!str_ends_with(
-                strtolower($sequenceFile),
-                '.fseq'
-            )) {
-                $sequenceFile .= '.fseq';
-            }
-
-            // Encode the complete filename for the URL.
-            $url =
-                'http://127.0.0.1/api/playlist/' .
-                rawurlencode($sequenceFile) .
-                '/start';
-
-            $result = jukeboxFppRequest($url);
-
-            if (!$result['success']) {
-                return jukeboxError(
-                    'FPP could not insert the sequence.'
-                );
-            }
+            // Give FPP a short moment to return
+            usleep(100000);
         }
 
-        // Verify that FPP started the requested content.
-        if (!jukeboxVerifyPlayback(
-            $selected['sequence'],
-            3000,
-            $contentType
+
+        $sequenceFile = $requestedSequence;
+
+        if (!str_ends_with(
+            strtolower($sequenceFile),
+            '.fseq'
         )) {
             $sequenceFile .= '.fseq';
         }
@@ -1016,32 +952,18 @@ function jukeboxPlay()
                 $sequenceFile
             );
 
-        $context =
-            stream_context_create(
-                array(
-                    'http' => array(
-                        'method' => 'GET',
-                        'timeout' => 5,
-                        'ignore_errors' => true
-                    )
-                )
-            );
+        $result = jukeboxFppRequest($url);
 
-        $response =
-            @file_get_contents(
-                $url,
-                false,
-                $context
-            );
-
-        if ($response === false) {
+        if (!$result['success']) {
             return jukeboxError(
-                'FPP accepted the command but playback could not be verified.'
+                'FPP could not insert the sequence.'
             );
         }
+    } else {
+        // Background is a sequence.
 
-        // Record the jukebox play
-        jukeboxRecordPlay($selected['sequence']);
+        // Ensure the sequence has the .fseq extension.
+        $sequenceFile = $requestedSequence;
 
         if (!str_ends_with(
             strtolower($sequenceFile),
@@ -1056,17 +978,34 @@ function jukeboxPlay()
             rawurlencode($sequenceFile) .
             '/start';
 
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET',
-                'timeout' => 5,
-                'ignore_errors' => true
-            )
-        ));
-    } finally {
-        // Always release the playback lock.
-        jukeboxReleasePlaybackLock($playbackLock);
+        $result = jukeboxFppRequest($url);
+
+        if (!$result['success']) {
+            return jukeboxError(
+                'FPP could not insert the sequence.'
+            );
+        }
     }
+
+    // Verify that FPP started the requested content.
+    if (!jukeboxVerifyPlayback(
+        $selected['sequence'],
+        3000,
+        $contentType
+    )) {
+        return jukeboxError(
+            'FPP accepted the command but playback could not be verified.'
+        );
+    }
+
+    // Record the jukebox play
+    jukeboxRecordPlay($selected['sequence']);
+
+    return json(array(
+        'success' => true,
+        'sequence' => $selected['sequence'],
+        'title' => $selected['title']
+    ));
 }
 
 
@@ -1241,44 +1180,6 @@ function jukeboxVerifyPlayback(
     );
 
     return false;
-}
-
-/**
- * Acquire an exclusive jukebox playback lock.
- *
- * @return resource|false
- */
-function jukeboxAcquirePlaybackLock()
-{
-    $lockFile = sys_get_temp_dir() . '/fpp-jukebox-playback.lock';
-
-    $handle = @fopen($lockFile, 'c');
-
-    if ($handle === false) {
-        error_log('FPP Jukebox: Unable to open playback lock file.');
-        return false;
-    }
-
-    // Non-blocking exclusive lock.
-    if (!flock($handle, LOCK_EX | LOCK_NB)) {
-        fclose($handle);
-        return false;
-    }
-
-    return $handle;
-}
-
-/**
- * Release a jukebox playback lock.
- *
- * @param resource $handle
- */
-function jukeboxReleasePlaybackLock($handle)
-{
-    if (is_resource($handle)) {
-        flock($handle, LOCK_UN);
-        fclose($handle);
-    }
 }
 
 /**
@@ -1750,198 +1651,186 @@ function jukeboxClearQueue()
 
 function jukeboxPlayNextQueued()
 {
-    // Prevent concurrent playback and queue processing.
-    $playbackLock = jukeboxAcquirePlaybackLock();
+    $config = jukeboxLoadConfig();
 
-    if ($playbackLock === false) {
-        return jukeboxError(
-            'The jukebox is busy. Please try again.'
-        );
-    }
-
-    try {
-        $config = jukeboxLoadConfig();
-
-        /*
-        * Do not start another queued song if
-        * the jukebox is no longer available.
-        *
-        * Clear anything still waiting so the
-        * Background Sequence can take over.
-        */
-        if (
-            empty($config['enabled']) ||
-            !jukeboxIsWithinSchedule($config)
-        ) {
-            jukeboxClearQueue();
-
-            return json(array(
-                'success' => true,
-                'queued' => false,
-                'message' => 'Jukebox is no longer available.'
-            ));
-        }
-
-        $queue = jukeboxLoadQueue();
-
-        // Nothing waiting.
-        if (empty($queue)) {
-            return json(array(
-                'success' => true,
-                'queued' => false,
-                'message' => 'Queue is empty.'
-            ));
-        }
-
-        /*
-        * Check that FPP is actually idle before
-        * starting another queued sequence.
-        */
-        if (
-            jukeboxIsPlaying() &&
-            !jukeboxIsBackgroundPlaying()
-        ) {
-
-            return jukeboxError(
-                'FPP is still playing.'
-            );
-        }
-
-        // Get the first item in the queue.
-        $next = array_shift(
-            $queue
-        );
-
-        /*
-        * Save the queue immediately.
-        *
-        * The item has now been removed from the queue.
-        */
-        if (
-            !jukeboxSaveQueue(
-                $queue
-            )
-        ) {
-            return jukeboxError(
-                'Unable to update the jukebox queue.'
-            );
-        }
-
-        /*
-        * Determine the type of visitor-selectable
-        * content and how the Background has been
-        * configured.
-        */
-        $contentType =
-            $config['contentType']
-            ?? 'sequence';
-
-        $backgroundType =
-            $config['backgroundType']
-            ?? 'sequence';
-
-        /*
-        * --------------------------------------------------
-        * Video Content / Background Playlist
-        * --------------------------------------------------
-        *
-        * Visitor-selected videos always use
-        * Insert Playlist Immediate.
-        *
-        * Sequences also use Insert Playlist Immediate
-        * when the Background is an FPP playlist.
-        */
-        if (
-            $contentType === 'video' ||
-            $backgroundType === 'playlist'
-        ) {
-            $contentFile = $next['sequence'];
-
-            /*
-            * Sequence content requires .fseq.
-            *
-            * Video content already contains its
-            * media extension, such as .mp4.
-            */
-            if (
-                $contentType === 'sequence' &&
-                !str_ends_with(
-                    strtolower($contentFile),
-                    '.fseq'
-                )
-            ) {
-                $contentFile .= '.fseq';
-            }
-
-            $url =
-                'http://127.0.0.1/api/command/' .
-                rawurlencode(
-                    'Insert Playlist Immediate'
-                ) .
-                '/' .
-                rawurlencode(
-                    $contentFile
-                );
-
-            $result = jukeboxFppRequest($url);
-        } else {
-            // Sequence content with a Background Sequence.
-            $sequenceName =
-                rawurlencode(
-                    $next['sequence']
-                ) .
-                '.fseq';
-
-            $url =
-                'http://127.0.0.1/api/playlist/' .
-                $sequenceName .
-                '/start';
-
-            $result = jukeboxFppRequest($url);
-        }
-
-        // FPP rejected the playback request.
-        if (
-            !$result['success'] ||
-            !jukeboxVerifyPlayback(
-                $next['sequence'],
-                3000,
-                $contentType
-            )
-        ) {
-            // Put it back at the front of the queue.
-            array_unshift(
-                $queue,
-                $next
-            );
-
-            jukeboxSaveQueue(
-                $queue
-            );
-
-            return jukeboxError(
-                $contentType === 'video'
-                    ? 'Unable to start the queued video.'
-                    : 'Unable to start the queued sequence.'
-            );
-        }
-
-        // Record the queued song as played
-        jukeboxRecordPlay(
-            $next['sequence']
-        );
+    /*
+     * Do not start another queued song if
+     * the jukebox is no longer available.
+     *
+     * Clear anything still waiting so the
+     * Background Sequence can take over.
+     */
+    if (
+        empty($config['enabled']) ||
+        !jukeboxIsWithinSchedule($config)
+    ) {
+        jukeboxClearQueue();
 
         return json(array(
             'success' => true,
-            'queued' => true,
-            'sequence' => $next['sequence'],
-            'title' => $next['title'],
-            'artwork' => 'api/file/' . $next['artwork'],
-            'queueLength' => count($queue)
+            'queued' => false,
+            'message' => 'Jukebox is no longer available.'
         ));
-    } finally {
-        jukeboxReleasePlaybackLock($playbackLock);
     }
+
+    $queue = jukeboxLoadQueue();
+
+    // Nothing waiting.
+    if (empty($queue)) {
+        return json(array(
+            'success' => true,
+            'queued' => false,
+            'message' => 'Queue is empty.'
+        ));
+    }
+
+    /*
+     * Check that FPP is actually idle before
+     * starting another queued sequence.
+     */
+    if (
+        jukeboxIsPlaying() &&
+        !jukeboxIsBackgroundPlaying()
+    ) {
+
+        return jukeboxError(
+            'FPP is still playing.'
+        );
+    }
+
+    // Get the first item in the queue.
+    $next = array_shift(
+        $queue
+    );
+
+    /*
+     * Save the queue immediately.
+     *
+     * The item has now been removed from the queue.
+     */
+    if (
+        !jukeboxSaveQueue(
+            $queue
+        )
+    ) {
+        return jukeboxError(
+            'Unable to update the jukebox queue.'
+        );
+    }
+
+    /*
+     * Determine the type of visitor-selectable
+     * content and how the Background has been
+     * configured.
+     */
+    $contentType =
+        $config['contentType']
+        ?? 'sequence';
+
+    $backgroundType =
+        $config['backgroundType']
+        ?? 'sequence';
+
+    /*
+    * --------------------------------------------------
+    * Video Content / Background Playlist
+    * --------------------------------------------------
+    *
+    * Visitor-selected videos always use
+    * Insert Playlist Immediate.
+    *
+    * Sequences also use Insert Playlist Immediate
+    * when the Background is an FPP playlist.
+    */
+
+    if (
+        $contentType === 'video' ||
+        $backgroundType === 'playlist'
+    ) {
+        $contentFile = $next['sequence'];
+
+        /*
+        * Sequence content requires .fseq.
+        *
+        * Video content already contains its
+        * media extension, such as .mp4.
+        */
+        if (
+            $contentType === 'sequence' &&
+            !str_ends_with(
+                strtolower($contentFile),
+                '.fseq'
+            )
+        ) {
+            $contentFile .= '.fseq';
+        }
+
+        $url =
+            'http://127.0.0.1/api/command/' .
+            rawurlencode(
+                'Insert Playlist Immediate'
+            ) .
+            '/' .
+            rawurlencode(
+                $contentFile
+            );
+
+        $result = jukeboxFppRequest($url);
+    } else {
+        // Sequence content with a Background Sequence.
+        $sequenceName =
+            rawurlencode(
+                $next['sequence']
+            ) .
+            '.fseq';
+
+        $url =
+            'http://127.0.0.1/api/playlist/' .
+            $sequenceName .
+            '/start';
+
+        $result = jukeboxFppRequest($url);
+    }
+
+    // FPP rejected the playback request.
+    if (
+        !$result['success'] ||
+        !jukeboxVerifyPlayback(
+            $next['sequence'],
+            3000,
+            $contentType
+        )
+    ) {
+        // Put it back at the front of the queue.
+        array_unshift(
+            $queue,
+            $next
+        );
+
+        jukeboxSaveQueue(
+            $queue
+        );
+
+        return jukeboxError(
+            $contentType === 'video'
+                ? 'Unable to start the queued video.'
+                : 'Unable to start the queued sequence.'
+        );
+    }
+
+    // Record the queued song as played
+    jukeboxRecordPlay(
+        $next['sequence']
+    );
+
+    return json(array(
+        'success' => true,
+        'queued' => true,
+        'sequence' => $next['sequence'],
+        'title' => $next['title'],
+        'artwork' => 'api/file/' . $next['artwork'],
+        'queueLength' => count($queue)
+    ));
 }
 
 // Get jukebox queue
@@ -1982,53 +1871,40 @@ function jukeboxRemoveQueueItem()
         ? (int) $input['index']
         : -1;
 
-    // Acquire lock before loading the queue.
-    $playbackLock = jukeboxAcquirePlaybackLock();
+    $queue = jukeboxLoadQueue();
 
-    if ($playbackLock === false) {
+    // Make sure the requested item exists.
+    if (
+        $index < 0 ||
+        !isset($queue[$index])
+    ) {
         return jukeboxError(
-            'The jukebox is busy. Please try again.'
+            'Queue item not found.'
         );
     }
 
-    try {
-        $queue = jukeboxLoadQueue();
+    // Remove the item.
+    array_splice(
+        $queue,
+        $index,
+        1
+    );
 
-        // Make sure the requested item exists.
-        if (
-            $index < 0 ||
-            !isset($queue[$index])
-        ) {
-            return jukeboxError(
-                'Queue item not found.'
-            );
-        }
-
-        // Remove the item.
-        array_splice(
-            $queue,
-            $index,
-            1
+    // Save the updated queue.
+    if (
+        !jukeboxSaveQueue(
+            $queue
+        )
+    ) {
+        return jukeboxError(
+            'Unable to update the queue.'
         );
-
-        // Save the updated queue.
-        if (
-            !jukeboxSaveQueue(
-                $queue
-            )
-        ) {
-            return jukeboxError(
-                'Unable to update the queue.'
-            );
-        }
-
-        return json(array(
-            'success' => true,
-            'queueLength' => count($queue)
-        ));
-    } finally {
-        jukeboxReleasePlaybackLock($playbackLock);
     }
+
+    return json(array(
+        'success' => true,
+        'queueLength' => count($queue)
+    ));
 }
 
 /**
@@ -2171,26 +2047,14 @@ function jukeboxIsBackgroundPlaying()
  */
 function jukeboxClearQueueApi()
 {
-    $playbackLock = jukeboxAcquirePlaybackLock();
-
-    if ($playbackLock === false) {
+    if (!jukeboxClearQueue()) {
         return jukeboxError(
-            'The jukebox is busy. Please try again.'
+            'Unable to clear the jukebox queue.'
         );
     }
 
-    try {
-        if (!jukeboxClearQueue()) {
-            return jukeboxError(
-                'Unable to clear the jukebox queue.'
-            );
-        }
-
-        return json(array(
-            'success' => true,
-            'queueLength' => 0
-        ));
-    } finally {
-        jukeboxReleasePlaybackLock($playbackLock);
-    }
+    return json(array(
+        'success' => true,
+        'queueLength' => 0
+    ));
 }
