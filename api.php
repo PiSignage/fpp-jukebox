@@ -1901,7 +1901,6 @@ function jukeboxPlayNextQueued()
             $result = jukeboxFppRequest($url);
         }
 
-<<<<<<< HEAD
         // FPP rejected the playback request.
         if (
             !$result['success'] ||
@@ -1915,16 +1914,6 @@ function jukeboxPlayNextQueued()
             array_unshift(
                 $queue,
                 $next
-=======
-        $url =
-            'http://127.0.0.1/api/command/' .
-            rawurlencode(
-                'Insert Playlist Immediate'
-            ) .
-            '/' .
-            rawurlencode(
-                $contentFile
->>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
             );
 
             jukeboxSaveQueue(
@@ -1936,13 +1925,7 @@ function jukeboxPlayNextQueued()
                     ? 'Unable to start the queued video.'
                     : 'Unable to start the queued sequence.'
             );
-    } else {
-        // Sequence content with a Background Sequence.
-        $sequenceName =
-            rawurlencode(
-                $next['sequence']
-            ) .
-            '.fseq';
+        }
 
         // Record the queued song as played
         jukeboxRecordPlay(
