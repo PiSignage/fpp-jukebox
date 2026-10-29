@@ -832,9 +832,9 @@ function jukeboxPlay()
             }
 
             /*
-        * Tell the touchscreen that the
-        * sequence has been queued.
-        */
+            * Tell the touchscreen that the
+            * sequence has been queued.
+            */
             return json(array(
                 'success' => true,
                 'queued' => true,
@@ -856,19 +856,19 @@ function jukeboxPlay()
             ?? 'sequence';
 
         /*
-    * Visitor-selected video.
-    *
-    * Videos are inserted directly using
-    * FPP's Insert Playlist Immediate command.
-    */
+        * Visitor-selected video.
+        *
+        * Videos are inserted directly using
+        * FPP's Insert Playlist Immediate command.
+        */
         if ($contentType === 'video') {
             /*
-        * If queueing is disabled and another
-        * jukebox item is currently playing,
-        * stop it before inserting the new video.
-        *
-        * Do not stop the configured background.
-        */
+            * If queueing is disabled and another
+            * jukebox item is currently playing,
+            * stop it before inserting the new video.
+            *
+            * Do not stop the configured background.
+            */
             if (
                 empty($config['queueEnabled']) &&
                 jukeboxIsPlaying() &&
@@ -894,7 +894,7 @@ function jukeboxPlay()
                     'Insert Playlist Immediate'
                 ) .
                 '/' .
-                urlencode(
+                rawurlencode(
                     $requestedSequence
                 );
 
@@ -907,21 +907,21 @@ function jukeboxPlay()
             }
         } elseif ($backgroundType === 'playlist') {
             /*
-        * Background is an FPP playlist.
-        *
-        * Use Insert Playlist Immediate so FPP
-        * temporarily interrupts the background
-        * playlist and resumes it afterwards.
-        */
+            * Background is an FPP playlist.
+            *
+            * Use Insert Playlist Immediate so FPP
+            * temporarily interrupts the background
+            * playlist and resumes it afterwards.
+            */
 
             /*
-        * If queueing is disabled and a jukebox
-        * song is currently playing, stop it before
-        * inserting the newly selected song.
-        *
-        * Do not stop anything if the background
-        * playlist itself is currently playing.
-        */
+            * If queueing is disabled and a jukebox
+            * song is currently playing, stop it before
+            * inserting the newly selected song.
+            *
+            * Do not stop anything if the background
+            * playlist itself is currently playing.
+            */
             if (
                 empty($config['queueEnabled']) &&
                 jukeboxIsPlaying() &&
@@ -958,7 +958,7 @@ function jukeboxPlay()
                     'Insert Playlist Immediate'
                 ) .
                 '/' .
-                urlencode(
+                rawurlencode(
                     $sequenceFile
                 );
 
@@ -985,7 +985,7 @@ function jukeboxPlay()
             // Encode the complete filename for the URL.
             $url =
                 'http://127.0.0.1/api/playlist/' .
-                urlencode($sequenceFile) .
+                rawurlencode($sequenceFile) .
                 '/start';
 
             $result = jukeboxFppRequest($url);
@@ -1763,12 +1763,12 @@ function jukeboxPlayNextQueued()
         $config = jukeboxLoadConfig();
 
         /*
-     * Do not start another queued song if
-     * the jukebox is no longer available.
-     *
-     * Clear anything still waiting so the
-     * Background Sequence can take over.
-     */
+        * Do not start another queued song if
+        * the jukebox is no longer available.
+        *
+        * Clear anything still waiting so the
+        * Background Sequence can take over.
+        */
         if (
             empty($config['enabled']) ||
             !jukeboxIsWithinSchedule($config)
@@ -1794,9 +1794,9 @@ function jukeboxPlayNextQueued()
         }
 
         /*
-     * Check that FPP is actually idle before
-     * starting another queued sequence.
-     */
+        * Check that FPP is actually idle before
+        * starting another queued sequence.
+        */
         if (
             jukeboxIsPlaying() &&
             !jukeboxIsBackgroundPlaying()
@@ -1813,10 +1813,10 @@ function jukeboxPlayNextQueued()
         );
 
         /*
-     * Save the queue immediately.
-     *
-     * The item has now been removed from the queue.
-     */
+        * Save the queue immediately.
+        *
+        * The item has now been removed from the queue.
+        */
         if (
             !jukeboxSaveQueue(
                 $queue
@@ -1828,10 +1828,10 @@ function jukeboxPlayNextQueued()
         }
 
         /*
-     * Determine the type of visitor-selectable
-     * content and how the Background has been
-     * configured.
-     */
+        * Determine the type of visitor-selectable
+        * content and how the Background has been
+        * configured.
+        */
         $contentType =
             $config['contentType']
             ?? 'sequence';
@@ -1841,17 +1841,16 @@ function jukeboxPlayNextQueued()
             ?? 'sequence';
 
         /*
-    * --------------------------------------------------
-    * Video Content / Background Playlist
-    * --------------------------------------------------
-    *
-    * Visitor-selected videos always use
-    * Insert Playlist Immediate.
-    *
-    * Sequences also use Insert Playlist Immediate
-    * when the Background is an FPP playlist.
-    */
-
+        * --------------------------------------------------
+        * Video Content / Background Playlist
+        * --------------------------------------------------
+        *
+        * Visitor-selected videos always use
+        * Insert Playlist Immediate.
+        *
+        * Sequences also use Insert Playlist Immediate
+        * when the Background is an FPP playlist.
+        */
         if (
             $contentType === 'video' ||
             $backgroundType === 'playlist'
@@ -1859,11 +1858,11 @@ function jukeboxPlayNextQueued()
             $contentFile = $next['sequence'];
 
             /*
-        * Sequence content requires .fseq.
-        *
-        * Video content already contains its
-        * media extension, such as .mp4.
-        */
+            * Sequence content requires .fseq.
+            *
+            * Video content already contains its
+            * media extension, such as .mp4.
+            */
             if (
                 $contentType === 'sequence' &&
                 !str_ends_with(
@@ -1880,7 +1879,7 @@ function jukeboxPlayNextQueued()
                     'Insert Playlist Immediate'
                 ) .
                 '/' .
-                urlencode(
+                rawurlencode(
                     $contentFile
                 );
 
@@ -1888,7 +1887,7 @@ function jukeboxPlayNextQueued()
         } else {
             // Sequence content with a Background Sequence.
             $sequenceName =
-                urlencode(
+                rawurlencode(
                     $next['sequence']
                 ) .
                 '.fseq';
