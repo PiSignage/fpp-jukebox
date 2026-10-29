@@ -1003,8 +1003,6 @@ function jukeboxPlay()
             3000,
             $contentType
         )) {
-<<<<<<< HEAD
-=======
             $sequenceFile .= '.fseq';
         }
 
@@ -1037,7 +1035,6 @@ function jukeboxPlay()
             );
 
         if ($response === false) {
->>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
             return jukeboxError(
                 'FPP accepted the command but playback could not be verified.'
             );
@@ -1046,12 +1043,6 @@ function jukeboxPlay()
         // Record the jukebox play
         jukeboxRecordPlay($selected['sequence']);
 
-<<<<<<< HEAD
-        return json(array(
-            'success' => true,
-            'sequence' => $selected['sequence'],
-            'title' => $selected['title']
-=======
         if (!str_ends_with(
             strtolower($sequenceFile),
             '.fseq'
@@ -1071,7 +1062,6 @@ function jukeboxPlay()
                 'timeout' => 5,
                 'ignore_errors' => true
             )
->>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
         ));
     } finally {
         // Always release the playback lock.
@@ -1946,9 +1936,6 @@ function jukeboxPlayNextQueued()
                     ? 'Unable to start the queued video.'
                     : 'Unable to start the queued sequence.'
             );
-<<<<<<< HEAD
-        }
-=======
     } else {
         // Sequence content with a Background Sequence.
         $sequenceName =
@@ -1956,7 +1943,6 @@ function jukeboxPlayNextQueued()
                 $next['sequence']
             ) .
             '.fseq';
->>>>>>> 3dda63afe64f23f1b74b17b193aa77f10002569d
 
         // Record the queued song as played
         jukeboxRecordPlay(
