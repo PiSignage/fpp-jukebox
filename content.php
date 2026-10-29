@@ -47,6 +47,10 @@ $config = array(
         'accent' => '#ffffff',
         'accentText' => '#000000',
     ],
+    "ui" => [
+        "hideClock" => false,
+        "hideAttractScreen" => false,
+    ],
     'sequences' => array(),
 );
 
@@ -330,6 +334,10 @@ if (
         'showSongProgress' => isset($_POST['showSongProgress']),
         'qrcode' => $qrcodeConfig,
         'theme' => $themeConfig,
+        'ui' => [
+            "hideClock" => isset($_POST['hideClock']),
+            "hideAttractScreen" => isset($_POST['hideAttractScreen']),
+        ],
         'sequences' => array()
     );
 
@@ -1206,6 +1214,28 @@ usort(
                     </div>
                 </div>
 
+                <!-- Hide Clock -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input
+                            class="form-check-input mr-2"
+                            type="checkbox"
+                            name="hideClock"
+                            id="hideClock"
+                            <?= !empty($config['ui']['hideClock']) ? 'checked' : '' ?>>
+
+                        <label
+                            class="form-check-label"
+                            for="jukeboxEnabled">
+                            Hide Clock
+                        </label>
+                    </div>
+
+                    <div class="form-text">
+                        Hide clock from jukebox interface.
+                    </div>
+                </div>
+
                 <!-- Clock format -->
                 <div class="form-group">
                     <label for="clockFormat">
@@ -1236,6 +1266,7 @@ usort(
                     </select>
                 </div>
 
+                <!-- Show Song Progress Bar -->
                 <div class="mb-3">
                     <div class="form-check">
                         <input
@@ -1254,6 +1285,28 @@ usort(
 
                     <div class="form-text">
                         Show progress bar and elapsed/total time.
+                    </div>
+                </div>
+
+                <!-- Hide Attract Screen -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input
+                            class="form-check-input mr-2"
+                            type="checkbox"
+                            name="hideAttractScreen"
+                            id="hideAttractScreen"
+                            <?= !empty($config['ui']['hideAttractScreen']) ? 'checked' : '' ?>>
+
+                        <label
+                            class="form-check-label"
+                            for="jukeboxEnabled">
+                            Hide Attract Screen
+                        </label>
+                    </div>
+
+                    <div class="form-text">
+                        Hide Attract Screen. this screen with show after long time on inactivity.
                     </div>
                 </div>
             </div>

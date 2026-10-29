@@ -138,6 +138,10 @@ function jukeboxDefaultConfig()
             "accent" => "#ffffff",
             "accentText" => "#000000",
         ],
+        "ui" => [
+            "hideClock" => false,
+            "hideAttractScreen" => false,
+        ],
         'sequences' => array()
     );
 }

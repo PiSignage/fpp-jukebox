@@ -34,6 +34,9 @@
         "accent": "#ffffff",
         "accentText": "#000000",
     ],
-    "inactivity": false,
+    "ui": [
+        "hideClock": false,
+        "hideAttractScreen": false,
+    ],
     "sequences": []
 }

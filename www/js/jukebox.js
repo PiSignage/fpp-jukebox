@@ -58,6 +58,9 @@ const POPULAR_BADGE_REFRESH_INTERVAL = 30000;
 
 let attractSelectionLockedUntil = 0;
 
+let uiHideClock = false;
+let uiHideAttractScreen = false;
+
 // Initialise
 document.addEventListener(
     'DOMContentLoaded',
@@ -141,13 +144,27 @@ async function loadConfiguration() {
             : '24';
     showSongProgress =
         data.config.showSongProgress === true;
+    uiHideClock =
+        data.config.ui.hideClock === true;
+    uiHideAttractScreen =
+        data.config.ui.hideAttractScreen === true;
     updateJukeboxClock();
     applyJukeboxTheme(data.config.theme);
 
-    setInterval(
-        updateJukeboxClock,
-        1000
-    );
+    // If click is not hidden
+    if (!uiHideClock) {
+        setInterval(
+            updateJukeboxClock,
+            1000
+        );
+    } else {
+        const clock =
+            document.getElementById(
+                'jukeboxClock'
+            );
+
+        clock.classList.add('d-none');
+    }
 
     return data.config.enabled !== false;
 }
@@ -2681,16 +2698,18 @@ function resetSelectionInactivityTimer() {
         SELECTION_SCROLL_TIMEOUT
     );
 
-    /*
-     * Attract screen after 120 seconds.
-     * We'll add showAttractScreen() next.
-     */
-    // selectionAttractTimer = setTimeout(
-    //     function () {
-    //         showAttractScreen();
-    //     },
-    //     SELECTION_ATTRACT_TIMEOUT
-    // );
+    if (!uiHideAttractScreen) {
+        /*
+         * Attract screen after 120 seconds.
+         * We'll add showAttractScreen() next.
+         */
+        selectionAttractTimer = setTimeout(
+            function () {
+                showAttractScreen();
+            },
+            SELECTION_ATTRACT_TIMEOUT
+        );
+    }
 }
 
 const selectionScreen =
