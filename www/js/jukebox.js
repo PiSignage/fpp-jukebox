@@ -1,10 +1,13 @@
 const API_BASE = '/api/plugin/fpp-jukebox';
 const placeholderArtwork = '/api/file/images/placeholder.jpg';
 
+let sharedStatusRequest = null;
 let lockoutSeconds = 30;
 
 let statusTimer = null;
-let countdownTimer = null;
+let playbackStatusCheckRunning = false;
+let sharedPlaybackTimer = null;
+let sharedPlaybackCheckInProgress = false;
 let availabilityTimer = null;
 const AVAILABILITY_INTERVAL = 30000;
 const RECONNECT_INTERVAL = 5000;
@@ -12,6 +15,8 @@ const RECONNECT_INTERVAL = 5000;
 let availabilityCheckRunning = false;
 let queueTimer = null;
 let lockoutRemaining = 0;
+let sharedLockoutTimer = null;
+let sharedLockoutCheckRunning = false;
 let jukeboxWasAvailable = null;
 let queueMessageTimer = null;
 
@@ -67,6 +72,46 @@ document.addEventListener(
     initialise
 );
 
+async function getJukeboxStatus() {
+    // Reuse an existing status request.
+    if (sharedStatusRequest) {
+        return sharedStatusRequest;
+    }
+
+    sharedStatusRequest = (async () => {
+        const response = await fetch(
+            API_BASE + '/status',
+            {
+                cache: 'no-store',
+                signal: AbortSignal.timeout(5000)
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Status API returned HTTP ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(
+                data.message || 'Invalid status response.'
+            );
+        }
+
+        return data;
+
+    })();
+
+    try {
+        return await sharedStatusRequest;
+    } finally {
+        sharedStatusRequest = null;
+    }
+}
+
 async function initialise() {
     try {
         const enabled = await loadConfiguration();
@@ -76,6 +121,10 @@ async function initialise() {
         } else {
             await loadSequences();
             showSelectionScreen();
+            // Watch for songs started by another tablet.
+            startSharedPlaybackMonitor();
+            // Synchronise the shared lockout.
+            startSharedLockoutMonitor();
         }
 
         // Start availability and connection monitoring.
@@ -333,10 +382,21 @@ async function playSequence(sequence) {
      * we are allowed to send the selection to the
      * API so it can be queued.
      */
+    // if (
+    //     lockoutActive &&
+    //     currentSequence === null
+    // ) {
+    //     return;
+    // }
     if (
         lockoutActive &&
-        currentSequence === null
+        !queueEnabled
     ) {
+        showError(
+            'Please wait ' + lockoutRemaining +
+            ' seconds before selecting another song.'
+        );
+
         return;
     }
 
@@ -473,7 +533,8 @@ async function playSequence(sequence) {
         );
 
         // Start the lockout as soon as playback starts
-        startLockout()
+        // Synchronise the lockout started by the server.
+        await syncSharedLockout();
 
         // The sequence has been accepted by FPP.
         // Now monitor playback.
@@ -537,38 +598,21 @@ function monitorPlayback() {
 
 // Check playback status
 async function checkPlaybackStatus() {
-    // Nothing to monitor.
-    if (currentSequence === null) {
-        clearInterval(
-            statusTimer
-        );
+    // Prevent overlapping API requests.
+    if (playbackStatusCheckRunning) {
         return;
     }
 
+    // Nothing to monitor.
+    if (currentSequence === null) {
+        clearInterval(statusTimer);
+        return;
+    }
+
+    playbackStatusCheckRunning = true;
+
     try {
-        const response =
-            await fetch(
-                API_BASE + '/status',
-                {
-                    cache: 'no-store',
-                    signal: AbortSignal.timeout(5000)
-                }
-            );
-
-        if (!response.ok) {
-            throw new Error(
-                `Status API returned HTTP ${response.status}`
-            );
-        }
-
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(
-                data.message ||
-                'Status API returned ar error.'
-            );
-        }
+        const data = await getJukeboxStatus();
 
         // Status request succeeded
         statusFailureCount = 0;
@@ -765,6 +809,8 @@ async function checkPlaybackStatus() {
         // Keep currentPlaylist unchanged.
         //
         // FPP may still be playing normally.
+    } finally {
+        playbackStatusCheckRunning = false;
     }
 }
 
@@ -859,6 +905,56 @@ async function handlePlaybackFinished() {
     }
 
     /*
+     * Another table may already have removed the next
+     * item from the shared queue and started it.
+     *
+     * An empty queue does not mean FPP is idle. Check
+     * the actual FPP playback before hiding Now Playing.
+     */
+    try {
+        const playbackState =
+            await detectInitialPlayback();
+
+        if (playbackState.type === 'idle') {
+            // The other table may still be starting the next song.
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            playbackState = await detectInitialPlayback();
+        }
+
+        if (playbackState.type === 'jukebox') {
+            console.log(
+                'Another table has already started:',
+                playbackState.sequence.title
+            );
+
+            currentSequence =
+                playbackState.sequence;
+
+            currentPlaylist =
+                playbackState.playlist;
+
+            playbackStarted = true;
+            playbackStartTime = null;
+            playingFromQueue = false;
+
+            // Keep the selection screen's Now Playing panel
+            // in sync with the song started by the other table.
+            showSelectionScreen();
+
+            // Continue monitoring the shared FPP playback.
+            monitorPlayback();
+
+            return;
+        }
+    } catch (error) {
+        console.error(
+            'Unable to recover current jukebox playback:',
+            error
+        );
+    }
+
+    /*
      * No queued sequence was started.
      *
      * We are no longer processing a song
@@ -879,112 +975,89 @@ async function handlePlaybackFinished() {
     finishLockout();
 }
 
-// Lockout
-function startLockout() {
-    clearInterval(
-        countdownTimer
-    );
-
-    lockoutActive = true;
-
-    lockoutRemaining =
-        lockoutSeconds;
-
-    /*
-     * Store when the lockout expires.
-     *
-     * This allows us to restore the remaining
-     * lockout time if the page is refreshed.
-     */
-    const lockoutExpiresAt =
-        Date.now() +
-        (lockoutSeconds * 1000);
-
-    sessionStorage.setItem(
-        'jukeboxLockoutExpiresAt',
-        lockoutExpiresAt.toString()
-    );
-
-    updatePlayingLockout(
-        lockoutRemaining
-    );
-
-    // If timeout is zero, there is no lockout.
-    if (lockoutRemaining <= 0) {
-        countdownTimer = null;
-        lockoutActive = false;
-        sessionStorage.removeItem(
-            'jukeboxLockoutExpiresAt'
-        );
-        hidePlayingLockout();
+// Get the shared lockout from the FPP server.
+async function syncSharedLockout() {
+    if (sharedLockoutCheckRunning) {
         return;
     }
 
-    /*
-     * Start the lockout countdown.
-     *
-     * We DO NOT show the lockout screen here.
-     * The guest should remain on the Now Playing screen.
-     */
-    countdownTimer =
-        setInterval(
-            function () {
+    sharedLockoutCheckRunning = true;
 
-                lockoutRemaining--;
+    try {
+        const data = await getJukeboxStatus();
 
-                // updateCountdown(
-                //     lockoutRemaining
-                // );
-                updatePlayingLockout(
-                    lockoutRemaining
+        const remaining = Math.max(
+            0,
+            Number(data.lockoutRemaining) || 0
+        );
+
+        // The server is authoritative.
+        lockoutRemaining = remaining;
+        lockoutActive = remaining > 0;
+
+        if (lockoutActive) {
+            updatePlayingLockout(remaining);
+
+        } else {
+            const playingScreen = document.getElementById(
+                'playingScreen'
+            );
+
+            const lockoutScreen = document.getElementById(
+                'lockoutScreen'
+            );
+
+            const playingScreenVisible =
+                playingScreen?.classList.contains('active') === true;
+
+            const lockoutScreenVisible =
+                lockoutScreen?.classList.contains('active') === true;
+
+            // Return to selection when the lockout has expired.
+            if (
+                playingScreenVisible ||
+                lockoutScreenVisible
+            ) {
+                console.log(
+                    'Shared lockout expired. Returning to selection.'
                 );
 
-                if (lockoutRemaining <= 0) {
+                await finishLockout();
+            }
+        }
 
-                    lockoutRemaining = 0;
+        return remaining;
 
-                    clearInterval(
-                        countdownTimer
-                    );
-
-                    countdownTimer = null;
-
-                    lockoutActive = false;
-
-                    /*
-                     * The lockout has expired,
-                     * so the stored expiry is no
-                     * longer required.
-                     */
-                    sessionStorage.removeItem(
-                        'jukeboxLockoutExpiresAt'
-                    );
-
-                    // The lockout has expired
-                    hidePlayingLockout();
-
-                    /*
-                     * If the song has already finished,
-                     * we can now return to the selection screen.
-                     */
-                    if (!playbackStarted) {
-                        finishLockout();
-                    }
-
-                    return;
-                }
-
-            },
-            1000
+    } catch (error) {
+        console.warn(
+            'Unable to synchronise shared lockout:',
+            error
         );
+
+        // Do not clear the existing lockout on failure.
+        return null;
+
+    } finally {
+        sharedLockoutCheckRunning = false;
+    }
+}
+
+// Keep both tablets synchronised.
+function startSharedLockoutMonitor() {
+    clearInterval(sharedLockoutTimer);
+
+    // Check immediately.
+    syncSharedLockout();
+
+    // Refresh from the server every second.
+    sharedLockoutTimer = setInterval(
+        syncSharedLockout,
+        1000
+    );
 }
 
 // Finish lockout
 async function finishLockout() {
-    clearInterval(
-        countdownTimer
-    );
-
     lockoutActive = false;
 
     if (!playbackStarted) {
@@ -1245,10 +1318,6 @@ function updatePlayingLockout(seconds) {
 
     container.style.display =
         'block';
-}
-
-function hidePlayingLockout() {
-    showSelectionScreen();
 }
 
 function updateSelectionNowPlaying() {
@@ -1554,10 +1623,6 @@ function handleJukeboxUnavailable() {
     // the selection/playback screen
     clearInterval(
         statusTimer
-    );
-
-    clearInterval(
-        countdownTimer
     );
 
     showDisabledScreen();
@@ -2201,7 +2266,7 @@ async function restoreInitialPlayback() {
     * Restore any lockout that was active
     * before the page was refreshed.
     */
-    restoreLockout();
+    await syncSharedLockout();
 
     /*
      * Start watching for the current sequence
@@ -2210,120 +2275,68 @@ async function restoreInitialPlayback() {
     monitorPlayback();
 }
 
-restoreInitialPlayback();
+// Monitor playback started by another tablet.
+function startSharedPlaybackMonitor() {
+    clearInterval(sharedPlaybackTimer);
 
-function restoreLockout() {
-    const storedExpiry =
-        sessionStorage.getItem(
-            'jukeboxLockoutExpiresAt'
-        );
+    sharedPlaybackTimer = setInterval(
+        async function () {
+            // Don't interfere with playback already
+            // being monitored on this tablet.
+            if (
+                currentSequence !== null ||
+                sharedPlaybackCheckInProgress
+            ) {
+                return;
+            }
 
-    // No stored lockout.
-    if (!storedExpiry) {
-        return false;
-    }
+            sharedPlaybackCheckInProgress = true;
 
-    const expiresAt =
-        parseInt(
-            storedExpiry,
-            10
-        );
+            try {
+                const state = await detectInitialPlayback();
 
-    // Invalid stored value.
-    if (isNaN(expiresAt)) {
-
-        sessionStorage.removeItem(
-            'jukeboxLockoutExpiresAt'
-        );
-
-        return false;
-    }
-
-    // Calculate how many seconds remain.
-    lockoutRemaining =
-        Math.ceil(
-            (expiresAt - Date.now()) /
-            1000
-        );
-
-    /*
-     * Lockout already expired while the
-     * page was reloading.
-     */
-    if (lockoutRemaining <= 0) {
-        lockoutRemaining = 0;
-        lockoutActive = false;
-
-        sessionStorage.removeItem(
-            'jukeboxLockoutExpiresAt'
-        );
-
-        hidePlayingLockout();
-
-        return false;
-    }
-
-    console.log(
-        'Restoring lockout:',
-        lockoutRemaining,
-        'seconds remaining'
-    );
-
-    lockoutActive = true;
-
-    updatePlayingLockout(
-        lockoutRemaining
-    );
-
-    // Make sure an old timer isn't running.
-    clearInterval(
-        countdownTimer
-    );
-
-    /*
-     * Continue counting down from the
-     * remaining time.
-     */
-    countdownTimer =
-        setInterval(
-            function () {
-                lockoutRemaining--;
-
-                updatePlayingLockout(
-                    lockoutRemaining
-                );
-
-                if (lockoutRemaining <= 0) {
-                    lockoutRemaining = 0;
-
-                    clearInterval(
-                        countdownTimer
+                // Another tablet has started a jukebox song.
+                if (
+                    currentSequence === null &&
+                    state.type === 'jukebox' &&
+                    state.sequence
+                ) {
+                    console.log(
+                        'Detected playback started by another tablet:',
+                        state.sequence.title
                     );
 
-                    countdownTimer = null;
+                    currentSequence = state.sequence;
+                    currentPlaylist = state.playlist;
 
-                    lockoutActive = false;
+                    playbackStarted = true;
+                    playbackStartTime = null;
+                    playingFromQueue = false;
 
-                    sessionStorage.removeItem(
-                        'jukeboxLockoutExpiresAt'
-                    );
+                    // Restore any existing lockout.
+                    await syncSharedLockout();
 
-                    hidePlayingLockout();
+                    // Show the shared Now Playing information.
+                    showSelectionScreen();
+                    updateSelectionNowPlaying();
 
-                    /*
-                     * If playback has also finished,
-                     * return to normal selection.
-                     */
-                    if (!playbackStarted) {
-                        finishLockout();
-                    }
+                    // Start normal playback monitoring.
+                    monitorPlayback();
                 }
-            },
-            1000
-        );
-
-    return true;
+            } catch (error) {
+                console.error(
+                    'Shared playback check failed:',
+                    error
+                );
+            } finally {
+                sharedPlaybackCheckInProgress = false;
+            }
+        },
+        2000
+    );
 }
+
+restoreInitialPlayback();
 
 function hideQueue() {
     isQueueFull = false;
